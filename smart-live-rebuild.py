@@ -118,8 +118,8 @@ class VCSSupport:
 
 class GitSupport(VCSSupport):
 	inherit = 'git'
-	reqenv = ['EGIT_BRANCH', 'EGIT_PROJECT', 'EGIT_REPO_URI', 'EGIT_STORE_DIR', 'EGIT_UPDATE_CMD']
-	optenv = ['EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS']
+	reqenv = ['EGIT_BRANCH', 'EGIT_PROJECT', 'EGIT_STORE_DIR', 'EGIT_UPDATE_CMD']
+	optenv = ['EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS', 'EGIT_REPO_URI']
 
 	def __init__(self, cpv, env):
 		VCSSupport.__init__(self, cpv, env)
@@ -130,7 +130,10 @@ class GitSupport(VCSSupport):
 		return u'%s/%s' % (self.env['EGIT_STORE_DIR'], self.env['EGIT_PROJECT'])
 
 	def __unicode__(self):
-		return self.env['EGIT_REPO_URI']
+		if self.env['EGIT_REPO_URI'] is not None:
+			return self.env['EGIT_REPO_URI']
+		else:
+			return self.cpv
 
 	def getrev(self):
 		return self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']])
