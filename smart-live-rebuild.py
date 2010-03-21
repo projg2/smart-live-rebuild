@@ -72,14 +72,49 @@ class VCSSupport:
 					for k in self.optenv:
 						self.env[k] = None
 
+	def getpath(self):
+		raise NotImplementedError('VCS class needs to override getpath()')
+
 	def append(self, vcs):
 		if not isinstance(vcs, self.__class__):
 			raise ValueError('Unable to append %s to %s' % (vcs.__class__, self.__class__))
 		self.cpv.append(vcs.cpv[0])
 
+	def getrev(self):
+		raise NotImplementedError('VCS class needs to override getrev() or update()')
+
 	@staticmethod
 	def call(cmd):
 		return subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0].split('\n')[0]
+
+	def getupdatecmd(self):
+		raise NotImplementedError('VCS class needs to override getupdatecmd(), doupdate() or update()')
+
+	def doupdate(self):
+		cmd = self.getupdatecmd()
+		out.s3(cmd)
+		ret = subprocess.Popen(cmd, shell=True).wait()
+		return (ret == 0)
+
+	def update(self):
+		out.s2(unicode(self))
+		os.chdir(self.getpath())
+
+		oldrev = self.getrev()
+		if not self.doupdate():
+			out.err('update failed')
+		else:
+			newrev = self.getrev()
+
+			if oldrev == newrev:
+				out.s3('at rev %s (not updated)' % oldrev)
+				return False
+			else:
+				out.s3('update from %s to %s' % (oldrev, newrev))
+				return True
+
+	def __unicode__(self):
+		return self.cpv
 
 class GitSupport(VCSSupport):
 	inherit = 'git'
@@ -94,20 +129,14 @@ class GitSupport(VCSSupport):
 	def getpath(self):
 		return u'%s/%s' % (self.env['EGIT_STORE_DIR'], self.env['EGIT_PROJECT'])
 
-	def update(self):
-		out.s2(self.env['EGIT_REPO_URI'])
-		os.chdir(self.getpath())
-		oldrev = self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']])
-		cmd = '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
-		out.s3(cmd)
-		subprocess.Popen(cmd, shell=True).wait()
-		newrev = self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']])
-		if oldrev == newrev:
-			out.s3('at rev %s (not updated)' % oldrev)
-			return False
-		else:
-			out.s3('update from %s to %s' % (oldrev, newrev))
-			return True
+	def __unicode__(self):
+		return self.env['EGIT_REPO_URI']
+
+	def getrev(self):
+		return self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']])
+
+	def getupdatecmd(self):
+		return '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
 
 vcsl = [GitSupport]
 
