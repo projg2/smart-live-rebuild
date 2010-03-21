@@ -4,8 +4,12 @@
 # (C) 2010 Michał Górny <gentoo@mgorny.alt.pl>
 # Released under the terms of the 3-clause BSD license
 
+PV = '0.1'
+
 import bz2, codecs, re, os, sys, subprocess
 import portage
+
+from optparse import OptionParser
 
 root = portage.settings['ROOT']
 db = portage.db[root]["vartree"].dbapi
@@ -144,6 +148,17 @@ class GitSupport(VCSSupport):
 vcsl = [GitSupport]
 
 def main(argv):
+	opt = OptionParser(
+			usage='%prog [options] -- [emerge options]',
+			version='%%prog %s' % PV,
+			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones.'
+	)
+	opt.add_option('-p', '--pretend', action='store_true', dest='pretend', default=False,
+		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
+	opt.add_option('-R', '--record', action='store_true', dest='record', default=False,
+		help='Omit passing --oneshot option to portage, and thus add updated packages to the @world set.')
+	(opts, args) = opt.parse_args(argv[1:])
+
 	out.s1('Enumerating packages ...')
 
 	for cpv in db.cpv_all():
@@ -178,10 +193,16 @@ def main(argv):
 
 	if len(packages) < 1:
 		out.s1('No updates found')
+	elif opts['pretend']:
+		out.s1('Printing list of updated packages ...')
+		for p in packages:
+			print p
 	else:
 		out.s1('Calling emerge to rebuild %d packages ...' % len(packages))
-		cmd = ['emerge', '--oneshot']
-		cmd.extend(sys.argv[1:])
+		cmd = ['emerge']
+		if not opts['record']:
+			cmd.append('--oneshot')
+		cmd.extend(args)
 		cmd.extend(['=%s' % x for x in packages])
 		out.s2(' '.join(cmd))
 		os.execv('/usr/bin/emerge', cmd)
