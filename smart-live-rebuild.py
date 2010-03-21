@@ -143,44 +143,50 @@ class GitSupport(VCSSupport):
 
 vcsl = [GitSupport]
 
-out.s1('Enumerating packages ...')
+def main(argv):
+	out.s1('Enumerating packages ...')
 
-for cpv in db.cpv_all():
-	def getenv():
-		fn = u'%s/environment.bz2' % db.getpath(cpv)
-		f = bz2.BZ2File(fn, 'r')
-		return utfdec(f.read())[0].split('\n')
+	for cpv in db.cpv_all():
+		def getenv():
+			fn = u'%s/environment.bz2' % db.getpath(cpv)
+			f = bz2.BZ2File(fn, 'r')
+			return utfdec(f.read())[0].split('\n')
 
-	try:
-		inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
+		try:
+			inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
 
-		for vcs in vcsl:
-			if vcs.match(inherits):
-				env = getenv()
-				vcs = vcs(cpv, env)
-				dir = vcs.getpath()
-				if dir not in rebuilds:
-					rebuilds[dir] = vcs
-				else:
-					rebuilds[dir].append(vcs)
-	except KeyboardInterrupt:
-		raise
-	except Exception as e:
-		out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
+			for vcs in vcsl:
+				if vcs.match(inherits):
+					env = getenv()
+					vcs = vcs(cpv, env)
+					dir = vcs.getpath()
+					if dir not in rebuilds:
+						rebuilds[dir] = vcs
+					else:
+						rebuilds[dir].append(vcs)
+		except KeyboardInterrupt:
+			raise
+		except Exception as e:
+			out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
 
-out.s1('Updating repositories ...')
-packages = []
+	out.s1('Updating repositories ...')
+	packages = []
 
-for (dir, vcs) in rebuilds.items():
-	if vcs.update():
-		packages.extend(vcs.cpv)
+	for (dir, vcs) in rebuilds.items():
+		if vcs.update():
+			packages.extend(vcs.cpv)
 
-if len(packages) < 1:
-	out.s1('No updates found')
-else:
-	out.s1('Calling emerge to rebuild %d packages ...' % len(packages))
-	cmd = ['emerge', '--oneshot']
-	cmd.extend(sys.argv[1:])
-	cmd.extend(['=%s' % x for x in packages])
-	out.s2(' '.join(cmd))
-	os.execv('/usr/bin/emerge', cmd)
+	if len(packages) < 1:
+		out.s1('No updates found')
+	else:
+		out.s1('Calling emerge to rebuild %d packages ...' % len(packages))
+		cmd = ['emerge', '--oneshot']
+		cmd.extend(sys.argv[1:])
+		cmd.extend(['=%s' % x for x in packages])
+		out.s2(' '.join(cmd))
+		os.execv('/usr/bin/emerge', cmd)
+
+	return 0
+
+if __name__ == '__main__':
+	sys.exit(main(sys.argv))
