@@ -46,20 +46,31 @@ class VCSSupport:
 
 	def __init__(self, cpv, env):
 		self.cpv = [cpv]
-		self.reqenv = list(self.reqenv) # clone it
 		self.env = {}
-		if len(self.reqenv) >= 1:
+		# clone both
+		self.reqenv = list(self.reqenv)
+		self.optenv = list(self.optenv)
+
+		if len(self.reqenv) + len(self.optenv) >= 1:
 			for l in env:
 				m = declre.match(l)
-				if m is not None and m.group(1) in self.reqenv:
-					self.env[m.group(1)] = m.group(2)
-					self.reqenv.remove(m.group(1))
-					if len(self.reqenv) < 1:
-						break
+				if m is not None:
+					k = m.group(1)
+					inreq = (k in self.reqenv)
+					if inreq or k in self.optenv:
+						self.env[k] = m.group(2)
+						if inreq:
+							self.reqenv.remove(k)
+						else:
+							self.optenv.remove(k)
+						if len(self.reqenv) + len(self.optenv) < 1:
+							break
 			else:
-				raise KeyError('Environment does not declare: %s' % self.reqenv)
-		if self.env['EGIT_HAS_SUBMODULES'] == 'true':
-			raise NotImplementedError('Submodules are not supported')
+				if len(self.reqenv) >= 1:
+					raise KeyError('Environment does not declare: %s' % self.reqenv)
+				else:
+					for k in self.optenv:
+						self.env[k] = None
 
 	def append(self, vcs):
 		if not isinstance(vcs, self.__class__):
@@ -72,7 +83,13 @@ class VCSSupport:
 
 class GitSupport(VCSSupport):
 	inherit = 'git'
-	reqenv = ['EGIT_STORE_DIR', 'EGIT_PROJECT', 'EGIT_UPDATE_CMD', 'EGIT_OPTIONS', 'EGIT_BRANCH', 'EGIT_HAS_SUBMODULES', 'EGIT_REPO_URI']
+	reqenv = ['EGIT_BRANCH', 'EGIT_PROJECT', 'EGIT_REPO_URI', 'EGIT_STORE_DIR', 'EGIT_UPDATE_CMD']
+	optenv = ['EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS']
+
+	def __init__(self, cpv, env):
+		VCSSupport.__init__(self, cpv, env)
+		if self.env['EGIT_HAS_SUBMODULES'] == 'true':
+			raise NotImplementedError('Submodules are not supported')
 
 	def getpath(self):
 		return u'%s/%s' % (self.env['EGIT_STORE_DIR'], self.env['EGIT_PROJECT'])
