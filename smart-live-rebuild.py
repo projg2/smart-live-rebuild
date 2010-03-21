@@ -163,6 +163,8 @@ for cpv in db.cpv_all():
 					rebuilds[dir] = vcs
 				else:
 					rebuilds[dir].append(vcs)
+	except KeyboardInterrupt:
+		raise
 	except Exception as e:
 		out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
 
