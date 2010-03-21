@@ -26,6 +26,10 @@ class out:
 	def s3(self, msg):
 		self.out('--> %s\n' % msg)
 
+	@classmethod
+	def err(self, msg):
+		self.out('!!! %s\n' % msg)
+
 	@staticmethod
 	def out(msg):
 		sys.stderr.write(msg)
@@ -98,17 +102,20 @@ for cpv in db.cpv_all():
 		f = bz2.BZ2File(fn, 'r')
 		return utfdec(f.read())[0].split('\n')
 
-	inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
+	try:
+		inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
 
-	for vcs in vcsl:
-		if vcs.match(inherits):
-			env = getenv()
-			vcs = vcs(cpv, env)
-			dir = vcs.getpath()
-			if dir not in rebuilds:
-				rebuilds[dir] = vcs
-			else:
-				rebuilds[dir].append(vcs)
+		for vcs in vcsl:
+			if vcs.match(inherits):
+				env = getenv()
+				vcs = vcs(cpv, env)
+				dir = vcs.getpath()
+				if dir not in rebuilds:
+					rebuilds[dir] = vcs
+				else:
+					rebuilds[dir].append(vcs)
+	except Exception as e:
+		out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
 
 out.s1('Updating repositories ...')
 packages = []
