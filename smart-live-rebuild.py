@@ -111,7 +111,7 @@ class VCSSupport:
 
 	@staticmethod
 	def call(cmd):
-		return subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0].split('\n')[0]
+		return subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0]
 
 	def getupdatecmd(self):
 		raise NotImplementedError('VCS class needs to override getupdatecmd(), doupdate() or update()')
@@ -162,12 +162,49 @@ class GitSupport(VCSSupport):
 			return self.cpv
 
 	def getrev(self):
-		return self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']])
+		return self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']]).split('\n')[0]
 
 	def getupdatecmd(self):
 		return '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
 
-vcsl = [GitSupport]
+class SvnSupport(VCSSupport):
+	inherit = 'subversion'
+	reqenv = ['ESVN_STORE_DIR', 'ESVN_UPDATE_CMD', 'ESVN_WC_PATH']
+	optenv = ['ESVN_REVISION', 'ESVN_OPTIONS', 'ESVN_PASSWORD', 'ESVN_REPO_URI', 'ESVN_USER']
+
+	revre = re.compile('(?m)^Revision: (\d+)$')
+
+	def __init__(self, cpv, env):
+		VCSSupport.__init__(self, cpv, env)
+		if self.env['ESVN_REPO_URI'] and self.env['ESVN_REPO_URI'].find('@') != -1:
+			raise Exception('ESVN_REPO_URI specifies revision, package is not really live one')
+		if self.env['ESVN_REVISION']:
+			raise Exception('ESVN_REVISION set, package is not really live one')
+
+	def getpath(self):
+		return self.env['ESVN_WC_PATH']
+
+	def __unicode__(self):
+		if self.env['ESVN_REPO_URI'] is not None:
+			return self.env['ESVN_REPO_URI']
+		else:
+			return self.cpv
+
+	def getrev(self):
+		svninfo = self.call(['svn', 'info'])
+		m = self.revre.search(svninfo)
+		if m is not None:
+			return m.group(1)
+		else:
+			return None
+
+	def getupdatecmd(self):
+		cmd = '%s %s --config-dir %s/.subversion' % (self.env['ESVN_UPDATE_CMD'], self.env['ESVN_OPTIONS'], self.env['ESVN_STORE_DIR'])
+		if self.env['ESVN_USER']:
+			cmd += ' --user "%s" --password "%s"' % (self.env['ESVN_USER'], self.env['ESVN_PASSWORD'])
+		return cmd
+
+vcsl = [GitSupport, SvnSupport]
 
 def main(argv):
 	opt = OptionParser(
