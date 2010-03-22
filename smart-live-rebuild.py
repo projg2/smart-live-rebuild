@@ -220,17 +220,17 @@ def main(argv):
 			version='%%prog %s' % PV,
 			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones. Supported VCS-es: %s.' % ', '.join([x.vcsname() for x in vcsl])
 	)
-	opt.add_option('-C', '--no-color', action='store_false', dest='color', default=True,
-		help='Disable colorful output')
+	opt.add_option('-C', '--no-color', action='store_true', dest='monochrome', default=False,
+		help='Disable colorful output.')
 	opt.add_option('-O', '--no-offline', action='store_false', dest='offline', default=True,
 		help='Disable setting ESCM_OFFLINE for emerge.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend', default=False,
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
-	opt.add_option('-R', '--record', action='store_true', dest='record', default=False,
+	opt.add_option('-R', '--record', action='store_false', dest='oneshot', default=True,
 		help='Omit passing --oneshot option to portage, and thus add updated packages to the @world set.')
 	(opts, args) = opt.parse_args(argv[1:])
 
-	if not opts.color:
+	if opts.monochrome:
 		out.monochromize()
 
 	out.s1('Enumerating packages ...')
@@ -276,7 +276,7 @@ def main(argv):
 		if opts.offline:
 			os.putenv('ESCM_OFFLINE', 'true')
 		cmd = ['emerge']
-		if not opts.record:
+		if opts.oneshot:
 			cmd.append('--oneshot')
 		cmd.extend(args)
 		cmd.extend(['=%s' % x for x in packages])
