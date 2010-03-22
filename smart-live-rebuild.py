@@ -222,6 +222,8 @@ def main(argv):
 	)
 	opt.add_option('-C', '--no-color', action='store_false', dest='color', default=True,
 		help='Disable colorful output')
+	opt.add_option('-O', '--no-offline', action='store_false', dest='offline', default=True,
+		help='Disable setting ESCM_OFFLINE for emerge.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend', default=False,
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
 	opt.add_option('-R', '--record', action='store_true', dest='record', default=False,
@@ -271,6 +273,8 @@ def main(argv):
 			print p
 	else:
 		out.s1('Calling emerge to rebuild %s%d%s packages ...' % (out.white, len(packages), out.s1reset))
+		if opts.offline:
+			os.putenv('ESCM_OFFLINE', 'true')
 		cmd = ['emerge']
 		if not opts.record:
 			cmd.append('--oneshot')
