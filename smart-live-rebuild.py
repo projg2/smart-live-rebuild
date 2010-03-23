@@ -6,7 +6,7 @@
 
 PV = '0.1'
 
-import bz2, codecs, re, os, sys, subprocess
+import bz2, codecs, re, os, sys, subprocess, tempfile
 import portage
 
 from optparse import OptionParser
@@ -64,39 +64,33 @@ class VCSSupport:
 	inherit = None
 	reqenv = []
 
+	envtmpf = tempfile.NamedTemporaryFile()
+
 	@classmethod
 	def match(self, inherits):
 		if self.inherit is None:
 			raise NotImplementedError('VCS class needs to either override inherit or match()')
 		return (self.inherit in inherits)
 
-	def __init__(self, cpv, env):
-		self.cpv = [cpv]
-		self.env = {}
-		# clone both
-		self.reqenv = list(self.reqenv)
-		self.optenv = list(self.optenv)
+	def bashparse(self, envf, vars):
+		f = self.envtmpf
+		f.seek(0, 0)
+		f.truncate(0)
+		f.write(envf.read())
+		f.flush()
 
-		if len(self.reqenv) + len(self.optenv) >= 1:
-			for l in env:
-				m = declre.match(l)
-				if m is not None:
-					k = m.group(1)
-					inreq = (k in self.reqenv)
-					if inreq or k in self.optenv:
-						self.env[k] = m.group(2)
-						if inreq:
-							self.reqenv.remove(k)
-						else:
-							self.optenv.remove(k)
-						if len(self.reqenv) + len(self.optenv) < 1:
-							break
-			else:
-				if len(self.reqenv) >= 1:
-					raise KeyError('Environment does not declare: %s' % self.reqenv)
-				else:
-					for k in self.optenv:
-						self.env[k] = None
+		script = 'source "%s"||exit 1;%s' % (f.name,
+			';echo -ne "\\0";'.join(['echo -n "${%s}"' % x for x in vars]))
+
+		return dict(zip(vars, self.call(['bash', '-c', script]).split('\0')))
+
+	def __init__(self, cpv, envf):
+		self.cpv = [cpv]
+		self.env = self.bashparse(envf, self.reqenv + self.optenv)
+
+		missingvars = filter(lambda v: self.env[v] == '', self.reqenv)
+		if len(missingvars) > 0:
+			raise KeyError('Environment does not declare: %s' % self.reqenv)
 
 	def getpath(self):
 		raise NotImplementedError('VCS class needs to override getpath()')
@@ -284,18 +278,14 @@ the --unprivileged-user option.
 	out.s1('Enumerating packages ...')
 
 	for cpv in db.cpv_all():
-		def getenv():
-			fn = u'%s/environment.bz2' % db.getpath(cpv)
-			f = bz2.BZ2File(fn, 'r')
-			return utfdec(f.read())[0].split('\n')
-
 		try:
 			inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
 
 			for vcs in vcslf:
 				if vcs.match(inherits):
-					env = getenv()
+					env = bz2.BZ2File(u'%s/environment.bz2' % db.getpath(cpv), 'r')
 					vcs = vcs(cpv, env)
+					env.close()
 					dir = vcs.getpath()
 					if dir not in rebuilds:
 						rebuilds[dir] = vcs
