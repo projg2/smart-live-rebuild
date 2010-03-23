@@ -15,7 +15,7 @@ root = portage.settings['ROOT']
 db = portage.db[root]["vartree"].dbapi
 
 utfdec = codecs.getdecoder('utf8')
-declre = re.compile('^declare -[-x] ([A-Z_]+)="(.*)"$')
+declre = re.compile('^(?:declare -[-x] )?([A-Z_]+)="(.*)"$')
 
 rebuilds = {}
 
