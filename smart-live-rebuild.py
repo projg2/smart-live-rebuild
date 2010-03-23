@@ -122,6 +122,9 @@ class VCSSupport:
 		ret = subprocess.Popen(cmd, shell=True).wait()
 		return (ret == 0)
 
+	def diffstat(self, oldrev, newrev):
+		pass
+
 	def update(self):
 		out.s2(unicode(self))
 		os.chdir(self.getpath())
@@ -136,6 +139,7 @@ class VCSSupport:
 				out.s3('at rev %s%s%s (no changes)' % (out.green, oldrev, out.reset))
 				return False
 			else:
+				self.diffstat(oldrev, newrev)
 				out.s3('update from %s%s%s to %s%s%s' % (out.green, oldrev, out.reset, out.lime, newrev, out.reset))
 				return True
 
@@ -145,7 +149,7 @@ class VCSSupport:
 class GitSupport(VCSSupport):
 	inherit = 'git'
 	reqenv = ['EGIT_BRANCH', 'EGIT_PROJECT', 'EGIT_STORE_DIR', 'EGIT_UPDATE_CMD']
-	optenv = ['EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS', 'EGIT_REPO_URI']
+	optenv = ['EGIT_DIFFSTAT_CMD', 'EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS', 'EGIT_REPO_URI']
 
 	def __init__(self, cpv, env):
 		VCSSupport.__init__(self, cpv, env)
@@ -166,6 +170,9 @@ class GitSupport(VCSSupport):
 
 	def getupdatecmd(self):
 		return '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
+
+	def diffstat(self, oldrev, newrev):
+		subprocess.Popen('%s %s..%s' % (self.env['EGIT_DIFFSTAT_CMD'] or 'git diff', oldrev, newrev), shell=True).wait()
 
 class HgSupport(VCSSupport):
 	inherit = 'mercurial'
@@ -198,6 +205,9 @@ class HgSupport(VCSSupport):
 		# but it complains about not trusting portage:portage, and we really
 		# don't want to enforce user to 'su' before calling us
 		return '%s %s' % (self.env['EHG_PULL_CMD'], self.env['EHG_REPO_URI'])
+
+	def diffstat(self, oldrev, newrev):
+		subprocess.Popen('hg diff --stat -r %s -r %s' % (oldrev, newrev), shell=True).wait()
 
 class SvnSupport(VCSSupport):
 	inherit = 'subversion'
