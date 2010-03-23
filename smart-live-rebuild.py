@@ -6,16 +6,13 @@
 
 PV = '0.1'
 
-import bz2, codecs, re, os, sys, subprocess, tempfile
+import bz2, re, os, sys, subprocess, tempfile
 import portage
 
 from optparse import OptionParser
 
 root = portage.settings['ROOT']
 db = portage.db[root]["vartree"].dbapi
-
-utfdec = codecs.getdecoder('utf8')
-declre = re.compile('^(?:declare -[-x] )?([A-Z_]+)="(.*)"$')
 
 rebuilds = {}
 
