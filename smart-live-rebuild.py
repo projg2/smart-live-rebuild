@@ -161,10 +161,6 @@ class GitSupport(VCSSupport):
 		else:
 			return self.cpv
 
-	@staticmethod
-	def vcsname():
-		return 'GIT'
-
 	def getrev(self):
 		return self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']]).split('\n')[0]
 
@@ -193,10 +189,6 @@ class HgSupport(VCSSupport):
 			return self.env['EHG_REPO_URI']
 		else:
 			return self.cpv
-
-	@staticmethod
-	def vcsname():
-		return 'mercurial'
 
 	def getrev(self):
 		return self.call(['hg', 'tip', '--template', '{node}'])
@@ -230,10 +222,6 @@ class SvnSupport(VCSSupport):
 		else:
 			return self.cpv
 
-	@staticmethod
-	def vcsname():
-		return 'subversion'
-
 	def getrev(self):
 		svninfo = self.call(['svn', 'info'])
 		m = self.revre.search(svninfo)
@@ -254,7 +242,7 @@ def main(argv):
 	opt = OptionParser(
 			usage='%prog [options] -- [emerge options]',
 			version='%%prog %s' % PV,
-			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones. Supported VCS-es: %s.' % ', '.join([x.vcsname() for x in vcsl])
+			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones. Supported VCS-es: %s.' % ', '.join([x.inherit for x in vcsl])
 	)
 	opt.add_option('-C', '--no-color', action='store_true', dest='monochrome', default=False,
 		help='Disable colorful output.')
