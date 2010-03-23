@@ -262,10 +262,20 @@ def main(argv):
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
 	opt.add_option('-t', '--type', action='append', type='choice', choices=vcsnames, dest='types',
 		help='Limit rebuild to packages using specific VCS. If used multiple times, all specified VCS-es will be used.')
+	opt.add_option('-U', '--unprivileged-user', action='store_false', dest='reqroot', default=True,
+		help='Allow running as an unprivileged user.')
 	(opts, args) = opt.parse_args(argv[1:])
 
 	if opts.monochrome:
 		out.monochromize()
+	if opts.reqroot and os.geteuid() != 0:
+		out.err('Root privileges are required to run %s!' % argv[0])
+		out.out('''This requirement is enforced to avoid trying to update repositories
+without required filesystem access. If you do have such access
+and want to run %s anyway, please pass
+the --unprivileged-user option.
+''' % argv[0])
+		return 1
 	if opts.types:
 		vcslf = filter(lambda x: x.inherit in opts.types, vcsl)
 	else:
