@@ -310,8 +310,14 @@ the --unprivileged-user option.
 	packages = []
 
 	for (dir, vcs) in rebuilds.items():
-		if vcs.update():
-			packages.extend(vcs.cpv)
+		try:
+			if vcs.update():
+				packages.extend(vcs.cpv)
+		except KeyboardInterrupt:
+			out.err('Updates interrupted, proceeding with already updated repos.')
+			break
+		except Exception as e:
+			out.err('Error updating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
 
 	if len(packages) < 1:
 		out.s1('No updates found')
