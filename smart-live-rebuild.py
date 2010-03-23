@@ -171,6 +171,42 @@ class GitSupport(VCSSupport):
 	def getupdatecmd(self):
 		return '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
 
+class HgSupport(VCSSupport):
+	inherit = 'mercurial'
+	reqenv = ['EHG_PROJECT', 'EHG_PULL_CMD', 'EHG_REPO_URI']
+	optenv = ['EHG_REVISION']
+
+	def __init__(self, cpv, env):
+		VCSSupport.__init__(self, cpv, env)
+		if self.env['EHG_REVISION'] and self.env['EHG_REVISION'] != 'tip':
+			raise Exception('EHG_REVISION set, package is not really live one')
+
+	def getpath(self):
+		dd = portage.settings['PORTAGE_ACTUAL_DISTDIR'] or portage.settings['DISTDIR']
+		bn = os.path.basename(self.env['EHG_REPO_URI']) or os.path.basename(os.path.dirname(self.env['EHG_REPO_URI']))
+		assert (bn != '')
+
+		return '%s/hg-src/%s/%s' % (dd, self.env['EHG_PROJECT'], bn)
+
+	def __unicode__(self):
+		if self.env['EHG_REPO_URI'] is not None:
+			return self.env['EHG_REPO_URI']
+		else:
+			return self.cpv
+
+	@staticmethod
+	def vcsname():
+		return 'mercurial'
+
+	def getrev(self):
+		return self.call(['hg', 'tip', '--template', '{node}'])
+
+	def getupdatecmd(self):
+		# in fact, we should get that from hgrc or rather hg should get it itself
+		# but it complains about not trusting portage:portage, and we really
+		# don't want to enforce user to 'su' before calling us
+		return '%s %s' % (self.env['EHG_PULL_CMD'], self.env['EHG_REPO_URI'])
+
 class SvnSupport(VCSSupport):
 	inherit = 'subversion'
 	reqenv = ['ESVN_STORE_DIR', 'ESVN_UPDATE_CMD', 'ESVN_WC_PATH']
@@ -212,7 +248,7 @@ class SvnSupport(VCSSupport):
 			cmd += ' --user "%s" --password "%s"' % (self.env['ESVN_USER'], self.env['ESVN_PASSWORD'])
 		return cmd
 
-vcsl = [GitSupport, SvnSupport]
+vcsl = [GitSupport, HgSupport, SvnSupport]
 
 def main(argv):
 	opt = OptionParser(
