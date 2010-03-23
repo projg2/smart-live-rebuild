@@ -6,13 +6,10 @@
 
 PV = '0.1'
 
-import bz2, re, os, sys, subprocess, tempfile
+import bz2, os, re, subprocess, sys, tempfile
 import portage
 
 from optparse import OptionParser
-
-root = portage.settings['ROOT']
-db = portage.db[root]["vartree"].dbapi
 
 rebuilds = {}
 
@@ -60,6 +57,7 @@ class out:
 class VCSSupport:
 	inherit = None
 	reqenv = []
+	optenv = []
 
 	envtmpf = tempfile.NamedTemporaryFile()
 
@@ -67,7 +65,7 @@ class VCSSupport:
 	def match(self, inherits):
 		if self.inherit is None:
 			raise NotImplementedError('VCS class needs to either override inherit or match()')
-		return (self.inherit in inherits)
+		return self.inherit in inherits
 
 	def bashparse(self, envf, vars):
 		f = self.envtmpf
@@ -111,7 +109,7 @@ class VCSSupport:
 		cmd = self.getupdatecmd()
 		out.s3(cmd)
 		ret = subprocess.Popen(cmd, shell=True).wait()
-		return (ret == 0)
+		return ret == 0
 
 	def diffstat(self, oldrev, newrev):
 		pass
@@ -151,10 +149,7 @@ class GitSupport(VCSSupport):
 		return u'%s/%s' % (self.env['EGIT_STORE_DIR'], self.env['EGIT_PROJECT'])
 
 	def __unicode__(self):
-		if self.env['EGIT_REPO_URI'] is not None:
-			return self.env['EGIT_REPO_URI']
-		else:
-			return self.cpv
+		return self.env['EGIT_REPO_URI'] or self.cpv
 
 	def getrev(self):
 		return self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']]).split('\n')[0]
@@ -185,10 +180,7 @@ class HgSupport(VCSSupport):
 		return '%s/hg-src/%s/%s' % (dd, self.env['EHG_PROJECT'], bn)
 
 	def __unicode__(self):
-		if self.env['EHG_REPO_URI'] is not None:
-			return self.env['EHG_REPO_URI']
-		else:
-			return self.cpv
+		return self.env['EHG_REPO_URI'] or self.cpv
 
 	def getrev(self):
 		return self.call(['hg', 'tip', '--template', '{node}'] + self.trustopt)
@@ -210,25 +202,19 @@ class SvnSupport(VCSSupport):
 		VCSSupport.__init__(self, cpv, env)
 		if self.env['ESVN_REPO_URI'] and self.env['ESVN_REPO_URI'].find('@') != -1:
 			raise Exception('ESVN_REPO_URI specifies revision, package is not really live one')
-		if self.env['ESVN_REVISION']:
+		elif self.env['ESVN_REVISION']:
 			raise Exception('ESVN_REVISION set, package is not really live one')
 
 	def getpath(self):
 		return self.env['ESVN_WC_PATH']
 
 	def __unicode__(self):
-		if self.env['ESVN_REPO_URI'] is not None:
-			return self.env['ESVN_REPO_URI']
-		else:
-			return self.cpv
+		return self.env['ESVN_REPO_URI'] or self.cpv
 
 	def getrev(self):
 		svninfo = self.call(['svn', 'info'])
 		m = self.revre.search(svninfo)
-		if m is not None:
-			return m.group(1)
-		else:
-			return None
+		return m.group(1) if m is not None else None
 
 	def getupdatecmd(self):
 		cmd = '%s %s --config-dir %s/.subversion' % (self.env['ESVN_UPDATE_CMD'], self.env['ESVN_OPTIONS'], self.env['ESVN_STORE_DIR'])
@@ -274,6 +260,7 @@ the --unprivileged-user option.
 
 	out.s1('Enumerating packages ...')
 
+	db = portage.db[portage.settings['ROOT']]['vartree'].dbapi
 	for cpv in db.cpv_all():
 		try:
 			inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
