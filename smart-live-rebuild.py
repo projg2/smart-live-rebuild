@@ -179,6 +179,8 @@ class HgSupport(VCSSupport):
 	reqenv = ['EHG_PROJECT', 'EHG_PULL_CMD', 'EHG_REPO_URI']
 	optenv = ['EHG_REVISION']
 
+	trustopt = ['--config', 'trusted.users=portage']
+
 	def __init__(self, cpv, env):
 		VCSSupport.__init__(self, cpv, env)
 		if self.env['EHG_REVISION'] and self.env['EHG_REVISION'] != 'tip':
@@ -198,16 +200,13 @@ class HgSupport(VCSSupport):
 			return self.cpv
 
 	def getrev(self):
-		return self.call(['hg', 'tip', '--template', '{node}'])
+		return self.call(['hg', 'tip', '--template', '{node}'] + self.trustopt)
 
 	def getupdatecmd(self):
-		# in fact, we should get that from hgrc or rather hg should get it itself
-		# but it complains about not trusting portage:portage, and we really
-		# don't want to enforce user to 'su' before calling us
-		return '%s %s' % (self.env['EHG_PULL_CMD'], self.env['EHG_REPO_URI'])
+		return ' '.join([self.env['EHG_PULL_CMD']] + self.trustopt)
 
 	def diffstat(self, oldrev, newrev):
-		subprocess.Popen('hg diff --stat -r %s -r %s' % (oldrev, newrev), shell=True).wait()
+		subprocess.Popen(['hg', 'diff', '--stat', '-r', oldrev, '-r', newrev] + self.trustopt).wait()
 
 class SvnSupport(VCSSupport):
 	inherit = 'subversion'
