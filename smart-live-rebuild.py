@@ -239,10 +239,11 @@ class SvnSupport(VCSSupport):
 vcsl = [GitSupport, HgSupport, SvnSupport]
 
 def main(argv):
+	vcsnames = [x.inherit for x in vcsl]
 	opt = OptionParser(
 			usage='%prog [options] -- [emerge options]',
 			version='%%prog %s' % PV,
-			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones. Supported VCS-es: %s.' % ', '.join([x.inherit for x in vcsl])
+			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones. Supported VCS-es: %s.' % ', '.join(vcsnames)
 	)
 	opt.add_option('-C', '--no-color', action='store_true', dest='monochrome', default=False,
 		help='Disable colorful output.')
@@ -252,10 +253,16 @@ def main(argv):
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
 	opt.add_option('-R', '--record', action='store_false', dest='oneshot', default=True,
 		help='Omit passing --oneshot option to portage, and thus add updated packages to the @world set.')
+	opt.add_option('-t', '--type', action='append', type='choice', choices=vcsnames, dest='types',
+		help='Limit rebuild to packages using specific VCS. If used multiple times, all specified VCS-es will be used.')
 	(opts, args) = opt.parse_args(argv[1:])
 
 	if opts.monochrome:
 		out.monochromize()
+	if opts.types:
+		vcslf = filter(lambda x: x.inherit in opts.types, vcsl)
+	else:
+		vcslf = vcsl
 
 	out.s1('Enumerating packages ...')
 
@@ -268,7 +275,7 @@ def main(argv):
 		try:
 			inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
 
-			for vcs in vcsl:
+			for vcs in vcslf:
 				if vcs.match(inherits):
 					env = getenv()
 					vcs = vcs(cpv, env)
