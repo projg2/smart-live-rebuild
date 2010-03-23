@@ -260,8 +260,6 @@ def main(argv):
 		help='Disable setting ESCM_OFFLINE for emerge.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend', default=False,
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
-	opt.add_option('-R', '--record', action='store_false', dest='oneshot', default=True,
-		help='Omit passing --oneshot option to portage, and thus add updated packages to the @world set.')
 	opt.add_option('-t', '--type', action='append', type='choice', choices=vcsnames, dest='types',
 		help='Limit rebuild to packages using specific VCS. If used multiple times, all specified VCS-es will be used.')
 	(opts, args) = opt.parse_args(argv[1:])
@@ -315,9 +313,7 @@ def main(argv):
 		out.s1('Calling emerge to rebuild %s%d%s packages ...' % (out.white, len(packages), out.s1reset))
 		if opts.offline:
 			os.putenv('ESCM_OFFLINE', 'true')
-		cmd = ['emerge']
-		if opts.oneshot:
-			cmd.append('--oneshot')
+		cmd = ['emerge', '--oneshot']
 		cmd.extend(args)
 		cmd.extend(['=%s' % x for x in packages])
 		out.s2(' '.join(cmd))
