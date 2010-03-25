@@ -105,7 +105,7 @@ class VCSSupport:
 			raise ValueError('Unable to append %s to %s' % (vcs.__class__, self.__class__))
 		self.cpv.append(vcs.cpv[0])
 
-	def getrev(self):
+	def getrev(self, localrev = True):
 		raise NotImplementedError('VCS class needs to override getrev() or update()')
 
 	@staticmethod
@@ -128,7 +128,7 @@ class VCSSupport:
 		out.s2(unicode(self))
 		os.chdir(self.getpath())
 
-		oldrev = self.getrev()
+		oldrev = self.getrev(Shared.opts.localrev)
 		if not self.doupdate():
 			out.err('update failed')
 		else:
@@ -148,7 +148,7 @@ class VCSSupport:
 class GitSupport(VCSSupport):
 	inherit = 'git'
 	reqenv = ['EGIT_BRANCH', 'EGIT_PROJECT', 'EGIT_STORE_DIR', 'EGIT_UPDATE_CMD']
-	optenv = ['EGIT_DIFFSTAT_CMD', 'EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS', 'EGIT_REPO_URI']
+	optenv = ['EGIT_DIFFSTAT_CMD', 'EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS', 'EGIT_REPO_URI', 'EGIT_VERSION']
 
 	def __init__(self, cpv, env):
 		VCSSupport.__init__(self, cpv, env)
@@ -161,8 +161,11 @@ class GitSupport(VCSSupport):
 	def __unicode__(self):
 		return self.env['EGIT_REPO_URI'] or self.cpv
 
-	def getrev(self):
-		return self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']]).split('\n')[0]
+	def getrev(self, localrev = True):
+		if localrev or self.env['EGIT_VERSION'] == '':
+			return self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']]).split('\n')[0]
+		else:
+			return self.env['EGIT_VERSION']
 
 	def getupdatecmd(self):
 		return '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
@@ -192,7 +195,7 @@ class HgSupport(VCSSupport):
 	def __unicode__(self):
 		return self.env['EHG_REPO_URI'] or self.cpv
 
-	def getrev(self):
+	def getrev(self, localrev = True):
 		return self.call(['hg', 'tip', '--template', '{node}'] + self.trustopt)
 
 	def getupdatecmd(self):
@@ -221,7 +224,7 @@ class SvnSupport(VCSSupport):
 	def __unicode__(self):
 		return self.env['ESVN_REPO_URI'] or self.cpv
 
-	def getrev(self):
+	def getrev(self, localrev = True):
 		svninfo = self.call(['svn', 'info'])
 		m = self.revre.search(svninfo)
 		return m.group(1) if m is not None else None
@@ -243,6 +246,8 @@ def main(argv):
 	)
 	opt.add_option('-C', '--no-color', action='store_true', dest='monochrome', default=False,
 		help='Disable colorful output.')
+	opt.add_option('-l', '--local-rev', action='store_true', dest='localrev', default=False,
+		help='Force determining the current package revision from the repository instead of using the one saved by portage.')
 	opt.add_option('-O', '--no-offline', action='store_false', dest='offline', default=True,
 		help='Disable setting ESCM_OFFLINE for emerge.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend', default=False,
