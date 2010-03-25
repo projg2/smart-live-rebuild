@@ -276,10 +276,12 @@ the --unprivileged-user option.
 					else:
 						rebuilds[dir].append(vcs)
 		except KeyboardInterrupt:
+			VCSSupport.envtmpf.close()
 			raise
 		except Exception as e:
 			out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
 
+	VCSSupport.envtmpf.close()
 	out.s1('Updating repositories ...')
 	packages = []
 
