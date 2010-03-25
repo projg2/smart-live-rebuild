@@ -54,12 +54,22 @@ class out:
 	def out(msg):
 		sys.stderr.write(msg)
 
+class Shared:
+	envtmpf = None
+	opts = None
+
+	@classmethod
+	def opentmp(self):
+		self.envtmpf = tempfile.NamedTemporaryFile()
+
+	@classmethod
+	def closetmp(self):
+		self.envtmpf.close()
+
 class VCSSupport:
 	inherit = None
 	reqenv = []
 	optenv = []
-
-	envtmpf = tempfile.NamedTemporaryFile()
 
 	@classmethod
 	def match(self, inherits):
@@ -68,7 +78,7 @@ class VCSSupport:
 		return self.inherit in inherits
 
 	def bashparse(self, envf, vars):
-		f = self.envtmpf
+		f = Shared.envtmpf
 		f.seek(0, 0)
 		f.truncate(0)
 		f.write(envf.read())
@@ -242,6 +252,7 @@ def main(argv):
 	opt.add_option('-U', '--unprivileged-user', action='store_false', dest='reqroot', default=True,
 		help='Allow running as an unprivileged user.')
 	(opts, args) = opt.parse_args(argv[1:])
+	Shared.opts = opts
 
 	if opts.monochrome:
 		out.monochromize()
@@ -260,28 +271,30 @@ the --unprivileged-user option.
 
 	out.s1('Enumerating packages ...')
 
-	db = portage.db[portage.settings['ROOT']]['vartree'].dbapi
-	for cpv in db.cpv_all():
-		try:
-			inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
+	Shared.opentmp()
+	try:
+		db = portage.db[portage.settings['ROOT']]['vartree'].dbapi
+		for cpv in db.cpv_all():
+			try:
+				inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
 
-			for vcs in vcslf:
-				if vcs.match(inherits):
-					env = bz2.BZ2File(u'%s/environment.bz2' % db.getpath(cpv), 'r')
-					vcs = vcs(cpv, env)
-					env.close()
-					dir = vcs.getpath()
-					if dir not in rebuilds:
-						rebuilds[dir] = vcs
-					else:
-						rebuilds[dir].append(vcs)
-		except KeyboardInterrupt:
-			VCSSupport.envtmpf.close()
-			raise
-		except Exception as e:
-			out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
+				for vcs in vcslf:
+					if vcs.match(inherits):
+						env = bz2.BZ2File(u'%s/environment.bz2' % db.getpath(cpv), 'r')
+						vcs = vcs(cpv, env)
+						env.close()
+						dir = vcs.getpath()
+						if dir not in rebuilds:
+							rebuilds[dir] = vcs
+						else:
+							rebuilds[dir].append(vcs)
+			except KeyboardInterrupt:
+				raise
+			except Exception as e:
+				out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
+	finally:
+		Shared.closetmp()
 
-	VCSSupport.envtmpf.close()
 	out.s1('Updating repositories ...')
 	packages = []
 
