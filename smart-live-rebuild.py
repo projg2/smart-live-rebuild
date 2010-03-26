@@ -2,7 +2,7 @@
 #	vim:fileencoding=utf-8
 # Check all live ebuilds for updates and rebuild them if necessary.
 # (C) 2010 Michał Górny <gentoo@mgorny.alt.pl>
-# Released under the terms of the 3-clause BSD license or the GPL-2 license
+# Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 PV = '0.2'
 
@@ -10,8 +10,6 @@ import bz2, os, re, shutil, signal, subprocess, sys, tempfile
 import portage
 
 from optparse import OptionParser
-
-rebuilds = {}
 
 class out:
 	red = '\033[1;31m'
@@ -308,6 +306,8 @@ user, please pass the --unprivileged-user option.
 				vcslf = vcsl
 
 			out.s1('Enumerating packages ...')
+
+			rebuilds = {}
 
 			Shared.opentmp()
 			try:
