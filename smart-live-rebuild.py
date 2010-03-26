@@ -4,7 +4,7 @@
 # (C) 2010 Michał Górny <gentoo@mgorny.alt.pl>
 # Released under the terms of the 3-clause BSD license
 
-PV = '0.1'
+PV = '0.2'
 
 import bz2, os, re, shutil, signal, subprocess, sys, tempfile
 import portage
