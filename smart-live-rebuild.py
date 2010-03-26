@@ -6,7 +6,7 @@
 
 PV = '0.1'
 
-import bz2, os, re, subprocess, sys, tempfile
+import bz2, os, re, shutil, subprocess, sys, tempfile
 import portage
 
 from optparse import OptionParser
@@ -81,6 +81,7 @@ class VCSSupport:
 		f = Shared.envtmpf
 		f.seek(0, 0)
 		f.truncate(0)
+		shutil.copyfileobj(envf, f)
 		f.write(envf.read())
 		f.flush()
 
