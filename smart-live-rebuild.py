@@ -353,11 +353,15 @@ user, please pass the --unprivileged-user option.
 			os.close(commpipe[1])
 			buf = b''
 			while True:
-				ret = os.read(commpipe[0], 1024)
-				if ret == b'':
-					break
+				try:
+					ret = os.read(commpipe[0], 1024)
+				except KeyboardInterrupt:
+					pass
 				else:
-					buf += ret
+					if ret == b'':
+						break
+					else:
+						buf += ret
 
 			if buf == b'':
 				packages = []
