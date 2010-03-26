@@ -60,7 +60,7 @@ class Shared:
 
 	@classmethod
 	def opentmp(self):
-		self.envtmpf = tempfile.NamedTemporaryFile()
+		self.envtmpf = tempfile.NamedTemporaryFile('w+b')
 
 	@classmethod
 	def closetmp(self):
@@ -82,7 +82,6 @@ class VCSSupport:
 		f.seek(0, 0)
 		f.truncate(0)
 		shutil.copyfileobj(envf, f)
-		f.write(envf.read())
 		f.flush()
 
 		script = 'source "%s"||exit 1;%s' % (f.name,
@@ -94,7 +93,7 @@ class VCSSupport:
 		self.cpv = [cpv]
 		self.env = self.bashparse(envf, self.reqenv + self.optenv)
 
-		missingvars = filter(lambda v: self.env[v] == '', self.reqenv)
+		missingvars = [v for v in self.reqenv if self.env[v] == '']
 		if len(missingvars) > 0:
 			raise KeyError('Environment does not declare: %s' % self.reqenv)
 
@@ -111,7 +110,7 @@ class VCSSupport:
 
 	@staticmethod
 	def call(cmd):
-		return subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0]
+		return subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0].decode('utf8')
 
 	def getupdatecmd(self):
 		raise NotImplementedError('VCS class needs to override getupdatecmd(), doupdate() or update()')
@@ -126,7 +125,7 @@ class VCSSupport:
 		pass
 
 	def update(self):
-		out.s2(unicode(self))
+		out.s2(str(self))
 		os.chdir(self.getpath())
 
 		oldrev = self.getrev(Shared.opts.localrev)
@@ -143,7 +142,7 @@ class VCSSupport:
 				out.s3('update from %s%s%s to %s%s%s' % (out.green, oldrev, out.reset, out.lime, newrev, out.reset))
 				return True
 
-	def __unicode__(self):
+	def __str__(self):
 		return self.cpv
 
 class GitSupport(VCSSupport):
@@ -157,9 +156,9 @@ class GitSupport(VCSSupport):
 			raise NotImplementedError('Submodules are not supported')
 
 	def getpath(self):
-		return u'%s/%s' % (self.env['EGIT_STORE_DIR'], self.env['EGIT_PROJECT'])
+		return '%s/%s' % (self.env['EGIT_STORE_DIR'], self.env['EGIT_PROJECT'])
 
-	def __unicode__(self):
+	def __str__(self):
 		return self.env['EGIT_REPO_URI'] or self.cpv
 
 	def getrev(self, localrev = True):
@@ -193,7 +192,7 @@ class HgSupport(VCSSupport):
 
 		return '%s/hg-src/%s/%s' % (dd, self.env['EHG_PROJECT'], bn)
 
-	def __unicode__(self):
+	def __str__(self):
 		return self.env['EHG_REPO_URI'] or self.cpv
 
 	def getrev(self, localrev = True):
@@ -222,7 +221,7 @@ class SvnSupport(VCSSupport):
 	def getpath(self):
 		return self.env['ESVN_WC_PATH']
 
-	def __unicode__(self):
+	def __str__(self):
 		return self.env['ESVN_REPO_URI'] or self.cpv
 
 	def getrev(self, localrev = True):
@@ -271,7 +270,7 @@ the --unprivileged-user option.
 ''' % argv[0])
 		return 1
 	if opts.types:
-		vcslf = filter(lambda x: x.inherit in opts.types, vcsl)
+		vcslf = [x for x in vcsl if x.inherit in opts.types]
 	else:
 		vcslf = vcsl
 
@@ -286,7 +285,7 @@ the --unprivileged-user option.
 
 				for vcs in vcslf:
 					if vcs.match(inherits):
-						env = bz2.BZ2File(u'%s/environment.bz2' % db.getpath(cpv), 'r')
+						env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
 						vcs = vcs(cpv, env)
 						env.close()
 						dir = vcs.getpath()
@@ -319,7 +318,7 @@ the --unprivileged-user option.
 	elif opts.pretend:
 		out.s1('Printing list of updated packages ...')
 		for p in packages:
-			print p
+			print(p)
 	else:
 		out.s1('Calling emerge to rebuild %s%d%s packages ...' % (out.white, len(packages), out.s1reset))
 		if opts.offline:
