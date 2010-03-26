@@ -367,7 +367,7 @@ user, please pass the --unprivileged-user option.
 		if len(packages) < 1:
 			out.s1('No updates found')
 		elif opts.pretend:
-			out.s1('Printing list of updated packages ...')
+			out.s1('Printing a list of updated packages ...')
 			for p in packages:
 				print(p)
 		else:
