@@ -311,7 +311,7 @@ the --unprivileged-user option.
 			out.err('Updates interrupted, proceeding with already updated repos.')
 			break
 		except Exception as e:
-			out.err('Error updating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
+			out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
 
 	if len(packages) < 1:
 		out.s1('No updates found')
