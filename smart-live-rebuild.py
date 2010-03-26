@@ -6,7 +6,7 @@
 
 PV = '0.1'
 
-import bz2, os, re, shutil, subprocess, sys, tempfile
+import bz2, os, re, shutil, signal, subprocess, sys, tempfile
 import portage
 
 from optparse import OptionParser
@@ -252,6 +252,9 @@ def main(argv):
 		help='Disable setting ESCM_OFFLINE for emerge.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend', default=False,
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
+	opt.add_option('-S', '--no-setuid', action='store_false', dest='userpriv',
+		default=('userfetch' in portage.settings.features),
+		help='Do not switch UID to portage when FEATURES=userfetch is set')
 	opt.add_option('-t', '--type', action='append', type='choice', choices=vcsnames, dest='types',
 		help='Limit rebuild to packages using specific VCS. If used multiple times, all specified VCS-es will be used.')
 	opt.add_option('-U', '--unprivileged-user', action='store_false', dest='reqroot', default=True,
@@ -261,73 +264,124 @@ def main(argv):
 
 	if opts.monochrome:
 		out.monochromize()
-	if opts.reqroot and os.geteuid() != 0:
-		out.err('Root privileges are required to run %s!' % argv[0])
-		out.out('''This requirement is enforced to avoid trying to update repositories
-without required filesystem access. If you do have such access
-and want to run %s anyway, please pass
-the --unprivileged-user option.
-''' % argv[0])
+
+	childpid = None
+	commpipe = None
+	userok = (os.geteuid() == 0)
+	if opts.userpriv:
+		puid = portage.data.portage_uid
+		pgid = portage.data.portage_gid
+		if puid and pgid:
+			if not userok:
+				if os.getuid() == puid:
+					if not opts.pretend:
+						out.s1('Running as the portage user, assuming --pretend.')
+						opts.pretend = True
+					userok = True
+			elif opts.pretend:
+				out.s1('Dropping root privileges ...')
+				os.setuid(puid)
+			else:
+				out.s1('Forking to drop privileges ...')
+				commpipe = os.pipe()
+				childpid = os.fork()
+		else:
+			out.err("'userfetch' is set but there's no 'portage' user in the system")
+
+	if opts.reqroot and not userok:
+		out.err('Either root or portage privileges are required!')
+		out.out('''
+This tool requires either root or portage (when FEATURES=userfetch is enabled)
+permissions. If you would like to force running the update using your current
+user, please pass the --unprivileged-user option.
+''')
 		return 1
-	if opts.types:
-		vcslf = [x for x in vcsl if x.inherit in opts.types]
-	else:
-		vcslf = vcsl
 
-	out.s1('Enumerating packages ...')
-
-	Shared.opentmp()
 	try:
-		db = portage.db[portage.settings['ROOT']]['vartree'].dbapi
-		for cpv in db.cpv_all():
+		if not childpid:
+			if childpid == 0:
+				os.close(commpipe[0])
+				os.setuid(puid)
+			if opts.types:
+				vcslf = [x for x in vcsl if x.inherit in opts.types]
+			else:
+				vcslf = vcsl
+
+			out.s1('Enumerating packages ...')
+
+			Shared.opentmp()
 			try:
-				inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
+				db = portage.db[portage.settings['ROOT']]['vartree'].dbapi
+				for cpv in db.cpv_all():
+					try:
+						inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
 
-				for vcs in vcslf:
-					if vcs.match(inherits):
-						env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
-						vcs = vcs(cpv, env)
-						env.close()
-						dir = vcs.getpath()
-						if dir not in rebuilds:
-							rebuilds[dir] = vcs
-						else:
-							rebuilds[dir].append(vcs)
-			except KeyboardInterrupt:
-				raise
-			except Exception as e:
-				out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
+						for vcs in vcslf:
+							if vcs.match(inherits):
+								env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
+								vcs = vcs(cpv, env)
+								env.close()
+								dir = vcs.getpath()
+								if dir not in rebuilds:
+									rebuilds[dir] = vcs
+								else:
+									rebuilds[dir].append(vcs)
+					except KeyboardInterrupt:
+						raise
+					except Exception as e:
+						out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
+			finally:
+				Shared.closetmp()
+
+			out.s1('Updating repositories ...')
+			packages = []
+
+			for (dir, vcs) in rebuilds.items():
+				try:
+					if vcs.update():
+						packages.extend(vcs.cpv)
+				except KeyboardInterrupt:
+					out.err('Updates interrupted, proceeding with already updated repos.')
+					break
+				except Exception as e:
+					out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
+
+			if childpid == 0:
+				os.write(commpipe[1], '\0'.join(packages).encode('utf8'))
+				return 0
+		else:
+			os.close(commpipe[1])
+			buf = b''
+			while True:
+				ret = os.read(commpipe[0], 1024)
+				if ret == b'':
+					break
+				else:
+					buf += ret
+
+			if buf == b'':
+				packages = []
+			else:
+				packages = buf.decode('utf8').split('\0')
+
+		if len(packages) < 1:
+			out.s1('No updates found')
+		elif opts.pretend:
+			out.s1('Printing list of updated packages ...')
+			for p in packages:
+				print(p)
+		else:
+			out.s1('Calling emerge to rebuild %s%d%s packages ...' % (out.white, len(packages), out.s1reset))
+			if opts.offline:
+				os.putenv('ESCM_OFFLINE', 'true')
+			cmd = ['emerge', '--oneshot']
+			cmd.extend(args)
+			cmd.extend(['=%s' % x for x in packages])
+			out.s2(' '.join(cmd))
+			os.execv('/usr/bin/emerge', cmd)
 	finally:
-		Shared.closetmp()
-
-	out.s1('Updating repositories ...')
-	packages = []
-
-	for (dir, vcs) in rebuilds.items():
-		try:
-			if vcs.update():
-				packages.extend(vcs.cpv)
-		except KeyboardInterrupt:
-			out.err('Updates interrupted, proceeding with already updated repos.')
-			break
-		except Exception as e:
-			out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
-
-	if len(packages) < 1:
-		out.s1('No updates found')
-	elif opts.pretend:
-		out.s1('Printing list of updated packages ...')
-		for p in packages:
-			print(p)
-	else:
-		out.s1('Calling emerge to rebuild %s%d%s packages ...' % (out.white, len(packages), out.s1reset))
-		if opts.offline:
-			os.putenv('ESCM_OFFLINE', 'true')
-		cmd = ['emerge', '--oneshot']
-		cmd.extend(args)
-		cmd.extend(['=%s' % x for x in packages])
-		out.s2(' '.join(cmd))
-		os.execv('/usr/bin/emerge', cmd)
+		if childpid: # make sure we leave no orphans
+			os.kill(childpid, signal.SIGTERM)
 
 	return 0
 
