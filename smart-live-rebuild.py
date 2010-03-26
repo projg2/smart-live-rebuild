@@ -2,7 +2,7 @@
 #	vim:fileencoding=utf-8
 # Check all live ebuilds for updates and rebuild them if necessary.
 # (C) 2010 Michał Górny <gentoo@mgorny.alt.pl>
-# Released under the terms of the 3-clause BSD license
+# Released under the terms of the 3-clause BSD license or the GPL-2 license
 
 PV = '0.2'
 
