@@ -103,6 +103,9 @@ class VCSSupport:
 			raise ValueError('Unable to append %s to %s' % (vcs.__class__, self.__class__))
 		self.cpv.append(vcs.cpv[0])
 
+	def hassavedrev(self):
+		return False
+
 	def getrev(self, localrev = True):
 		raise NotImplementedError('VCS class needs to override getrev() or update()')
 
@@ -127,9 +130,7 @@ class VCSSupport:
 		os.chdir(self.getpath())
 
 		oldrev = self.getrev(Shared.opts.localrev)
-		if not self.doupdate():
-			out.err('update failed')
-		else:
+		if not Shared.opts.update or self.doupdate():
 			newrev = self.getrev()
 
 			if oldrev == newrev:
@@ -139,6 +140,9 @@ class VCSSupport:
 				self.diffstat(oldrev, newrev)
 				out.s3('update from %s%s%s to %s%s%s' % (out.green, oldrev, out.reset, out.lime, newrev, out.reset))
 				return True
+		else:
+			out.err('update failed')
+			return False
 
 	def __str__(self):
 		return self.cpv
@@ -158,6 +162,9 @@ class GitSupport(VCSSupport):
 
 	def __str__(self):
 		return self.env['EGIT_REPO_URI'] or self.cpv
+
+	def hassavedrev(self):
+		return self.env['EGIT_VERSION'] != ''
 
 	def getrev(self, localrev = True):
 		if localrev or self.env['EGIT_VERSION'] == '':
@@ -246,6 +253,8 @@ def main(argv):
 		help='Disable colorful output.')
 	opt.add_option('-l', '--local-rev', action='store_true', dest='localrev', default=False,
 		help='Force determining the current package revision from the repository instead of using the one saved by portage.')
+	opt.add_option('-N', '--no-network', action='store_false', dest='update', default=True,
+		help='Disable network interaction and just aggregate already updated ones (requires --local-rev not set).')
 	opt.add_option('-O', '--no-offline', action='store_false', dest='offline', default=True,
 		help='Disable setting ESCM_OFFLINE for emerge.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend', default=False,
@@ -262,6 +271,10 @@ def main(argv):
 
 	if opts.monochrome:
 		out.monochromize()
+
+	if opts.localrev and not opts.update:
+		out.err('--local-rev and --no-network can not be specified together.')
+		return 1
 
 	childpid = None
 	commpipe = None
@@ -321,11 +334,12 @@ user, please pass the --unprivileged-user option.
 								env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
 								vcs = vcs(cpv, env)
 								env.close()
-								dir = vcs.getpath()
-								if dir not in rebuilds:
-									rebuilds[dir] = vcs
-								else:
-									rebuilds[dir].append(vcs)
+								if opts.update or vcs.hassavedrev():
+									dir = vcs.getpath()
+									if dir not in rebuilds:
+										rebuilds[dir] = vcs
+									else:
+										rebuilds[dir].append(vcs)
 					except KeyboardInterrupt:
 						raise
 					except Exception as e:
