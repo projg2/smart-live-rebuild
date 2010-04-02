@@ -141,8 +141,7 @@ class VCSSupport:
 				out.s3('update from %s%s%s to %s%s%s' % (out.green, oldrev, out.reset, out.lime, newrev, out.reset))
 				return True
 		else:
-			out.err('update failed')
-			return False
+			raise Exception('update command returned non-zero result')
 
 	def __str__(self):
 		return self.cpv
@@ -251,6 +250,8 @@ def main(argv):
 	)
 	opt.add_option('-C', '--no-color', action='store_true', dest='monochrome', default=False,
 		help='Disable colorful output.')
+	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='mergeerr', default=True,
+		help='Disable emerging packages for which the update has failed.')
 	opt.add_option('-l', '--local-rev', action='store_true', dest='localrev', default=False,
 		help='Force determining the current package revision from the repository instead of using the one saved by portage.')
 	opt.add_option('-N', '--no-network', action='store_false', dest='update', default=True,
@@ -320,6 +321,7 @@ user, please pass the --unprivileged-user option.
 
 			out.s1('Enumerating packages ...')
 
+			erraneous = []
 			rebuilds = {}
 
 			Shared.opentmp()
@@ -344,6 +346,7 @@ user, please pass the --unprivileged-user option.
 						raise
 					except Exception as e:
 						out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
+						erraneous.append(cpv)
 			finally:
 				Shared.closetmp()
 
@@ -359,9 +362,10 @@ user, please pass the --unprivileged-user option.
 					break
 				except Exception as e:
 					out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
+					erraneous.extend(vcs.cpv)
 
 			if childpid == 0:
-				pdata = {'packages': packages}
+				pdata = {'packages': packages, 'erraneous': erraneous}
 				pipe = os.fdopen(commpipe[1], 'w')
 				pickle.dump(pdata, pipe, pickle.HIGHEST_PROTOCOL)
 				return 0
@@ -370,14 +374,25 @@ user, please pass the --unprivileged-user option.
 			pipe = os.fdopen(commpipe[0], 'r')
 			pdata = pickle.load(pipe)
 			packages = pdata['packages']
+			erraneous = pdata['erraneous']
+
+		if opts.mergeerr and len(erraneous) > 0:
+			packages.extend(erraneous)
 
 		if len(packages) < 1:
 			out.s1('No updates found')
 		elif opts.pretend:
 			out.s1('Printing a list of updated packages ...')
+			if opts.mergeerr and len(erraneous) > 0:
+				out.s2('(please notice that it contains update-failed ones as well)')
 			for p in packages:
 				print(p)
 		else:
+			if opts.mergeerr and len(erraneous) > 0:
+				if opts.offline:
+					out.s1('Merging update-failed packages, assuming --no-offline.')
+					opts.offline = False
+
 			out.s1('Calling emerge to rebuild %s%d%s packages ...' % (out.white, len(packages), out.s1reset))
 			if opts.offline:
 				os.putenv('ESCM_OFFLINE', 'true')
