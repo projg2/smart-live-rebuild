@@ -214,7 +214,7 @@ class SvnSupport(VCSSupport):
 	reqenv = ['ESVN_STORE_DIR', 'ESVN_UPDATE_CMD', 'ESVN_WC_PATH']
 	optenv = ['ESVN_REVISION', 'ESVN_OPTIONS', 'ESVN_PASSWORD', 'ESVN_REPO_URI', 'ESVN_USER']
 
-	revre = re.compile('(?m)^Revision: (\d+)$')
+	revre = re.compile('(?m)^Last Changed Rev: (\d+)$')
 
 	def __init__(self, cpv, env):
 		VCSSupport.__init__(self, cpv, env)
