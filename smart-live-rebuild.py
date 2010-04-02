@@ -103,10 +103,10 @@ class VCSSupport:
 			raise ValueError('Unable to append %s to %s' % (vcs.__class__, self.__class__))
 		self.cpv.append(vcs.cpv[0])
 
-	def hassavedrev(self):
-		return False
+	def getsavedrev(self):
+		return None
 
-	def getrev(self, localrev = True):
+	def getrev(self):
 		raise NotImplementedError('VCS class needs to override getrev() or update()')
 
 	@staticmethod
@@ -133,7 +133,7 @@ class VCSSupport:
 		out.s2(str(self))
 		os.chdir(self.getpath())
 
-		oldrev = self.getrev(Shared.opts.localrev)
+		oldrev = (not Shared.opts.localrev and self.getsavedrev()) or self.getrev()
 		if not Shared.opts.update or self.doupdate():
 			newrev = self.getrev()
 
@@ -166,14 +166,11 @@ class GitSupport(VCSSupport):
 	def __str__(self):
 		return self.env['EGIT_REPO_URI'] or self.cpv
 
-	def hassavedrev(self):
-		return self.env['EGIT_VERSION'] != ''
+	def getsavedrev(self):
+		return self.env['EGIT_VERSION']
 
-	def getrev(self, localrev = True):
-		if localrev or self.env['EGIT_VERSION'] == '':
-			return self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']]).split('\n')[0]
-		else:
-			return self.env['EGIT_VERSION']
+	def getrev(self):
+		return self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']]).split('\n')[0]
 
 	def getupdatecmd(self):
 		return '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
@@ -203,7 +200,7 @@ class HgSupport(VCSSupport):
 	def __str__(self):
 		return self.env['EHG_REPO_URI'] or self.cpv
 
-	def getrev(self, localrev = True):
+	def getrev(self):
 		return self.call(['hg', 'tip', '--template', '{node}'] + self.trustopt)
 
 	def getupdatecmd(self):
@@ -232,16 +229,13 @@ class SvnSupport(VCSSupport):
 	def __str__(self):
 		return self.env['ESVN_REPO_URI'] or self.cpv
 
-	def hassavedrev(self):
-		return self.env['ESVN_WC_REVISION'] != ''
+	def getsavedrev(self):
+		return self.env['ESVN_WC_REVISION']
 
-	def getrev(self, localrev = True):
-		if localrev or self.env['ESVN_WC_REVISION'] == '':
-			svninfo = self.call(['svn', 'info'])
-			m = self.revre.search(svninfo)
-			return m.group(1) if m is not None else None
-		else:
-			return self.env['ESVN_WC_REVISION']
+	def getrev(self):
+		svninfo = self.call(['svn', 'info'])
+		m = self.revre.search(svninfo)
+		return m.group(1) if m is not None else None
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
@@ -350,7 +344,7 @@ user, please pass the --unprivileged-user option.
 								env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
 								vcs = vcs(cpv, env)
 								env.close()
-								if opts.update or vcs.hassavedrev():
+								if opts.update or vcs.getsavedrev():
 									dir = vcs.getpath()
 									if dir not in rebuilds:
 										rebuilds[dir] = vcs
