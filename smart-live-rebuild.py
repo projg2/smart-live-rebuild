@@ -6,7 +6,7 @@
 
 PV = '0.2'
 
-import bz2, os, re, shutil, signal, subprocess, sys, tempfile
+import bz2, os, pickle, re, shutil, signal, subprocess, sys, tempfile
 import portage
 
 from optparse import OptionParser
@@ -361,26 +361,15 @@ user, please pass the --unprivileged-user option.
 					out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
 
 			if childpid == 0:
-				os.write(commpipe[1], '\0'.join(packages).encode('utf8'))
+				pdata = {'packages': packages}
+				pipe = os.fdopen(commpipe[1], 'w')
+				pickle.dump(pdata, pipe, pickle.HIGHEST_PROTOCOL)
 				return 0
 		else:
 			os.close(commpipe[1])
-			buf = b''
-			while True:
-				try:
-					ret = os.read(commpipe[0], 1024)
-				except KeyboardInterrupt:
-					pass
-				else:
-					if ret == b'':
-						break
-					else:
-						buf += ret
-
-			if buf == b'':
-				packages = []
-			else:
-				packages = buf.decode('utf8').split('\0')
+			pipe = os.fdopen(commpipe[0], 'r')
+			pdata = pickle.load(pipe)
+			packages = pdata['packages']
 
 		if len(packages) < 1:
 			out.s1('No updates found')
