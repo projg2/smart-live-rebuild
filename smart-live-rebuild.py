@@ -374,12 +374,12 @@ user, please pass the --unprivileged-user option.
 
 			if childpid == 0:
 				pdata = {'packages': packages, 'erraneous': erraneous}
-				pipe = os.fdopen(commpipe[1], 'w')
+				pipe = os.fdopen(commpipe[1], 'wb')
 				pickle.dump(pdata, pipe, pickle.HIGHEST_PROTOCOL)
 				return 0
 		else:
 			os.close(commpipe[1])
-			pipe = os.fdopen(commpipe[0], 'r')
+			pipe = os.fdopen(commpipe[0], 'rb')
 			pdata = pickle.load(pipe)
 			packages = pdata['packages']
 			erraneous = pdata['erraneous']
