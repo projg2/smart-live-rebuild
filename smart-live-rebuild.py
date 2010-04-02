@@ -110,6 +110,10 @@ class VCSSupport:
 		raise NotImplementedError('VCS class needs to override getrev() or update()')
 
 	@staticmethod
+	def revcmp(oldrev, newrev):
+		return oldrev == newrev
+
+	@staticmethod
 	def call(cmd):
 		return subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0].decode('utf8')
 
@@ -133,7 +137,7 @@ class VCSSupport:
 		if not Shared.opts.update or self.doupdate():
 			newrev = self.getrev()
 
-			if oldrev == newrev:
+			if self.revcmp(oldrev, newrev):
 				out.s3('at rev %s%s%s (no changes)' % (out.green, oldrev, out.reset))
 				return False
 			else:
@@ -211,7 +215,7 @@ class HgSupport(VCSSupport):
 class SvnSupport(VCSSupport):
 	inherit = 'subversion'
 	reqenv = ['ESVN_STORE_DIR', 'ESVN_UPDATE_CMD', 'ESVN_WC_PATH']
-	optenv = ['ESVN_REVISION', 'ESVN_OPTIONS', 'ESVN_PASSWORD', 'ESVN_REPO_URI', 'ESVN_USER']
+	optenv = ['ESVN_REVISION', 'ESVN_OPTIONS', 'ESVN_PASSWORD', 'ESVN_REPO_URI', 'ESVN_USER', 'ESVN_WC_REVISION']
 
 	revre = re.compile('(?m)^Last Changed Rev: (\d+)$')
 
@@ -228,10 +232,20 @@ class SvnSupport(VCSSupport):
 	def __str__(self):
 		return self.env['ESVN_REPO_URI'] or self.cpv
 
+	def hassavedrev(self):
+		return self.env['ESVN_WC_REVISION'] != ''
+
 	def getrev(self, localrev = True):
-		svninfo = self.call(['svn', 'info'])
-		m = self.revre.search(svninfo)
-		return m.group(1) if m is not None else None
+		if localrev or self.env['ESVN_WC_REVISION'] == '':
+			svninfo = self.call(['svn', 'info'])
+			m = self.revre.search(svninfo)
+			return m.group(1) if m is not None else None
+		else:
+			return self.env['ESVN_WC_REVISION']
+
+	@staticmethod
+	def revcmp(oldrev, newrev):
+		return oldrev >= newrev
 
 	def getupdatecmd(self):
 		cmd = '%s %s --config-dir %s/.subversion' % (self.env['ESVN_UPDATE_CMD'], self.env['ESVN_OPTIONS'], self.env['ESVN_STORE_DIR'])
