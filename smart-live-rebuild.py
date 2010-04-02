@@ -251,8 +251,8 @@ def main(argv):
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend', default=False,
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
 	opt.add_option('-S', '--no-setuid', action='store_false', dest='userpriv',
-		default=('userfetch' in portage.settings.features),
-		help='Do not switch UID to portage when FEATURES=userfetch is set')
+		default=('userpriv' in portage.settings.features),
+		help='Do not switch UID to portage when FEATURES=userpriv is set')
 	opt.add_option('-t', '--type', action='append', type='choice', choices=vcsnames, dest='types',
 		help='Limit rebuild to packages using specific VCS. If used multiple times, all specified VCS-es will be used.')
 	opt.add_option('-U', '--unprivileged-user', action='store_false', dest='reqroot', default=True,
@@ -284,12 +284,12 @@ def main(argv):
 				commpipe = os.pipe()
 				childpid = os.fork()
 		else:
-			out.err("'userfetch' is set but there's no 'portage' user in the system")
+			out.err("'userpriv' is set but there's no 'portage' user in the system")
 
 	if opts.reqroot and not userok:
 		out.err('Either root or portage privileges are required!')
 		out.out('''
-This tool requires either root or portage (when FEATURES=userfetch is enabled)
+This tool requires either root or portage (when FEATURES=userpriv is enabled)
 permissions. If you would like to force running the update using your current
 user, please pass the --unprivileged-user option.
 ''')
