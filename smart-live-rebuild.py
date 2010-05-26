@@ -159,6 +159,8 @@ class GitSupport(VCSSupport):
 		VCSSupport.__init__(self, cpv, env)
 		if self.env['EGIT_HAS_SUBMODULES'] == 'true':
 			raise NotImplementedError('Submodules are not supported')
+		elif self.env['EGIT_COMMIT']:
+			raise Exception('EGIT_COMMIT set, package is not really live one')
 
 	def getpath(self):
 		return '%s/%s' % (self.env['EGIT_STORE_DIR'], self.env['EGIT_PROJECT'])
