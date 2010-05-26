@@ -270,6 +270,8 @@ def main(argv):
 		help='Disable setting ESCM_OFFLINE for emerge.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend', default=False,
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
+	opt.add_option('-Q', '--quickpkg', action='store_true', dest='quickpkg', default=False,
+		help='Call quickpkg to create binary backups of packages which are going to be updated.')
 	opt.add_option('-S', '--no-setuid', action='store_false', dest='userpriv',
 		default=('userpriv' in portage.settings.features),
 		help='Do not switch UID to portage when FEATURES=userpriv is set')
@@ -402,6 +404,13 @@ user, please pass the --unprivileged-user option.
 				if opts.offline:
 					out.s1('Merging update-failed packages, assuming --no-offline.')
 					opts.offline = False
+
+			if opts.quickpkg:
+				out.s1('Calling quickpkg to create %s%d%s binary packages ...' % (out.white, len(packages), out.s1reset))
+				cmd = ['/usr/sbin/quickpkg', '--include-config=y']
+				cmd.extend(['=%s' % x for x in packages])
+				out.s2(' '.join(cmd))
+				subprocess.Popen(cmd).wait()
 
 			out.s1('Calling emerge to rebuild %s%d%s packages ...' % (out.white, len(packages), out.s1reset))
 			if opts.offline:
