@@ -153,13 +153,13 @@ class VCSSupport:
 class GitSupport(VCSSupport):
 	inherit = 'git'
 	reqenv = ['EGIT_BRANCH', 'EGIT_PROJECT', 'EGIT_STORE_DIR', 'EGIT_UPDATE_CMD']
-	optenv = ['EGIT_DIFFSTAT_CMD', 'EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS', 'EGIT_REPO_URI', 'EGIT_VERSION']
+	optenv = ['EGIT_COMMIT', 'EGIT_DIFFSTAT_CMD', 'EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS', 'EGIT_REPO_URI', 'EGIT_VERSION']
 
 	def __init__(self, cpv, env):
 		VCSSupport.__init__(self, cpv, env)
 		if self.env['EGIT_HAS_SUBMODULES'] == 'true':
 			raise NotImplementedError('Submodules are not supported')
-		elif self.env['EGIT_COMMIT']:
+		elif self.env['EGIT_COMMIT'] and self.env['EGIT_COMMIT'] != self.env['EGIT_BRANCH']:
 			raise Exception('EGIT_COMMIT set, package is not really live one')
 
 	def getpath(self):
