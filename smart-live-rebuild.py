@@ -4,7 +4,7 @@
 # (C) 2010 Michał Górny <gentoo@mgorny.alt.pl>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-PV = '0.3'
+PV = '0.4'
 
 import bz2, os, pickle, re, shutil, signal, subprocess, sys, tempfile, time
 import portage
@@ -183,7 +183,7 @@ class GitSupport(VCSSupport):
 		if self.env['EGIT_HAS_SUBMODULES'] == 'true':
 			raise NotImplementedError('Submodules are not supported')
 		elif self.env['EGIT_COMMIT'] and self.env['EGIT_COMMIT'] != self.env['EGIT_BRANCH']:
-			raise NonLiveEbuild('EGIT_COMMIT set, package is not really live one')
+			raise NonLiveEbuild('EGIT_COMMIT set, package is not really a live one')
 
 	def getpath(self):
 		return '%s/%s' % (self.env['EGIT_STORE_DIR'], self.env['EGIT_PROJECT'])
@@ -213,7 +213,7 @@ class HgSupport(VCSSupport):
 	def __init__(self, cpv, env):
 		VCSSupport.__init__(self, cpv, env)
 		if self.env['EHG_REVISION'] and self.env['EHG_REVISION'] != 'tip':
-			raise NonLiveEbuild('EHG_REVISION set, package is not really live one')
+			raise NonLiveEbuild('EHG_REVISION set, package is not really a live one')
 
 	def getpath(self):
 		dd = portage.settings['PORTAGE_ACTUAL_DISTDIR'] or portage.settings['DISTDIR']
@@ -244,9 +244,9 @@ class SvnSupport(VCSSupport):
 	def __init__(self, cpv, env):
 		VCSSupport.__init__(self, cpv, env)
 		if self.env['ESVN_REPO_URI'] and self.env['ESVN_REPO_URI'].find('@') != -1:
-			raise NonLiveEbuild('ESVN_REPO_URI specifies revision, package is not really live one')
+			raise NonLiveEbuild('ESVN_REPO_URI specifies revision, package is not really a live one')
 		elif self.env['ESVN_REVISION']:
-			raise NonLiveEbuild('ESVN_REVISION set, package is not really live one')
+			raise NonLiveEbuild('ESVN_REVISION set, package is not really a live one')
 
 	def getpath(self):
 		return self.env['ESVN_WC_PATH']
@@ -286,11 +286,11 @@ def main(argv):
 	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='mergeerr', default=True,
 		help='Disable emerging packages for which the update has failed.')
 	opt.add_option('-j', '--jobs', action='store', type='int', dest='jobs', default=1,
-		help='Spawn JOBS parallel processes while performing VCS updates.')
+		help='Spawn JOBS parallel processes to perform repository updates.')
 	opt.add_option('-l', '--local-rev', action='store_true', dest='localrev', default=False,
 		help='Force determining the current package revision from the repository instead of using the one saved by portage.')
 	opt.add_option('-N', '--no-network', action='store_false', dest='update', default=True,
-		help='Disable network interaction and just aggregate already updated ones (requires --local-rev not set).')
+		help='Disable network interaction and just aggregate already updated repositories (requires --local-rev not set).')
 	opt.add_option('-O', '--no-offline', action='store_false', dest='offline', default=True,
 		help='Disable setting ESCM_OFFLINE for emerge.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend', default=False,
@@ -299,7 +299,7 @@ def main(argv):
 		help='Call quickpkg to create binary backups of packages which are going to be updated.')
 	opt.add_option('-S', '--no-setuid', action='store_false', dest='userpriv',
 		default=('userpriv' in portage.settings.features),
-		help='Do not switch UID to portage when FEATURES=userpriv is set')
+		help='Do not switch UID to portage when FEATURES=userpriv is set.')
 	opt.add_option('-t', '--type', action='append', type='choice', choices=vcsnames, dest='types',
 		help='Limit rebuild to packages using specific VCS. If used multiple times, all specified VCS-es will be used.')
 	opt.add_option('-U', '--unprivileged-user', action='store_false', dest='reqroot', default=True,
@@ -311,10 +311,10 @@ def main(argv):
 		out.monochromize()
 
 	if opts.localrev and not opts.update:
-		out.err('--local-rev and --no-network can not be specified together.')
+		out.err('The --local-rev and --no-network options can not be specified together.')
 		return 1
 	if opts.jobs <= 0:
-		out.err('--jobs argument must be a positive integer')
+		out.err('The argument to --jobs option must be a positive integer.')
 		return 1
 
 	childpid = None
@@ -331,21 +331,21 @@ def main(argv):
 						opts.pretend = True
 					userok = True
 			elif opts.pretend:
-				out.s1('Dropping root privileges ...')
+				out.s1('Dropping superuser privileges ...')
 				os.setuid(puid)
 			else:
-				out.s1('Forking to drop privileges ...')
+				out.s1('Forking to drop superuser privileges ...')
 				commpipe = os.pipe()
 				childpid = os.fork()
 		else:
 			out.err("'userpriv' is set but there's no 'portage' user in the system")
 
 	if opts.reqroot and not userok:
-		out.err('Either root or portage privileges are required!')
+		out.err('Either superuser or portage privileges are required!')
 		out.out('''
-This tool requires either root or portage (when FEATURES=userpriv is enabled)
-permissions. If you would like to force running the update using your current
-user, please pass the --unprivileged-user option.
+This tool requires either superuser or portage (if FEATURES=userpriv is set)
+privileges. If you would like to force running the update using your current
+user account, please pass the --unprivileged-user option.
 ''')
 		return 1
 
@@ -359,7 +359,7 @@ user, please pass the --unprivileged-user option.
 			else:
 				vcslf = vcsl
 
-			out.s1('Enumerating packages ...')
+			out.s1('Enumerating the packages ...')
 
 			erraneous = []
 			rebuilds = {}
@@ -393,9 +393,9 @@ user, please pass the --unprivileged-user option.
 				Shared.closetmp()
 
 			if opts.jobs == 1:
-				out.s1('Updating repositories...')
+				out.s1('Updating the repositories...')
 			else:
-				out.s1('Updating repositories using %s%d%s parallel jobs...' % (out.white, opts.jobs, out.s1reset))
+				out.s1('Updating the repositories using %s%d%s parallel jobs...' % (out.white, opts.jobs, out.s1reset))
 			packages = []
 
 			processes = []
@@ -463,7 +463,7 @@ user, please pass the --unprivileged-user option.
 		elif opts.pretend:
 			out.s1('Printing a list of updated packages ...')
 			if opts.mergeerr and len(erraneous) > 0:
-				out.s2('(please notice that it contains update-failed ones as well)')
+				out.s2('(please notice that it contains the update-failed ones as well)')
 			for p in packages:
 				print(p)
 		else:
@@ -488,7 +488,7 @@ user, please pass the --unprivileged-user option.
 			out.s2(' '.join(cmd))
 			os.execv('/usr/bin/emerge', cmd)
 	finally:
-		if childpid: # make sure we leave no orphans
+		if childpid: # make sure that we leave no orphans
 			os.kill(childpid, signal.SIGTERM)
 
 	return 0
