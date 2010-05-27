@@ -6,7 +6,7 @@
 
 PV = '0.3'
 
-import bz2, os, pickle, re, shutil, signal, subprocess, sys, tempfile
+import bz2, os, pickle, re, shutil, signal, subprocess, sys, tempfile, time
 import portage
 
 from optparse import OptionParser
@@ -151,7 +151,10 @@ class VCSSupport:
 				return None
 
 		if ret == 0:
+			os.chdir(self.getpath())
 			newrev = self.getrev()
+			if Shared.opts.jobs > 1:
+				out.s2(str(self))
 
 			if self.revcmp(self.oldrev, newrev):
 				out.s3('at rev %s%s%s (no changes)' % (out.green, self.oldrev, out.reset))
@@ -278,6 +281,8 @@ def main(argv):
 		help='Disable colorful output.')
 	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='mergeerr', default=True,
 		help='Disable emerging packages for which the update has failed.')
+	opt.add_option('-j', '--jobs', action='store', type='int', dest='jobs', default=1,
+		help='Spawn JOBS parallel processes while performing VCS updates.')
 	opt.add_option('-l', '--local-rev', action='store_true', dest='localrev', default=False,
 		help='Force determining the current package revision from the repository instead of using the one saved by portage.')
 	opt.add_option('-N', '--no-network', action='store_false', dest='update', default=True,
@@ -303,6 +308,9 @@ def main(argv):
 
 	if opts.localrev and not opts.update:
 		out.err('--local-rev and --no-network can not be specified together.')
+		return 1
+	if opts.jobs <= 0:
+		out.err('--jobs argument must be a positive integer')
 		return 1
 
 	childpid = None
@@ -383,10 +391,28 @@ user, please pass the --unprivileged-user option.
 			out.s1('Updating repositories ...')
 			packages = []
 
-			for (dir, vcs) in rebuilds.items():
+			processes = []
+			items = list(rebuilds.items())
+			while True:
 				try:
-					vcs.startupdate()
-					ret = vcs.endupdate(True)
+					if len(processes) < opts.jobs and len(items) > 0:
+						(dir, vcs) = items.pop(0)
+						vcs.startupdate()
+						if opts.jobs == 1:
+							ret = vcs.endupdate(True)
+						else:
+							processes.append(vcs)
+					elif len(processes) == 0: # which is true if jobs == 1 too
+						break
+					else:
+						time.sleep(0.3)
+
+					for vcs in processes:
+						ret = vcs.endupdate()
+						if ret is not None:
+							processes.remove(vcs)
+							break
+
 					if ret:
 						packages.extend(vcs.cpv)
 				except KeyboardInterrupt:
@@ -394,6 +420,8 @@ user, please pass the --unprivileged-user option.
 					break
 				except Exception as e:
 					out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
+					if opts.jobs != 1:
+						processes.remove(vcs)
 					erraneous.extend(vcs.cpv)
 
 			if childpid == 0:
