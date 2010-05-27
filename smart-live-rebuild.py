@@ -432,7 +432,13 @@ user, please pass the --unprivileged-user option.
 		else:
 			os.close(commpipe[1])
 			pipe = os.fdopen(commpipe[0], 'rb')
-			pdata = pickle.load(pipe)
+			sigint = signal.getsignal(signal.SIGINT)
+			signal.signal(signal.SIGINT, signal.SIG_IGN)
+			try:
+				pdata = pickle.load(pipe)
+			except EOFError: # child terminated early
+				return 1
+			signal.signal(signal.SIGINT, sigint)
 			packages = pdata['packages']
 			erraneous = pdata['erraneous']
 
