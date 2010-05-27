@@ -121,31 +121,44 @@ class VCSSupport:
 		return subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0].decode('utf8')
 
 	def getupdatecmd(self):
-		raise NotImplementedError('VCS class needs to override getupdatecmd(), doupdate() or update()')
-
-	def doupdate(self):
-		cmd = self.getupdatecmd()
-		out.s3(cmd)
-		ret = subprocess.Popen(cmd, shell=True).wait()
-		return ret == 0
+		raise NotImplementedError('VCS class needs to override getupdatecmd()')
 
 	def diffstat(self, oldrev, newrev):
 		pass
 
-	def update(self):
+	def startupdate(self):
 		out.s2(str(self))
 		os.chdir(self.getpath())
+		self.oldrev = (not Shared.opts.localrev and self.getsavedrev()) or self.getrev()
 
-		oldrev = (not Shared.opts.localrev and self.getsavedrev()) or self.getrev()
-		if not Shared.opts.update or self.doupdate():
+		if Shared.opts.update:
+			cmd = self.getupdatecmd()
+			out.s3(cmd)
+			self.subprocess = subprocess.Popen(cmd, shell=True)
+		else:
+			self.subprocess = None
+
+		return self.subprocess
+
+	def endupdate(self, blocking = False):
+		if self.subprocess is None:
+			ret = 0
+		elif blocking:
+			ret = self.subprocess.wait()
+		else:
+			ret = self.subprocess.poll()
+			if ret is None:
+				return None
+
+		if ret == 0:
 			newrev = self.getrev()
 
-			if self.revcmp(oldrev, newrev):
-				out.s3('at rev %s%s%s (no changes)' % (out.green, oldrev, out.reset))
+			if self.revcmp(self.oldrev, newrev):
+				out.s3('at rev %s%s%s (no changes)' % (out.green, self.oldrev, out.reset))
 				return False
 			else:
-				self.diffstat(oldrev, newrev)
-				out.s3('update from %s%s%s to %s%s%s' % (out.green, oldrev, out.reset, out.lime, newrev, out.reset))
+				self.diffstat(self.oldrev, newrev)
+				out.s3('update from %s%s%s to %s%s%s' % (out.green, self.oldrev, out.reset, out.lime, newrev, out.reset))
 				return True
 		else:
 			raise Exception('update command returned non-zero result')
@@ -372,7 +385,9 @@ user, please pass the --unprivileged-user option.
 
 			for (dir, vcs) in rebuilds.items():
 				try:
-					if vcs.update():
+					vcs.startupdate()
+					ret = vcs.endupdate(True)
+					if ret:
 						packages.extend(vcs.cpv)
 				except KeyboardInterrupt:
 					out.err('Updates interrupted, proceeding with already updated repos.')
