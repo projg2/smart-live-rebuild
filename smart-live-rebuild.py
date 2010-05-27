@@ -64,6 +64,9 @@ class Shared:
 	def closetmp(self):
 		self.envtmpf.close()
 
+class NonLiveEbuild(Exception):
+	pass
+
 class VCSSupport:
 	inherit = None
 	reqenv = []
@@ -160,7 +163,7 @@ class GitSupport(VCSSupport):
 		if self.env['EGIT_HAS_SUBMODULES'] == 'true':
 			raise NotImplementedError('Submodules are not supported')
 		elif self.env['EGIT_COMMIT'] and self.env['EGIT_COMMIT'] != self.env['EGIT_BRANCH']:
-			raise Exception('EGIT_COMMIT set, package is not really live one')
+			raise NonLiveEbuild('EGIT_COMMIT set, package is not really live one')
 
 	def getpath(self):
 		return '%s/%s' % (self.env['EGIT_STORE_DIR'], self.env['EGIT_PROJECT'])
@@ -190,7 +193,7 @@ class HgSupport(VCSSupport):
 	def __init__(self, cpv, env):
 		VCSSupport.__init__(self, cpv, env)
 		if self.env['EHG_REVISION'] and self.env['EHG_REVISION'] != 'tip':
-			raise Exception('EHG_REVISION set, package is not really live one')
+			raise NonLiveEbuild('EHG_REVISION set, package is not really live one')
 
 	def getpath(self):
 		dd = portage.settings['PORTAGE_ACTUAL_DISTDIR'] or portage.settings['DISTDIR']
@@ -221,9 +224,9 @@ class SvnSupport(VCSSupport):
 	def __init__(self, cpv, env):
 		VCSSupport.__init__(self, cpv, env)
 		if self.env['ESVN_REPO_URI'] and self.env['ESVN_REPO_URI'].find('@') != -1:
-			raise Exception('ESVN_REPO_URI specifies revision, package is not really live one')
+			raise NonLiveEbuild('ESVN_REPO_URI specifies revision, package is not really live one')
 		elif self.env['ESVN_REVISION']:
-			raise Exception('ESVN_REVISION set, package is not really live one')
+			raise NonLiveEbuild('ESVN_REVISION set, package is not really live one')
 
 	def getpath(self):
 		return self.env['ESVN_WC_PATH']
@@ -356,6 +359,8 @@ user, please pass the --unprivileged-user option.
 										rebuilds[dir].append(vcs)
 					except KeyboardInterrupt:
 						raise
+					except NonLiveEbuild as e:
+						out.err('%s: %s' % (cpv, e))
 					except Exception as e:
 						out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
 						erraneous.append(cpv)
