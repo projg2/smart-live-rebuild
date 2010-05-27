@@ -166,6 +166,10 @@ class VCSSupport:
 		else:
 			raise Exception('update command returned non-zero result')
 
+	def abortupdate(self):
+		if self.subprocess is not None:
+			self.subprocess.terminate()
+
 	def __str__(self):
 		return self.cpv
 
@@ -397,11 +401,15 @@ user, please pass the --unprivileged-user option.
 				try:
 					if len(processes) < opts.jobs and len(items) > 0:
 						(dir, vcs) = items.pop(0)
-						vcs.startupdate()
-						if opts.jobs == 1:
-							ret = vcs.endupdate(True)
-						else:
-							processes.append(vcs)
+						try:
+							vcs.startupdate()
+							if opts.jobs == 1:
+								ret = vcs.endupdate(True)
+							else:
+								processes.append(vcs)
+						except KeyboardInterrupt:
+							vcs.abortupdate()
+							raise
 					elif len(processes) == 0: # which is true if jobs == 1 too
 						break
 					else:
@@ -417,6 +425,8 @@ user, please pass the --unprivileged-user option.
 						packages.extend(vcs.cpv)
 				except KeyboardInterrupt:
 					out.err('Updates interrupted, proceeding with already updated repos.')
+					for vcs in processes:
+						vcs.abortupdate()
 					break
 				except Exception as e:
 					out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
