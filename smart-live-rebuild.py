@@ -481,7 +481,7 @@ user, please pass the --unprivileged-user option.
 				os.putenv('ESCM_OFFLINE', 'true')
 			cmd = ['emerge', '--oneshot']
 			cmd.extend(args)
-			cmd.extend(['=%s' % x for x in packages])
+			cmd.extend(['>=%s' % x for x in packages])
 			out.s2(' '.join(cmd))
 			os.execv('/usr/bin/emerge', cmd)
 	finally:
