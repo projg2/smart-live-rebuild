@@ -392,7 +392,10 @@ user, please pass the --unprivileged-user option.
 			finally:
 				Shared.closetmp()
 
-			out.s1('Updating repositories ...')
+			if opts.jobs == 1:
+				out.s1('Updating repositories...')
+			else:
+				out.s1('Updating repositories using %s%d%s parallel jobs...' % (out.white, opts.jobs, out.s1reset))
 			packages = []
 
 			processes = []
