@@ -134,7 +134,7 @@ class VCSSupport:
 		if Shared.opts.update:
 			cmd = self.getupdatecmd()
 			out.s3(cmd)
-			self.subprocess = subprocess.Popen(cmd, shell=True)
+			self.subprocess = subprocess.Popen(cmd, stdout=sys.stderr, shell=True)
 		else:
 			self.subprocess = None
 
@@ -201,7 +201,7 @@ class GitSupport(VCSSupport):
 		return '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
 
 	def diffstat(self, oldrev, newrev):
-		subprocess.Popen('%s %s..%s' % (self.env['EGIT_DIFFSTAT_CMD'] or 'git diff', oldrev, newrev), shell=True).wait()
+		subprocess.Popen('%s %s..%s' % (self.env['EGIT_DIFFSTAT_CMD'] or 'git diff', oldrev, newrev), stdout=sys.stderr, shell=True).wait()
 
 class HgSupport(VCSSupport):
 	inherit = 'mercurial'
@@ -232,7 +232,7 @@ class HgSupport(VCSSupport):
 		return ' '.join([self.env['EHG_PULL_CMD']] + self.trustopt)
 
 	def diffstat(self, oldrev, newrev):
-		subprocess.Popen(['hg', 'diff', '--stat', '-r', oldrev, '-r', newrev] + self.trustopt).wait()
+		subprocess.Popen(['hg', 'diff', '--stat', '-r', oldrev, '-r', newrev] + self.trustopt, stdout=sys.stderr).wait()
 
 class SvnSupport(VCSSupport):
 	inherit = 'subversion'
@@ -477,7 +477,7 @@ user account, please pass the --unprivileged-user option.
 				cmd = ['/usr/sbin/quickpkg', '--include-config=y']
 				cmd.extend(['=%s' % x for x in packages])
 				out.s2(' '.join(cmd))
-				subprocess.Popen(cmd).wait()
+				subprocess.Popen(cmd, stdout=sys.stderr).wait()
 
 			out.s1('Calling emerge to rebuild %s%d%s packages ...' % (out.white, len(packages), out.s1reset))
 			if opts.offline:
