@@ -332,8 +332,10 @@ def main(argv):
 					if not opts.pretend:
 						out.s1('Running as the portage user, assuming --pretend.')
 						opts.pretend = True
+					if opts.quickpkg:
+						out.err("Running as the portage user, --quickpkg probably won't work")
 					userok = True
-			elif opts.pretend:
+			elif opts.pretend and not opts.quickpkg:
 				out.s1('Dropping superuser privileges ...')
 				os.setuid(puid)
 			else:
@@ -461,6 +463,13 @@ user account, please pass the --unprivileged-user option.
 		if opts.mergeerr and len(erraneous) > 0:
 			packages.extend(erraneous)
 
+		if opts.quickpkg and len(packages) >= 1:
+			out.s1('Calling quickpkg to create %s%d%s binary packages ...' % (out.white, len(packages), out.s1reset))
+			cmd = ['/usr/sbin/quickpkg', '--include-config=y']
+			cmd.extend(['=%s' % x for x in packages])
+			out.s2(' '.join(cmd))
+			subprocess.Popen(cmd, stdout=sys.stderr).wait()
+
 		if len(packages) < 1:
 			out.s1('No updates found')
 		elif opts.pretend:
@@ -474,13 +483,6 @@ user account, please pass the --unprivileged-user option.
 				if opts.offline:
 					out.s1('Merging update-failed packages, assuming --no-offline.')
 					opts.offline = False
-
-			if opts.quickpkg:
-				out.s1('Calling quickpkg to create %s%d%s binary packages ...' % (out.white, len(packages), out.s1reset))
-				cmd = ['/usr/sbin/quickpkg', '--include-config=y']
-				cmd.extend(['=%s' % x for x in packages])
-				out.s2(' '.join(cmd))
-				subprocess.Popen(cmd, stdout=sys.stderr).wait()
 
 			out.s1('Calling emerge to rebuild %s%d%s packages ...' % (out.white, len(packages), out.s1reset))
 			if opts.offline:
