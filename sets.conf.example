@@ -1,0 +1,11 @@
+# Example /etc/portage/sets.conf adding the @smart-live-rebuild set.
+
+[smart-live-rebuild]
+class = portage.sets.shell.CommandOutputSet
+world-candidate = False
+command = smart-live-rebuild -p
+# --alternatively--
+#command = smart-live-rebuild -pQj16
+
+# Please notice that '--pretend' argument is obligatory; else
+# smart-live-rebuild will call another emerge process.
