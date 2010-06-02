@@ -465,7 +465,7 @@ user account, please pass the --unprivileged-user option.
 			if opts.mergeerr and len(erraneous) > 0:
 				out.s2('(please notice that it contains the update-failed ones as well)')
 			for p in packages:
-				print(p)
+				print('>=%s' % p)
 		else:
 			if opts.mergeerr and len(erraneous) > 0:
 				if opts.offline:
