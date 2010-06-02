@@ -316,6 +316,9 @@ def main(argv):
 	if opts.jobs <= 0:
 		out.err('The argument to --jobs option must be a positive integer.')
 		return 1
+	elif opts.jobs > 1 and not opts.update:
+		out.s1('Using parallel jobs with --no-network is inefficient, assuming no --jobs.')
+		opts.jobs = 1
 
 	childpid = None
 	commpipe = None
