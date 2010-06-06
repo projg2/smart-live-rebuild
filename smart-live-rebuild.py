@@ -286,7 +286,7 @@ def main(argv):
 			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones. Supported VCS-es: %s.' % ', '.join(vcsnames)
 	)
 	opt.add_option('-c', '--config-file', action='store', dest='config_file',
-		help='Configuration file (default: ~/.config/smart-live-rebuild.conf')
+		help='Configuration file (default: /etc/portage/smart-live-rebuild.conf)')
 	opt.add_option('-C', '--no-color', action='store_false', dest='color',
 		help='Disable colorful output.')
 	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='erraneous_merge',
@@ -332,7 +332,7 @@ def main(argv):
 	}
 
 	opt.set_defaults(
-			config_file = '~/.config/smart-live-rebuild.conf',
+			config_file = '/etc/portage/smart-live-rebuild.conf',
 			profile = 'smart-live-rebuild'
 	)
 	c = ConfigParser(defs)

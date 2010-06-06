@@ -112,7 +112,7 @@ CONFIGURATION FILE
 -------------------
 Various options to smart-live-rebuild may be set in a configuration file too.
 The path to that file can be specified as '--config-file' (or '-c'), and
-the default one is '~/.config/smart-live-rebuild.conf'.
+the default one is '/etc/portage/smart-live-rebuild.conf'.
 
 The configuration file has a format similar to Windows .ini files. Sections
 correspond to available profiles, with '[smart-live-rebuild]' being the default
