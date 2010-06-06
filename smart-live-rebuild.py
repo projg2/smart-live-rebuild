@@ -10,6 +10,10 @@ import bz2, os, pickle, re, shutil, signal, subprocess, sys, tempfile, time
 import portage
 
 from optparse import OptionParser
+try:
+	from configparser import ConfigParser, NoOptionError
+except ImportError: # py2
+	from ConfigParser import ConfigParser, NoOptionError
 
 class out:
 	red = '\033[1;31m'
@@ -281,6 +285,8 @@ def main(argv):
 			version='%%prog %s' % PV,
 			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones. Supported VCS-es: %s.' % ', '.join(vcsnames)
 	)
+	opt.add_option('-c', '--config-file', action='store', dest='config',
+		help='Configuration file (default: ~/.smart-live-rebuild.conf')
 	opt.add_option('-C', '--no-color', action='store_true', dest='monochrome',
 		help='Disable colorful output.')
 	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='mergeerr',
@@ -304,20 +310,84 @@ def main(argv):
 	opt.add_option('-U', '--unprivileged-user', action='store_false', dest='reqroot',
 		help='Allow running as an unprivileged user.')
 
-	opt.set_defaults(
-			monochrome = False,
-			mergeerr = True,
-			jobs = 1,
-			localrev = False,
-			update = True,
-			offline = True,
-			pretend = False,
-			quickpkg = False,
-			userpriv = ('userpriv' in portage.settings.features),
-			reqroot = True
-	)
+	# Config&option parsing algo:
+	# 1) set default configfile,
+	# 2) parse opts to get configfile,
+	# 3) set configfile defaults if applicable,
+	# 4) reparse opts.
+	defs = {
+		'monochrome': 'False',
+		'mergeerr': 'True',
+		'jobs': '1',
+		'localrev': 'False',
+		'update': 'True',
+		'offline': 'True',
+		'pretend': 'False',
+		'quickpkg': 'False',
+		'userpriv': str('userpriv' in portage.settings.features),
+		'types': '',
+		'reqroot': 'True'
+	}
 
+	opt.set_defaults(config = '~/.smart-live-rebuild.conf')
+	c = ConfigParser(defs)
 	(opts, args) = opt.parse_args(argv[1:])
+
+	# now look for the config file(s)
+	cfl = [opts.config]
+	sect = 'smart-live-rebuild'
+	try:
+		while cfl[-1] != '' and c.read(os.path.expanduser(cfl[-1])):
+			# config file chaining support
+			try:
+				cf = c.get(sect, 'config')
+			except NoOptionError:
+				break
+			else:
+				if cf not in cfl:
+					cfl.append(cfl)
+				else:
+					break
+	except Exception as e:
+		out.err('Error while parsing configuration file:')
+		out.err('%s: %s' % (e.__class__.__name__, e))
+
+	# we need to have it to get the defaults
+	if not c.has_section(sect):
+		c.add_section(sect)
+
+	# set defaults from the configfile and parse
+	newdefs = {}
+	deftypes = None
+	for k, defv in defs.items():
+		if defs[k] in ('True', 'False'): # bool
+			try:
+				newdefs[k] = c.getboolean(sect, k)
+			except ValueError:
+				out.err('Incorrect boolean value: %s=%s' % (k, c.get(sect, k)))
+				newdefs[k] = (defv == 'True')
+		elif k == 'jobs': # int
+			try:
+				newdefs[k] = c.getint(sect, k)
+			except ValueError:
+				out.err('Incorrect int value: %s=%s' % (k, c.get(sect, k)))
+				newdefs[k] = int(defv)
+		elif k == 'types':
+			# this one needs special handling due to the append action
+			t = c.get(sect, k)
+			if t != '':
+				deftypes = t.split(',')
+				for t in list(deftypes):
+					if t not in vcsnames:
+						out.err('Incorrect value within %s: %s' % (k, t))
+						deftypes.remove(t)
+		else:
+			newdefs[k] = c.get(sect, k)
+		
+	opt.set_defaults(**newdefs)
+	(opts, args) = opt.parse_args(argv[1:])
+	if not opts.types:
+		opts.types = deftypes
 	Shared.opts = opts
 
 	if opts.monochrome:
