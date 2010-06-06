@@ -1,0 +1,7 @@
+[smart-live-rebuild]
+jobs = 16
+quickpkg = on
+
+[nonetwork]
+network = off
+quickpkg = on
