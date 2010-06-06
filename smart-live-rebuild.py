@@ -133,9 +133,9 @@ class VCSSupport:
 	def startupdate(self):
 		out.s2(str(self))
 		os.chdir(self.getpath())
-		self.oldrev = (not Shared.opts.localrev and self.getsavedrev()) or self.getrev()
+		self.oldrev = (not Shared.opts.local_rev and self.getsavedrev()) or self.getrev()
 
-		if Shared.opts.update:
+		if Shared.opts.network:
 			cmd = self.getupdatecmd()
 			out.s3(cmd)
 			self.subprocess = subprocess.Popen(cmd, stdout=sys.stderr, shell=True)
@@ -285,17 +285,17 @@ def main(argv):
 			version='%%prog %s' % PV,
 			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones. Supported VCS-es: %s.' % ', '.join(vcsnames)
 	)
-	opt.add_option('-c', '--config-file', action='store', dest='config',
+	opt.add_option('-c', '--config-file', action='store', dest='config_file',
 		help='Configuration file (default: ~/.smart-live-rebuild.conf')
-	opt.add_option('-C', '--no-color', action='store_true', dest='monochrome',
+	opt.add_option('-C', '--no-color', action='store_false', dest='color',
 		help='Disable colorful output.')
-	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='mergeerr',
+	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='erraneous_merge',
 		help='Disable emerging packages for which the update has failed.')
 	opt.add_option('-j', '--jobs', action='store', type='int', dest='jobs',
 		help='Spawn JOBS parallel processes to perform repository updates.')
-	opt.add_option('-l', '--local-rev', action='store_true', dest='localrev',
+	opt.add_option('-l', '--local-rev', action='store_true', dest='local_rev',
 		help='Force determining the current package revision from the repository instead of using the one saved by portage.')
-	opt.add_option('-N', '--no-network', action='store_false', dest='update',
+	opt.add_option('-N', '--no-network', action='store_false', dest='network',
 		help='Disable network interaction and just aggregate already updated repositories (requires --local-rev not set).')
 	opt.add_option('-O', '--no-offline', action='store_false', dest='offline',
 		help='Disable setting ESCM_OFFLINE for emerge.')
@@ -303,11 +303,11 @@ def main(argv):
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
 	opt.add_option('-Q', '--quickpkg', action='store_true', dest='quickpkg',
 		help='Call quickpkg to create binary backups of packages which are going to be updated.')
-	opt.add_option('-S', '--no-setuid', action='store_false', dest='userpriv',
+	opt.add_option('-S', '--no-setuid', action='store_false', dest='setuid',
 		help='Do not switch UID to portage when FEATURES=userpriv is set.')
-	opt.add_option('-t', '--type', action='append', type='choice', choices=vcsnames, dest='types',
+	opt.add_option('-t', '--type', action='append', type='choice', choices=vcsnames, dest='type',
 		help='Limit rebuild to packages using specific VCS. If used multiple times, all specified VCS-es will be used.')
-	opt.add_option('-U', '--unprivileged-user', action='store_false', dest='reqroot',
+	opt.add_option('-U', '--unprivileged-user', action='store_true', dest='unprivileged_user',
 		help='Allow running as an unprivileged user.')
 
 	# Config&option parsing algo:
@@ -316,31 +316,31 @@ def main(argv):
 	# 3) set configfile defaults if applicable,
 	# 4) reparse opts.
 	defs = {
-		'monochrome': 'False',
-		'mergeerr': 'True',
+		'color': 'True',
+		'erraneous_merge': 'True',
 		'jobs': '1',
-		'localrev': 'False',
-		'update': 'True',
+		'local_rev': 'False',
+		'network': 'True',
 		'offline': 'True',
 		'pretend': 'False',
 		'quickpkg': 'False',
-		'userpriv': str('userpriv' in portage.settings.features),
-		'types': '',
-		'reqroot': 'True'
+		'setuid': str('userpriv' in portage.settings.features),
+		'type': '',
+		'unprivileged_user': 'False'
 	}
 
-	opt.set_defaults(config = '~/.smart-live-rebuild.conf')
+	opt.set_defaults(config_file = '~/.smart-live-rebuild.conf')
 	c = ConfigParser(defs)
 	(opts, args) = opt.parse_args(argv[1:])
 
 	# now look for the config file(s)
-	cfl = [opts.config]
+	cfl = [opts.config_file]
 	sect = 'smart-live-rebuild'
 	try:
 		while cfl[-1] != '' and c.read(os.path.expanduser(cfl[-1])):
 			# config file chaining support
 			try:
-				cf = c.get(sect, 'config')
+				cf = c.get(sect, 'config_file')
 			except NoOptionError:
 				break
 			else:
@@ -372,7 +372,7 @@ def main(argv):
 			except ValueError:
 				out.err('Incorrect int value: %s=%s' % (k, c.get(sect, k)))
 				newdefs[k] = int(defv)
-		elif k == 'types':
+		elif k == 'type':
 			# this one needs special handling due to the append action
 			t = c.get(sect, k)
 			if t != '':
@@ -386,30 +386,30 @@ def main(argv):
 		
 	opt.set_defaults(**newdefs)
 	(opts, args) = opt.parse_args(argv[1:])
-	if not opts.types:
-		opts.types = deftypes
+	if not opts.type:
+		opts.type = deftypes
 	Shared.opts = opts
 
-	if opts.monochrome:
+	if not opts.color:
 		out.monochromize()
 
-	if opts.userpriv and 'userpriv' not in portage.settings.features:
+	if opts.setuid and 'userpriv' not in portage.settings.features:
 		out.err('setuid requested but FEATURES=userpriv not set, assuming --no-setuid.')
-		opts.userpriv = False
-	if opts.localrev and not opts.update:
+		opts.setuid = False
+	if opts.local_rev and not opts.network:
 		out.err('The --local-rev and --no-network options can not be specified together.')
 		return 1
 	if opts.jobs <= 0:
 		out.err('The argument to --jobs option must be a positive integer.')
 		return 1
-	elif opts.jobs > 1 and not opts.update:
+	elif opts.jobs > 1 and not opts.network:
 		out.s1('Using parallel jobs with --no-network is inefficient, assuming no --jobs.')
 		opts.jobs = 1
 
 	childpid = None
 	commpipe = None
 	userok = (os.geteuid() == 0)
-	if opts.userpriv:
+	if opts.setuid:
 		puid = portage.data.portage_uid
 		pgid = portage.data.portage_gid
 		if puid and pgid:
@@ -431,7 +431,7 @@ def main(argv):
 		else:
 			out.err("'userpriv' is set but there's no 'portage' user in the system")
 
-	if opts.reqroot and not userok:
+	if not opts.unprivileged_user and not userok:
 		out.err('Either superuser or portage privileges are required!')
 		out.out('''
 This tool requires either superuser or portage (if FEATURES=userpriv is set)
@@ -445,8 +445,8 @@ user account, please pass the --unprivileged-user option.
 			if childpid == 0:
 				os.close(commpipe[0])
 				os.setuid(puid)
-			if opts.types:
-				vcslf = [x for x in vcsl if x.inherit in opts.types]
+			if opts.type:
+				vcslf = [x for x in vcsl if x.inherit in opts.type]
 			else:
 				vcslf = vcsl
 
@@ -467,7 +467,7 @@ user account, please pass the --unprivileged-user option.
 								env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
 								vcs = vcs(cpv, env)
 								env.close()
-								if opts.update or vcs.getsavedrev():
+								if opts.network or vcs.getsavedrev():
 									dir = vcs.getpath()
 									if dir not in rebuilds:
 										rebuilds[dir] = vcs
@@ -546,7 +546,7 @@ user account, please pass the --unprivileged-user option.
 			packages = pdata['packages']
 			erraneous = pdata['erraneous']
 
-		if opts.mergeerr and len(erraneous) > 0:
+		if opts.erraneous_merge and len(erraneous) > 0:
 			packages.extend(erraneous)
 
 		if opts.quickpkg and len(packages) >= 1:
@@ -560,12 +560,12 @@ user account, please pass the --unprivileged-user option.
 			out.s1('No updates found')
 		elif opts.pretend:
 			out.s1('Printing a list of updated packages ...')
-			if opts.mergeerr and len(erraneous) > 0:
+			if opts.erraneous_merge and len(erraneous) > 0:
 				out.s2('(please notice that it contains the update-failed ones as well)')
 			for p in packages:
 				print('>=%s' % p)
 		else:
-			if opts.mergeerr and len(erraneous) > 0:
+			if opts.erraneous_merge and len(erraneous) > 0:
 				if opts.offline:
 					out.s1('Merging update-failed packages, assuming --no-offline.')
 					opts.offline = False
