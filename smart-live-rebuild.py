@@ -301,6 +301,8 @@ def main(argv):
 		help='Disable setting ESCM_OFFLINE for emerge.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend',
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
+	opt.add_option('-P', '--profile', action='store', dest='profile',
+		help='Configuration profile (config file section) to use (default: smart-live-rebuild)')
 	opt.add_option('-Q', '--quickpkg', action='store_true', dest='quickpkg',
 		help='Call quickpkg to create binary backups of packages which are going to be updated.')
 	opt.add_option('-S', '--no-setuid', action='store_false', dest='setuid',
@@ -329,13 +331,16 @@ def main(argv):
 		'unprivileged_user': 'False'
 	}
 
-	opt.set_defaults(config_file = '~/.config/smart-live-rebuild.conf')
+	opt.set_defaults(
+			config_file = '~/.config/smart-live-rebuild.conf',
+			profile = 'smart-live-rebuild'
+	)
 	c = ConfigParser(defs)
 	(opts, args) = opt.parse_args(argv[1:])
 
 	# now look for the config file(s)
 	cfl = [opts.config_file]
-	sect = 'smart-live-rebuild'
+	sect = opts.profile
 	try:
 		while cfl[-1] != '' and c.read(os.path.expanduser(cfl[-1])):
 			# config file chaining support
