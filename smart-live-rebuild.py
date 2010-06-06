@@ -393,6 +393,35 @@ def main(argv):
 	if not opts.color:
 		out.monochromize()
 
+	if not opts.pretend:
+		try:
+			import psutil
+
+			def getproc(pid):
+				for ps in psutil.get_process_list():
+					if pid == ps.pid:
+						return ps
+				raise Exception()
+
+			def getscriptname(ps):
+				if os.path.basename(ps.cmdline[0]) != ps.name:
+					return ps.cmdline[0]
+				cmdline = ps.cmdline[1:]
+				while cmdline[0].startswith('-'): # omit options
+					cmdline.pop(0)
+				return os.path.basename(cmdline[0])
+
+			ps = getproc(os.getppid())
+			# traverse upstream to find the emerge process
+			while ps.pid > 1:
+				if getscriptname(ps) == 'emerge':
+					out.s1('Running under the emerge process, assuming --pretend.')
+					opts.pretend = True
+					break
+				ps = ps.parent
+		except Exception:
+			pass
+
 	if opts.setuid and 'userpriv' not in portage.settings.features:
 		out.err('setuid requested but FEATURES=userpriv not set, assuming --no-setuid.')
 		opts.setuid = False

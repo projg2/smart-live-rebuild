@@ -7,5 +7,6 @@ command = smart-live-rebuild -p
 # --alternatively--
 #command = smart-live-rebuild -pQj16
 
-# Please notice that '--pretend' argument is obligatory; else
-# smart-live-rebuild will call another emerge process.
+# Please notice that '--pretend' argument is obligatory unless psutil
+# Python module is available; else smart-live-rebuild will spawn another
+# emerge process.
