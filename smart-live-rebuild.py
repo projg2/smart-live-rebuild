@@ -281,35 +281,51 @@ def main(argv):
 			version='%%prog %s' % PV,
 			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones. Supported VCS-es: %s.' % ', '.join(vcsnames)
 	)
-	opt.add_option('-C', '--no-color', action='store_true', dest='monochrome', default=False,
+	opt.add_option('-C', '--no-color', action='store_true', dest='monochrome',
 		help='Disable colorful output.')
-	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='mergeerr', default=True,
+	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='mergeerr',
 		help='Disable emerging packages for which the update has failed.')
-	opt.add_option('-j', '--jobs', action='store', type='int', dest='jobs', default=1,
+	opt.add_option('-j', '--jobs', action='store', type='int', dest='jobs',
 		help='Spawn JOBS parallel processes to perform repository updates.')
-	opt.add_option('-l', '--local-rev', action='store_true', dest='localrev', default=False,
+	opt.add_option('-l', '--local-rev', action='store_true', dest='localrev',
 		help='Force determining the current package revision from the repository instead of using the one saved by portage.')
-	opt.add_option('-N', '--no-network', action='store_false', dest='update', default=True,
+	opt.add_option('-N', '--no-network', action='store_false', dest='update',
 		help='Disable network interaction and just aggregate already updated repositories (requires --local-rev not set).')
-	opt.add_option('-O', '--no-offline', action='store_false', dest='offline', default=True,
+	opt.add_option('-O', '--no-offline', action='store_false', dest='offline',
 		help='Disable setting ESCM_OFFLINE for emerge.')
-	opt.add_option('-p', '--pretend', action='store_true', dest='pretend', default=False,
+	opt.add_option('-p', '--pretend', action='store_true', dest='pretend',
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
-	opt.add_option('-Q', '--quickpkg', action='store_true', dest='quickpkg', default=False,
+	opt.add_option('-Q', '--quickpkg', action='store_true', dest='quickpkg',
 		help='Call quickpkg to create binary backups of packages which are going to be updated.')
 	opt.add_option('-S', '--no-setuid', action='store_false', dest='userpriv',
-		default=('userpriv' in portage.settings.features),
 		help='Do not switch UID to portage when FEATURES=userpriv is set.')
 	opt.add_option('-t', '--type', action='append', type='choice', choices=vcsnames, dest='types',
 		help='Limit rebuild to packages using specific VCS. If used multiple times, all specified VCS-es will be used.')
-	opt.add_option('-U', '--unprivileged-user', action='store_false', dest='reqroot', default=True,
+	opt.add_option('-U', '--unprivileged-user', action='store_false', dest='reqroot',
 		help='Allow running as an unprivileged user.')
+
+	opt.set_defaults(
+			monochrome = False,
+			mergeerr = True,
+			jobs = 1,
+			localrev = False,
+			update = True,
+			offline = True,
+			pretend = False,
+			quickpkg = False,
+			userpriv = ('userpriv' in portage.settings.features),
+			reqroot = True
+	)
+
 	(opts, args) = opt.parse_args(argv[1:])
 	Shared.opts = opts
 
 	if opts.monochrome:
 		out.monochromize()
 
+	if opts.userpriv and 'userpriv' not in portage.settings.features:
+		out.err('setuid requested but FEATURES=userpriv not set, assuming --no-setuid.')
+		opts.userpriv = False
 	if opts.localrev and not opts.update:
 		out.err('The --local-rev and --no-network options can not be specified together.')
 		return 1
