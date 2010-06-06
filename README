@@ -107,6 +107,34 @@ being called from sets.conf. Otherwise, the program will execute second emerge
 instance.
 
 
+CONFIGURATION FILE
+-------------------
+Various options to smart-live-rebuild may be set in a configuration file too.
+The path to that file can be specified as '--config-file' (or '-c'), and
+the default one is '~/.config/smart-live-rebuild.conf'.
+
+The configuration file has a format similar to Windows .ini files, where all
+the options need to be in '[smart-live-rebuild]' section. The keys for respe-
+ctive options match the command-line argument names, with 'no-' prefix stripped
+and all dashes ('-') changed into underscores ('_').
+
+The values for boolean types can be specified in any way suitable for
+ConfigParser python class (i.e. true/false/yes/no/on/off). The 'type' list
+has to be comma-separated.
+
+Example config file may look like:
+
+[smart-live-rebuild]
+jobs=3
+erraneous_merge=no
+type=git,subversion
+
+Additionally, configuration files can be chained. To do so, just specify path
+to the next configuration file as 'config_file'. Please notice though that
+currently they aren't read in reverse order, so further configuration files will
+replace values set by yours.
+
+
 CONTACT / BUG REPORTING
 ------------------------
 http://mgorny.alt.pl/contact.html
