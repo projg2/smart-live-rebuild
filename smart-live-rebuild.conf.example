@@ -4,4 +4,4 @@ quickpkg = on
 
 [nonetwork]
 network = off
-quickpkg = on
+quickpkg = off
