@@ -558,7 +558,7 @@ user account, please pass the --unprivileged-user option.
 					break
 				except Exception as e:
 					out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
-					if opts.jobs != 1:
+					if opts.jobs != 1 and vcs in processes:
 						processes.remove(vcs)
 					erraneous.extend(vcs.cpv)
 
