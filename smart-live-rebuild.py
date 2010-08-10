@@ -266,7 +266,7 @@ class SvnSupport(VCSSupport):
 		return self.env['ESVN_WC_REVISION']
 
 	def getrev(self):
-		svninfo = self.call(['svn', 'info'])
+		svninfo = self.call(['svn', '--config-dir', '%s/.subversion' % self.env['ESVN_STORE_DIR'], 'info'])
 		m = self.revre.search(svninfo)
 		return m.group(1) if m is not None else None
 
