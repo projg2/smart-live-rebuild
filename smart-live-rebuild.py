@@ -184,9 +184,7 @@ class GitSupport(VCSSupport):
 
 	def __init__(self, cpv, env):
 		VCSSupport.__init__(self, cpv, env)
-		if self.env['EGIT_HAS_SUBMODULES'] == 'true':
-			raise NotImplementedError('Submodules are not supported')
-		elif self.env['EGIT_COMMIT'] and self.env['EGIT_COMMIT'] != self.env['EGIT_BRANCH']:
+		if self.env['EGIT_COMMIT'] and self.env['EGIT_COMMIT'] != self.env['EGIT_BRANCH']:
 			raise NonLiveEbuild('EGIT_COMMIT set, package is not really a live one')
 
 	def getpath(self):
@@ -199,10 +197,16 @@ class GitSupport(VCSSupport):
 		return self.env['EGIT_VERSION']
 
 	def getrev(self):
-		return self.call(['git', 'rev-parse', self.env['EGIT_BRANCH']]).split('\n')[0]
+		branch = self.env['EGIT_BRANCH']
+		if self.env['EGIT_HAS_SUBMODULES']:
+			branch = 'origin/%s' % branch
+		return self.call(['git', 'rev-parse', branch]).split('\n')[0]
 
 	def getupdatecmd(self):
-		return '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
+		if self.env['EGIT_HAS_SUBMODULES']:
+			return '%s %s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'])
+		else:
+			return '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
 
 	def diffstat(self, oldrev, newrev):
 		subprocess.Popen('%s %s..%s' % (self.env['EGIT_DIFFSTAT_CMD'] or 'git diff', oldrev, newrev), stdout=sys.stderr, shell=True).wait()
