@@ -122,7 +122,11 @@ class VCSSupport:
 
 	@staticmethod
 	def call(cmd):
-		return subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()[0].decode('utf8')
+		p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+		ret = p.communicate()[0].decode('utf8')
+		if p.wait() != 0:
+			raise SystemError('Command failed: %s' % cmd)
+		return ret
 
 	def getupdatecmd(self):
 		raise NotImplementedError('VCS class needs to override getupdatecmd()')
