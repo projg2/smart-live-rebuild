@@ -179,7 +179,7 @@ class VCSSupport:
 			self.subprocess.terminate()
 
 	def __str__(self):
-		return self.cpv
+		return ', '.join(self.cpv)
 
 class GitSupport(VCSSupport):
 	inherit = 'git'
@@ -195,7 +195,7 @@ class GitSupport(VCSSupport):
 		return '%s/%s' % (self.env['EGIT_STORE_DIR'], self.env['EGIT_PROJECT'])
 
 	def __str__(self):
-		return self.env['EGIT_REPO_URI'] or self.cpv
+		return self.env['EGIT_REPO_URI'] or VCSSupport.__str__(self)
 
 	def getsavedrev(self):
 		return self.env['EGIT_VERSION']
@@ -235,7 +235,7 @@ class HgSupport(VCSSupport):
 		return '%s/hg-src/%s/%s' % (dd, self.env['EHG_PROJECT'], bn)
 
 	def __str__(self):
-		return self.env['EHG_REPO_URI'] or self.cpv
+		return self.env['EHG_REPO_URI'] or VCSSupport.__str__(self)
 
 	def getrev(self):
 		return self.call(['hg', 'tip', '--template', '{node}'] + self.trustopt)
@@ -264,7 +264,7 @@ class SvnSupport(VCSSupport):
 		return self.env['ESVN_WC_PATH']
 
 	def __str__(self):
-		return self.env['ESVN_REPO_URI'] or self.cpv
+		return self.env['ESVN_REPO_URI'] or VCSSupport.__str__(self)
 
 	def getsavedrev(self):
 		return self.env['ESVN_WC_REVISION']
