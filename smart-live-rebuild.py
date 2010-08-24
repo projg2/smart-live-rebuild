@@ -4,7 +4,7 @@
 # (C) 2010 Michał Górny <gentoo@mgorny.alt.pl>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-PV = '0.5.1'
+PV = '0.5.2'
 
 import bz2, os, pickle, re, shutil, signal, subprocess, sys, tempfile, time
 import hashlib # CVS
