@@ -58,16 +58,7 @@ class out:
 		sys.stderr.write(msg)
 
 class Shared:
-	envtmpf = None
 	opts = None
-
-	@classmethod
-	def opentmp(self):
-		self.envtmpf = tempfile.NamedTemporaryFile('w+b')
-
-	@classmethod
-	def closetmp(self):
-		self.envtmpf.close()
 
 class NonLiveEbuild(Exception):
 	pass
@@ -83,8 +74,7 @@ class VCSSupport:
 			raise NotImplementedError('VCS class needs to either override inherit or match()')
 		return self.inherit in inherits
 
-	def bashparse(self, envf, vars):
-		f = Shared.envtmpf
+	def bashparse(self, envf, vars, f):
 		f.seek(0, 0)
 		f.truncate(0)
 		shutil.copyfileobj(envf, f)
@@ -95,9 +85,9 @@ class VCSSupport:
 
 		return dict(zip(vars, self.call(['bash', '-c', script]).split('\0')))
 
-	def __init__(self, cpv, envf):
+	def __init__(self, cpv, envf, tmpf):
 		self.cpv = [cpv]
-		self.env = self.bashparse(envf, self.reqenv + self.optenv)
+		self.env = self.bashparse(envf, self.reqenv + self.optenv, tmpf)
 
 		missingvars = [v for v in self.reqenv if self.env[v] == '']
 		if len(missingvars) > 0:
@@ -562,7 +552,7 @@ user account, please pass the --unprivileged-user option.
 			erraneous = []
 			rebuilds = {}
 
-			Shared.opentmp()
+			envtmpf = tempfile.NamedTemporaryFile('w+b')
 			try:
 				db = portage.db[portage.settings['ROOT']]['vartree'].dbapi
 				for cpv in db.cpv_all():
@@ -572,7 +562,7 @@ user account, please pass the --unprivileged-user option.
 						for vcs in vcslf:
 							if vcs.match(inherits):
 								env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
-								vcs = vcs(cpv, env)
+								vcs = vcs(cpv, env, envtmpf)
 								env.close()
 								if opts.network or vcs.getsavedrev():
 									dir = vcs.getpath()
@@ -588,7 +578,7 @@ user account, please pass the --unprivileged-user option.
 						out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
 						erraneous.append(cpv)
 			finally:
-				Shared.closetmp()
+				envtmpf.close()
 
 			if opts.jobs == 1:
 				out.s1('Updating the repositories...')
