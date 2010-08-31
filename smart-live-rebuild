@@ -6,8 +6,7 @@
 
 PV = '0.5.2'
 
-import bz2, os, pickle, re, signal, subprocess, sys, tempfile, time
-import hashlib # CVS
+import bz2, os, pickle, signal, subprocess, sys, tempfile, time
 import portage
 
 from optparse import OptionParser
@@ -17,174 +16,12 @@ except ImportError: # py2
 	from ConfigParser import ConfigParser, NoOptionError
 
 from SmartLiveRebuild.output import out
-from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
+from SmartLiveRebuild.vcs import NonLiveEbuild
 
-class GitSupport(VCSSupport):
-	inherit = 'git'
-	reqenv = ['EGIT_BRANCH', 'EGIT_PROJECT', 'EGIT_STORE_DIR', 'EGIT_UPDATE_CMD']
-	optenv = ['EGIT_COMMIT', 'EGIT_DIFFSTAT_CMD', 'EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS', 'EGIT_REPO_URI', 'EGIT_VERSION']
-
-	def __init__(self, *args):
-		VCSSupport.__init__(self, *args)
-		if self.env['EGIT_COMMIT'] and self.env['EGIT_COMMIT'] != self.env['EGIT_BRANCH']:
-			raise NonLiveEbuild('EGIT_COMMIT set, package is not really a live one')
-
-	def getpath(self):
-		return '%s/%s' % (self.env['EGIT_STORE_DIR'], self.env['EGIT_PROJECT'])
-
-	def __str__(self):
-		return self.env['EGIT_REPO_URI'] or VCSSupport.__str__(self)
-
-	def getsavedrev(self):
-		return self.env['EGIT_VERSION']
-
-	def getrev(self):
-		branch = self.env['EGIT_BRANCH']
-		if self.env['EGIT_HAS_SUBMODULES']:
-			branch = 'origin/%s' % branch
-		return self.call(['git', 'rev-parse', branch]).split('\n')[0]
-
-	def getupdatecmd(self):
-		if self.env['EGIT_HAS_SUBMODULES']:
-			return '%s %s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'])
-		else:
-			return '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
-
-	def diffstat(self, oldrev, newrev):
-		subprocess.Popen('%s %s..%s' % (self.env['EGIT_DIFFSTAT_CMD'] or 'git diff', oldrev, newrev), stdout=sys.stderr, shell=True).wait()
-
-class HgSupport(VCSSupport):
-	inherit = 'mercurial'
-	reqenv = ['EHG_PROJECT', 'EHG_PULL_CMD', 'EHG_REPO_URI']
-	optenv = ['EHG_REVISION']
-
-	trustopt = ['--config', 'trusted.users=portage']
-
-	def __init__(self, *args):
-		VCSSupport.__init__(self, *args)
-		if self.env['EHG_REVISION'] and self.env['EHG_REVISION'] != 'tip':
-			raise NonLiveEbuild('EHG_REVISION set, package is not really a live one')
-
-	def getpath(self):
-		dd = portage.settings['PORTAGE_ACTUAL_DISTDIR'] or portage.settings['DISTDIR']
-		bn = os.path.basename(self.env['EHG_REPO_URI']) or os.path.basename(os.path.dirname(self.env['EHG_REPO_URI']))
-		assert (bn != '')
-
-		return '%s/hg-src/%s/%s' % (dd, self.env['EHG_PROJECT'], bn)
-
-	def __str__(self):
-		return self.env['EHG_REPO_URI'] or VCSSupport.__str__(self)
-
-	def getrev(self):
-		return self.call(['hg', 'tip', '--template', '{node}'] + self.trustopt)
-
-	def getupdatecmd(self):
-		return ' '.join([self.env['EHG_PULL_CMD']] + self.trustopt)
-
-	def diffstat(self, oldrev, newrev):
-		subprocess.Popen(['hg', 'diff', '--stat', '-r', oldrev, '-r', newrev] + self.trustopt, stdout=sys.stderr).wait()
-
-class SvnSupport(VCSSupport):
-	inherit = 'subversion'
-	reqenv = ['ESVN_STORE_DIR', 'ESVN_UPDATE_CMD', 'ESVN_WC_PATH']
-	optenv = ['ESVN_REVISION', 'ESVN_OPTIONS', 'ESVN_PASSWORD', 'ESVN_REPO_URI', 'ESVN_USER', 'ESVN_WC_REVISION']
-
-	revre = re.compile('(?m)^Last Changed Rev: (\d+)$')
-
-	def __init__(self, *args):
-		VCSSupport.__init__(self, *args)
-		if self.env['ESVN_REPO_URI'] and self.env['ESVN_REPO_URI'].find('@') != -1:
-			raise NonLiveEbuild('ESVN_REPO_URI specifies revision, package is not really a live one')
-		elif self.env['ESVN_REVISION']:
-			raise NonLiveEbuild('ESVN_REVISION set, package is not really a live one')
-
-	def getpath(self):
-		return self.env['ESVN_WC_PATH']
-
-	def __str__(self):
-		return self.env['ESVN_REPO_URI'] or VCSSupport.__str__(self)
-
-	def getsavedrev(self):
-		return self.env['ESVN_WC_REVISION']
-
-	def getrev(self):
-		svninfo = self.call(['svn', '--config-dir', '%s/.subversion' % self.env['ESVN_STORE_DIR'], 'info'])
-		m = self.revre.search(svninfo)
-		return m.group(1) if m is not None else None
-
-	@staticmethod
-	def revcmp(oldrev, newrev):
-		return oldrev >= newrev
-
-	def getupdatecmd(self):
-		cmd = '%s %s --config-dir %s/.subversion' % (self.env['ESVN_UPDATE_CMD'], self.env['ESVN_OPTIONS'], self.env['ESVN_STORE_DIR'])
-		if self.env['ESVN_USER']:
-			cmd += ' --user "%s" --password "%s"' % (self.env['ESVN_USER'], self.env['ESVN_PASSWORD'])
-		return cmd
-
-class CVSSupport(VCSSupport):
-	inherit = 'cvs'
-	reqenv = ['ECVS_AUTH', 'ECVS_CVS_COMMAND', 'ECVS_MODULE', 'ECVS_SERVER', 'ECVS_TOP_DIR', 'ECVS_USER']
-	optenv = ['ECVS_BRANCH', 'ECVS_CLEAN', 'ECVS_LOCAL', 'ECVS_LOCALNAME', 'ECVS_PASS',
-			'ECVS_RUNAS', 'ECVS_UP_OPTS', 'ECVS_VERSION']
-
-	def __init__(self, *args):
-		VCSSupport.__init__(self, *args)
-		if self.env['ECVS_RUNAS']:
-			raise NotImplementedError('ECVS_RUNAS is not implemented (yet).')
-		elif self.env['ECVS_AUTH'] != 'pserver':
-			raise NotImplementedError('ECVS_AUTH=%s while only pserver is supported.' % self.env['ECVS_AUTH'])
-
-	def getpath(self):
-		return '%s/%s' % (self.env['ECVS_TOP_DIR'], self.env['ECVS_LOCALNAME'] or self.env['ECVS_MODULE'])
-
-	def __str__(self):
-		return '%s (%s)' % (self.env['ECVS_SERVER'], self.env['ECVS_MODULE']) or VCSSupport.__str__(self)
-
-	def getsavedrev(self):
-		return self.env['ECVS_VERSION']
-
-	def getrev(self):
-		inp = self.call(['find', self.getpath()] + '-ipath */CVS/Entries -exec cat {} +'.split()).split('\n')
-		del inp[-1] # drop the trailing newline for sorting
-		inp.sort()
-		inp.append('') # and readd it
-		hasher = hashlib.sha1()
-		hasher.update('\n'.join(inp))
-
-		return hasher.hexdigest()
-
-	def getupdatecmd(self):
-		opts = []
-		if self.env['ECVS_LOCAL']:
-			opts.append('-l')
-		if self.env['ECVS_BRANCH']:
-			opts.append('-r%s' % self.env['ECVS_BRANCH'])
-		if self.env['ECVS_CLEAN']:
-			opts.append('-C')
-
-		# XXX: server switching?
-
-		login_root = ':%s:%s:%s@%s' % (self.env['ECVS_AUTH'], self.env['ECVS_USER'],
-				self.env['ECVS_PASS'], self.env['ECVS_SERVER'])
-		login_cmd = '%s -f -d "%s" login' % (self.env['ECVS_CVS_COMMAND'], login_root)
-		up_root = ':%s:%s@%s' % (self.env['ECVS_AUTH'], self.env['ECVS_USER'],
-				self.env['ECVS_SERVER'])
-		up_cmd = '%s -f -d "%s" update %s %s' % (self.env['ECVS_CVS_COMMAND'], up_root,
-				self.env['ECVS_UP_OPTS'], ' '.join(opts))
-
-		# CVS is stupid as hell and tries to close STDOUT, which is
-		# redirected... making long story short, we need to do some
-		# random magic to make things work with our Popen()...
-		stdout_cmd = 'exec 2>&1'
-
-		cvs_passfile = tempfile.NamedTemporaryFile(delete=False)
-		env_cmd = 'export CVS_PASSFILE="%s" HOME=' % cvs_passfile.name
-		trap_cmd = 'trap \'rm -f "%s"\' EXIT' % cvs_passfile.name
-
-		cmd = '; '.join([trap_cmd, env_cmd, stdout_cmd, login_cmd, up_cmd])
-
-		return cmd
+from SmartLiveRebuild.git import GitSupport
+from SmartLiveRebuild.mercurial import HgSupport
+from SmartLiveRebuild.subversion import SvnSupport
+from SmartLiveRebuild.cvs import CVSSupport
 
 vcsl = [GitSupport, HgSupport, SvnSupport, CVSSupport]
 
