@@ -27,11 +27,10 @@ from SmartLiveRebuild.core import SmartLiveRebuild
 vcsl = [GitSupport, HgSupport, SvnSupport, CVSSupport]
 
 def main(argv):
-	vcsnames = [x.inherit for x in vcsl]
 	opt = OptionParser(
 			usage='%prog [options] -- [emerge options]',
 			version='%%prog %s' % PV,
-			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones. Supported VCS-es: %s.' % ', '.join(vcsnames)
+			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones.'
 	)
 	opt.add_option('-c', '--config-file', action='store', dest='config_file',
 		help='Configuration file (default: /etc/portage/smart-live-rebuild.conf)')
@@ -55,8 +54,8 @@ def main(argv):
 		help='Call quickpkg to create binary backups of packages which are going to be updated.')
 	opt.add_option('-S', '--no-setuid', action='store_false', dest='setuid',
 		help='Do not switch UID to portage when FEATURES=userpriv is set.')
-	opt.add_option('-t', '--type', action='append', type='choice', choices=vcsnames, dest='type',
-		help='Limit rebuild to packages using specific VCS. If used multiple times, all specified VCS-es will be used.')
+	opt.add_option('-t', '--type', action='append', dest='type',
+		help='Limit rebuild to packages using specific VCS (eclass name). If used multiple times, all specified VCS-es will be used.')
 	opt.add_option('-U', '--unprivileged-user', action='store_true', dest='unprivileged_user',
 		help='Allow running as an unprivileged user.')
 
@@ -130,10 +129,6 @@ def main(argv):
 			t = c.get(sect, k)
 			if t != '':
 				deftypes = t.split(',')
-				for t in list(deftypes):
-					if t not in vcsnames:
-						out.err('Incorrect value within %s: %s' % (k, t))
-						deftypes.remove(t)
 		else:
 			newdefs[k] = c.get(sect, k)
 		
