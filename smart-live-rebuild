@@ -57,9 +57,6 @@ class out:
 	def out(msg):
 		sys.stderr.write(msg)
 
-class Shared:
-	opts = None
-
 class NonLiveEbuild(Exception):
 	pass
 
@@ -85,9 +82,10 @@ class VCSSupport:
 
 		return dict(zip(vars, self.call(['bash', '-c', script]).split('\0')))
 
-	def __init__(self, cpv, envf, tmpf):
+	def __init__(self, cpv, envf, tmpf, opts):
 		self.cpv = [cpv]
 		self.env = self.bashparse(envf, self.reqenv + self.optenv, tmpf)
+		self._opts = opts
 
 		missingvars = [v for v in self.reqenv if self.env[v] == '']
 		if len(missingvars) > 0:
@@ -128,9 +126,9 @@ class VCSSupport:
 	def startupdate(self):
 		out.s2(str(self))
 		os.chdir(self.getpath())
-		self.oldrev = (not Shared.opts.local_rev and self.getsavedrev()) or self.getrev()
+		self.oldrev = (not self._opts.local_rev and self.getsavedrev()) or self.getrev()
 
-		if Shared.opts.network:
+		if self._opts.network:
 			cmd = self.getupdatecmd()
 			out.s3(cmd)
 			self.subprocess = subprocess.Popen(cmd, stdout=sys.stderr, shell=True)
@@ -152,7 +150,7 @@ class VCSSupport:
 		if ret == 0:
 			os.chdir(self.getpath())
 			newrev = self.getrev()
-			if Shared.opts.jobs > 1:
+			if self._opts.jobs > 1:
 				out.s2(str(self))
 
 			if self.revcmp(self.oldrev, newrev):
@@ -456,7 +454,6 @@ def main(argv):
 	(opts, args) = opt.parse_args(argv[1:])
 	if not opts.type:
 		opts.type = deftypes
-	Shared.opts = opts
 
 	if not opts.color:
 		out.monochromize()
@@ -562,7 +559,7 @@ user account, please pass the --unprivileged-user option.
 						for vcs in vcslf:
 							if vcs.match(inherits):
 								env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
-								vcs = vcs(cpv, env, envtmpf)
+								vcs = vcs(cpv, env, envtmpf, opts)
 								env.close()
 								if opts.network or vcs.getsavedrev():
 									dir = vcs.getpath()
