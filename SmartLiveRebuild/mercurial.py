@@ -4,7 +4,6 @@ import portage
 from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
 
 class HgSupport(VCSSupport):
-	inherit = 'mercurial'
 	reqenv = ['EHG_PROJECT', 'EHG_PULL_CMD', 'EHG_REPO_URI']
 	optenv = ['EHG_REVISION']
 
@@ -33,3 +32,5 @@ class HgSupport(VCSSupport):
 
 	def diffstat(self, oldrev, newrev):
 		subprocess.Popen(['hg', 'diff', '--stat', '-r', oldrev, '-r', newrev] + self.trustopt, stdout=sys.stderr).wait()
+
+myvcs = HgSupport

@@ -6,15 +6,8 @@ class NonLiveEbuild(Exception):
 	pass
 
 class VCSSupport:
-	inherit = None
 	reqenv = []
 	optenv = []
-
-	@classmethod
-	def match(self, inherits):
-		if self.inherit is None:
-			raise NotImplementedError('VCS class needs to either override inherit or match()')
-		return self.inherit in inherits
 
 	def bashparse(self, envf, vars, f):
 		f.seek(0, 0)
@@ -114,5 +107,3 @@ class VCSSupport:
 
 	def __str__(self):
 		return ', '.join(self.cpv)
-
-

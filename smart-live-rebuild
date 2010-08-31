@@ -16,14 +16,7 @@ except ImportError: # py2
 from SmartLiveRebuild import PV
 from SmartLiveRebuild.output import out
 
-from SmartLiveRebuild.git import GitSupport
-from SmartLiveRebuild.mercurial import HgSupport
-from SmartLiveRebuild.subversion import SvnSupport
-from SmartLiveRebuild.cvs import CVSSupport
-
 from SmartLiveRebuild.core import SmartLiveRebuild
-
-vcsl = [GitSupport, HgSupport, SvnSupport, CVSSupport]
 
 def main(argv):
 	opt = OptionParser(
@@ -136,7 +129,7 @@ def main(argv):
 	if not opts.type:
 		opts.type = deftypes
 
-	return SmartLiveRebuild(opts, args, vcsl)
+	return SmartLiveRebuild(opts, args)
 
 if __name__ == '__main__':
 	sys.exit(main(sys.argv))

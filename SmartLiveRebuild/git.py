@@ -3,7 +3,6 @@ import subprocess, sys
 from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
 
 class GitSupport(VCSSupport):
-	inherit = 'git'
 	reqenv = ['EGIT_BRANCH', 'EGIT_PROJECT', 'EGIT_STORE_DIR', 'EGIT_UPDATE_CMD']
 	optenv = ['EGIT_COMMIT', 'EGIT_DIFFSTAT_CMD', 'EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS', 'EGIT_REPO_URI', 'EGIT_VERSION']
 
@@ -35,3 +34,5 @@ class GitSupport(VCSSupport):
 
 	def diffstat(self, oldrev, newrev):
 		subprocess.Popen('%s %s..%s' % (self.env['EGIT_DIFFSTAT_CMD'] or 'git diff', oldrev, newrev), stdout=sys.stderr, shell=True).wait()
+
+myvcs = GitSupport

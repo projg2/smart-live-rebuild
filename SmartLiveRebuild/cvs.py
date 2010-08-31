@@ -3,7 +3,6 @@ import hashlib, tempfile
 from SmartLiveRebuild.vcs import VCSSupport
 
 class CVSSupport(VCSSupport):
-	inherit = 'cvs'
 	reqenv = ['ECVS_AUTH', 'ECVS_CVS_COMMAND', 'ECVS_MODULE', 'ECVS_SERVER', 'ECVS_TOP_DIR', 'ECVS_USER']
 	optenv = ['ECVS_BRANCH', 'ECVS_CLEAN', 'ECVS_LOCAL', 'ECVS_LOCALNAME', 'ECVS_PASS',
 			'ECVS_RUNAS', 'ECVS_UP_OPTS', 'ECVS_VERSION']
@@ -65,3 +64,5 @@ class CVSSupport(VCSSupport):
 		cmd = '; '.join([trap_cmd, env_cmd, stdout_cmd, login_cmd, up_cmd])
 
 		return cmd
+
+myvcs = CVSSupport

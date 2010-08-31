@@ -4,7 +4,7 @@ import portage
 from SmartLiveRebuild.output import out
 from SmartLiveRebuild.vcs import NonLiveEbuild
 
-def SmartLiveRebuild(opts, args, vcsl):
+def SmartLiveRebuild(opts, args):
 	if not opts.color:
 		out.monochromize()
 
@@ -90,15 +90,16 @@ user account, please pass the --unprivileged-user option.
 				os.close(commpipe[0])
 				os.setuid(puid)
 			if opts.type:
-				vcslf = [x for x in vcsl if x.inherit in opts.type]
+				allowed = frozenset(opts.type)
 			else:
-				vcslf = vcsl
+				allowed = None
 
 			out.s1('Enumerating the packages ...')
 
 			erraneous = []
 			rebuilds = {}
 
+			vcses = {}
 			envtmpf = tempfile.NamedTemporaryFile('w+b')
 			try:
 				db = portage.db[portage.settings['ROOT']]['vartree'].dbapi
@@ -106,10 +107,20 @@ user account, please pass the --unprivileged-user option.
 					try:
 						inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
 
-						for vcs in vcslf:
-							if vcs.match(inherits):
+						for vcs in inherits:
+							if vcs not in vcses:
+								if allowed and vcs not in allowed:
+									vcses[vcs] = None
+								else:
+									try:
+										modname = 'SmartLiveRebuild.%s' % vcs
+										vcses[vcs] = __import__(modname, globals(), locals(), ['myvcs']).myvcs
+									except ImportError:
+										vcses[vcs] = None
+
+							if vcses[vcs] is not None:
 								env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
-								vcs = vcs(cpv, env, envtmpf, opts)
+								vcs = vcses[vcs](cpv, env, envtmpf, opts)
 								env.close()
 								if opts.network or vcs.getsavedrev():
 									dir = vcs.getpath()

@@ -3,7 +3,6 @@ import re
 from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
 
 class SvnSupport(VCSSupport):
-	inherit = 'subversion'
 	reqenv = ['ESVN_STORE_DIR', 'ESVN_UPDATE_CMD', 'ESVN_WC_PATH']
 	optenv = ['ESVN_REVISION', 'ESVN_OPTIONS', 'ESVN_PASSWORD', 'ESVN_REPO_URI', 'ESVN_USER', 'ESVN_WC_REVISION']
 
@@ -39,3 +38,5 @@ class SvnSupport(VCSSupport):
 		if self.env['ESVN_USER']:
 			cmd += ' --user "%s" --password "%s"' % (self.env['ESVN_USER'], self.env['ESVN_PASSWORD'])
 		return cmd
+
+myvcs = SvnSupport
