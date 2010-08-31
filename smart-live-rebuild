@@ -187,8 +187,8 @@ class GitSupport(VCSSupport):
 	reqenv = ['EGIT_BRANCH', 'EGIT_PROJECT', 'EGIT_STORE_DIR', 'EGIT_UPDATE_CMD']
 	optenv = ['EGIT_COMMIT', 'EGIT_DIFFSTAT_CMD', 'EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS', 'EGIT_REPO_URI', 'EGIT_VERSION']
 
-	def __init__(self, cpv, env):
-		VCSSupport.__init__(self, cpv, env)
+	def __init__(self, *args):
+		VCSSupport.__init__(self, *args)
 		if self.env['EGIT_COMMIT'] and self.env['EGIT_COMMIT'] != self.env['EGIT_BRANCH']:
 			raise NonLiveEbuild('EGIT_COMMIT set, package is not really a live one')
 
@@ -223,8 +223,8 @@ class HgSupport(VCSSupport):
 
 	trustopt = ['--config', 'trusted.users=portage']
 
-	def __init__(self, cpv, env):
-		VCSSupport.__init__(self, cpv, env)
+	def __init__(self, *args):
+		VCSSupport.__init__(self, *args)
 		if self.env['EHG_REVISION'] and self.env['EHG_REVISION'] != 'tip':
 			raise NonLiveEbuild('EHG_REVISION set, package is not really a live one')
 
@@ -254,8 +254,8 @@ class SvnSupport(VCSSupport):
 
 	revre = re.compile('(?m)^Last Changed Rev: (\d+)$')
 
-	def __init__(self, cpv, env):
-		VCSSupport.__init__(self, cpv, env)
+	def __init__(self, *args):
+		VCSSupport.__init__(self, *args)
 		if self.env['ESVN_REPO_URI'] and self.env['ESVN_REPO_URI'].find('@') != -1:
 			raise NonLiveEbuild('ESVN_REPO_URI specifies revision, package is not really a live one')
 		elif self.env['ESVN_REVISION']:
@@ -291,8 +291,8 @@ class CVSSupport(VCSSupport):
 	optenv = ['ECVS_BRANCH', 'ECVS_CLEAN', 'ECVS_LOCAL', 'ECVS_LOCALNAME', 'ECVS_PASS',
 			'ECVS_RUNAS', 'ECVS_UP_OPTS', 'ECVS_VERSION']
 
-	def __init__(self, cpv, env):
-		VCSSupport.__init__(self, cpv, env)
+	def __init__(self, *args):
+		VCSSupport.__init__(self, *args)
 		if self.env['ECVS_RUNAS']:
 			raise NotImplementedError('ECVS_RUNAS is not implemented (yet).')
 		elif self.env['ECVS_AUTH'] != 'pserver':
