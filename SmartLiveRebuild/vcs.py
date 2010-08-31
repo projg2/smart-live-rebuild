@@ -2,6 +2,9 @@ import os, shutil, subprocess, sys
 
 from SmartLiveRebuild.output import out
 
+class NonLiveEbuild(Exception):
+	pass
+
 class VCSSupport:
 	inherit = None
 	reqenv = []

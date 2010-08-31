@@ -17,10 +17,7 @@ except ImportError: # py2
 	from ConfigParser import ConfigParser, NoOptionError
 
 from SmartLiveRebuild.output import out
-from SmartLiveRebuild.vcs import VCSSupport
-
-class NonLiveEbuild(Exception):
-	pass
+from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
 
 class GitSupport(VCSSupport):
 	inherit = 'git'
