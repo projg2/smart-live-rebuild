@@ -18,6 +18,6 @@ setup(
 		author_email = 'gentoo@mgorny.alt.pl',
 		url = 'http://github.com/mgorny/smart-live-rebuild',
 
-		packages = ['SmartLiveRebuild'],
+		packages = ['SmartLiveRebuild', 'SmartLiveRebuild.vcs'],
 		scripts = ['smart-live-rebuild']
 )

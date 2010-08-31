@@ -113,7 +113,7 @@ user account, please pass the --unprivileged-user option.
 									vcses[vcs] = None
 								else:
 									try:
-										modname = 'SmartLiveRebuild.%s' % vcs
+										modname = 'SmartLiveRebuild.vcs.%s' % vcs
 										vcses[vcs] = __import__(modname, globals(), locals(), ['myvcs']).myvcs
 									except ImportError:
 										vcses[vcs] = None
