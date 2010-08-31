@@ -1,1 +1,1 @@
-# (to satisfy package loading)
+PV = '0.6'
