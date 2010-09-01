@@ -4,19 +4,12 @@
 # (C) 2010 Michał Górny <gentoo@mgorny.alt.pl>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import os, sys
-import portage
+import sys
 
 from optparse import OptionParser
-try:
-	from configparser import ConfigParser, NoOptionError
-except ImportError: # py2
-	from ConfigParser import ConfigParser, NoOptionError
 
 from SmartLiveRebuild import PV
-from SmartLiveRebuild.output import out
-
-from SmartLiveRebuild.core import SmartLiveRebuild
+from SmartLiveRebuild.core import Config, SmartLiveRebuild
 
 def main(argv):
 	opt = OptionParser(
@@ -51,85 +44,20 @@ def main(argv):
 	opt.add_option('-U', '--unprivileged-user', action='store_true', dest='unprivileged_user',
 		help='Allow running as an unprivileged user.')
 
-	# Config&option parsing algo:
-	# 1) set default configfile,
-	# 2) parse opts to get configfile,
-	# 3) set configfile defaults if applicable,
-	# 4) reparse opts.
-	defs = {
-		'color': 'True',
-		'erraneous_merge': 'True',
-		'jobs': '1',
-		'local_rev': 'False',
-		'network': 'True',
-		'offline': 'True',
-		'pretend': 'False',
-		'quickpkg': 'False',
-		'setuid': str('userpriv' in portage.settings.features),
-		'type': '',
-		'unprivileged_user': 'False'
-	}
+	# initialize config with defaults
+	c = Config()
 
-	opt.set_defaults(
-			config_file = '/etc/portage/smart-live-rebuild.conf',
-			profile = 'smart-live-rebuild'
-	)
-	c = ConfigParser(defs)
+	# parse opts to get the config file
 	(opts, args) = opt.parse_args(argv[1:])
+	c.apply_optparse(opts)
 
-	# now look for the config file(s)
-	cfl = [opts.config_file]
-	sect = opts.profile
-	try:
-		while cfl[-1] != '' and c.read(os.path.expanduser(cfl[-1])):
-			# config file chaining support
-			try:
-				cf = c.get(sect, 'config_file')
-			except NoOptionError:
-				break
-			else:
-				if cf not in cfl:
-					cfl.append(cfl)
-				else:
-					break
-	except Exception as e:
-		out.err('Error while parsing configuration file:')
-		out.err('%s: %s' % (e.__class__.__name__, e))
+	# do the config file parsing
+	c.parse_configfiles()
 
-	# we need to have it to get the defaults
-	if not c.has_section(sect):
-		c.add_section(sect)
+	# and now reapply the options to override config file defaults
+	c.apply_optparse(opts)
 
-	# set defaults from the configfile and parse
-	newdefs = {}
-	deftypes = None
-	for k, defv in defs.items():
-		if defs[k] in ('True', 'False'): # bool
-			try:
-				newdefs[k] = c.getboolean(sect, k)
-			except ValueError:
-				out.err('Incorrect boolean value: %s=%s' % (k, c.get(sect, k)))
-				newdefs[k] = (defv == 'True')
-		elif k == 'jobs': # int
-			try:
-				newdefs[k] = c.getint(sect, k)
-			except ValueError:
-				out.err('Incorrect int value: %s=%s' % (k, c.get(sect, k)))
-				newdefs[k] = int(defv)
-		elif k == 'type':
-			# this one needs special handling due to the append action
-			t = c.get(sect, k)
-			if t != '':
-				deftypes = t.split(',')
-		else:
-			newdefs[k] = c.get(sect, k)
-		
-	opt.set_defaults(**newdefs)
-	(opts, args) = opt.parse_args(argv[1:])
-	if not opts.type:
-		opts.type = deftypes
-
-	return SmartLiveRebuild(opts, args)
+	return SmartLiveRebuild(c.get_options(), args)
 
 if __name__ == '__main__':
 	sys.exit(main(sys.argv))
