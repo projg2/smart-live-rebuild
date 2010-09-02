@@ -122,9 +122,6 @@ def SmartLiveRebuild(opts):
 	if not opts.color:
 		out.monochromize()
 
-	if opts.setuid and 'userpriv' not in portage.settings.features:
-		out.err('setuid requested but FEATURES=userpriv not set, assuming --no-setuid.')
-		opts.setuid = False
 	if opts.local_rev and not opts.network:
 		out.err('The --local-rev and --no-network options can not be specified together.')
 		raise SLRFailure('')
