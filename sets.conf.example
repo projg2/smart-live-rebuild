@@ -1,15 +1,10 @@
 # Example /etc/portage/sets.conf adding the @smart-live-rebuild set.
 
 [smart-live-rebuild]
-class = portage.sets.shell.CommandOutputSet
+class = SmartLiveRebuild.sets.SmartLiveRebuildSet
 world-candidate = False
-command = exec smart-live-rebuild -p
 
 [smart-live-rebuild-nonetwork]
-class = portage.sets.shell.CommandOutputSet
+class = SmartLiveRebuild.sets.SmartLiveRebuildSet
 world-candidate = False
-command = exec smart-live-rebuild -pP nonetwork
-
-# Please notice that '--pretend' argument is obligatory unless psutil
-# Python module is available; else smart-live-rebuild will spawn another
-# emerge process.
+profile = nonetwork
