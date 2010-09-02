@@ -14,7 +14,10 @@ from SmartLiveRebuild.output import out
 from SmartLiveRebuild.vcs import NonLiveEbuild
 
 class Config(ConfigParser):
-	def __init__(self):
+	def __init__(self, settings = None):
+		if settings is None:
+			settings = portage.settings
+
 		self._real_defaults = {
 			'color': 'True',
 			'config_file': '/etc/portage/smart-live-rebuild.conf',
@@ -26,7 +29,7 @@ class Config(ConfigParser):
 			'pretend': 'False',
 			'profile': 'smart-live-rebuild',
 			'quickpkg': 'False',
-			'setuid': str('userpriv' in portage.settings.features),
+			'setuid': str('userpriv' in settings.features),
 			'type': '',
 			'unprivileged_user': 'False'
 		}
@@ -118,7 +121,7 @@ class Config(ConfigParser):
 class SLRFailure(Exception):
 	pass
 
-def SmartLiveRebuild(opts):
+def SmartLiveRebuild(opts, db = None):
 	if not opts.color:
 		out.monochromize()
 
@@ -184,7 +187,9 @@ user account, please pass the --unprivileged-user option.
 			vcses = {}
 			envtmpf = tempfile.NamedTemporaryFile('w+b')
 			try:
-				db = portage.db[portage.settings['ROOT']]['vartree'].dbapi
+				if db is None:
+					db = portage.db[portage.settings['ROOT']]['vartree'].dbapi
+
 				for cpv in db.cpv_all():
 					try:
 						inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
