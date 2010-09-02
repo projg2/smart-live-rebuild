@@ -303,6 +303,7 @@ user account, please pass the --unprivileged-user option.
 		if opts.offline:
 			if opts.erraneous_merge and len(erraneous) > 0:
 				out.s1('Merging update-failed packages, assuming --no-offline.')
+				opts.offline = False
 			else:
 				os.environ['ESCM_OFFLINE'] = 'true'
 
