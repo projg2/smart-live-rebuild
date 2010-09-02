@@ -48,6 +48,10 @@ class Config(ConfigParser):
 			else:
 				self.set(self._current_section, k, str(v))
 
+	def apply_dict(self, values):
+		for k, v in values.items():
+			self.set(self._current_section, k, str(v))
+
 	def parse_configfiles(self):
 		cfl = [self.get(self._current_section, 'config_file')]
 		sect = self.get(self._current_section, 'profile')

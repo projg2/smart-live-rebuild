@@ -42,8 +42,12 @@ class SmartLiveRebuildSet(PackageSet):
 
 	@classmethod
 	def singleBuilder(cls, options, settings, trees):
+		# Clasically, apply twice. First time to get configfile path
+		# and profile; second time to override them.
 		c = Config(settings)
+		c.apply_dict(options)
 		c.parse_configfiles()
+		c.apply_dict(options)
 
 		db = trees['vartree'].dbapi
 
