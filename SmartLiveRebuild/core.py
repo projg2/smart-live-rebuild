@@ -115,48 +115,22 @@ class Config(ConfigParser):
 
 		return val
 
-def SmartLiveRebuild(opts, args):
+class SLRFailure(Exception):
+	pass
+
+def SmartLiveRebuild(opts):
 	if not opts.color:
 		out.monochromize()
-
-	if not opts.pretend:
-		try:
-			import psutil
-
-			def getproc(pid):
-				for ps in psutil.get_process_list():
-					if pid == ps.pid:
-						return ps
-				raise Exception()
-
-			def getscriptname(ps):
-				if os.path.basename(ps.cmdline[0]) != ps.name:
-					return ps.cmdline[0]
-				cmdline = ps.cmdline[1:]
-				while cmdline[0].startswith('-'): # omit options
-					cmdline.pop(0)
-				return os.path.basename(cmdline[0])
-
-			ps = getproc(os.getppid())
-			# traverse upstream to find the emerge process
-			while ps.pid > 1:
-				if getscriptname(ps) == 'emerge':
-					out.s1('Running under the emerge process, assuming --pretend.')
-					opts.pretend = True
-					break
-				ps = ps.parent
-		except Exception:
-			pass
 
 	if opts.setuid and 'userpriv' not in portage.settings.features:
 		out.err('setuid requested but FEATURES=userpriv not set, assuming --no-setuid.')
 		opts.setuid = False
 	if opts.local_rev and not opts.network:
 		out.err('The --local-rev and --no-network options can not be specified together.')
-		return 1
+		raise SLRFailure('')
 	if opts.jobs <= 0:
 		out.err('The argument to --jobs option must be a positive integer.')
-		return 1
+		raise SLRFailure('')
 	elif opts.jobs > 1 and not opts.network:
 		out.s1('Using parallel jobs with --no-network is inefficient, assuming no --jobs.')
 		opts.jobs = 1
@@ -193,7 +167,7 @@ This tool requires either superuser or portage (if FEATURES=userpriv is set)
 privileges. If you would like to force running the update using your current
 user account, please pass the --unprivileged-user option.
 ''')
-		return 1
+		raise SLRFailure('')
 
 	try:
 		if not childpid:
@@ -298,7 +272,9 @@ user account, please pass the --unprivileged-user option.
 				pdata = {'packages': packages, 'erraneous': erraneous}
 				pipe = os.fdopen(commpipe[1], 'wb')
 				pickle.dump(pdata, pipe, pickle.HIGHEST_PROTOCOL)
-				return 0
+				pipe.flush()
+				pipe.close()
+				os._exit(0)
 		else:
 			os.close(commpipe[1])
 			pipe = os.fdopen(commpipe[0], 'rb')
@@ -307,7 +283,7 @@ user account, please pass the --unprivileged-user option.
 			try:
 				pdata = pickle.load(pipe)
 			except EOFError: # child terminated early
-				return 1
+				raise SLRFailure('')
 			signal.signal(signal.SIGINT, sigint)
 			packages = pdata['packages']
 			erraneous = pdata['erraneous']
@@ -322,30 +298,18 @@ user account, please pass the --unprivileged-user option.
 			out.s2(' '.join(cmd))
 			subprocess.Popen(cmd, stdout=sys.stderr).wait()
 
+		if opts.offline:
+			if opts.erraneous_merge and len(erraneous) > 0:
+				out.s1('Merging update-failed packages, assuming --no-offline.')
+			else:
+				os.putenv('ESCM_OFFLINE', 'true')
+
 		if len(packages) < 1:
 			out.s1('No updates found')
-		elif opts.pretend:
-			out.s1('Printing a list of updated packages ...')
-			if opts.erraneous_merge and len(erraneous) > 0:
-				out.s2('(please notice that it contains the update-failed ones as well)')
-			for p in packages:
-				print('>=%s' % p)
 		else:
-			if opts.erraneous_merge and len(erraneous) > 0:
-				if opts.offline:
-					out.s1('Merging update-failed packages, assuming --no-offline.')
-					opts.offline = False
-
-			out.s1('Calling emerge to rebuild %s%d%s packages ...' % (out.white, len(packages), out.s1reset))
-			if opts.offline:
-				os.putenv('ESCM_OFFLINE', 'true')
-			cmd = ['emerge', '--oneshot']
-			cmd.extend(args)
-			cmd.extend(['>=%s' % x for x in packages])
-			out.s2(' '.join(cmd))
-			os.execv('/usr/bin/emerge', cmd)
+			out.s1('Found %s%d%s packages to rebuild.' % (out.white, len(packages), out.s1reset))
 	finally:
 		if childpid: # make sure that we leave no orphans
 			os.kill(childpid, signal.SIGTERM)
 
-	return 0
+	return packages
