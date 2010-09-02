@@ -304,7 +304,7 @@ user account, please pass the --unprivileged-user option.
 			if opts.erraneous_merge and len(erraneous) > 0:
 				out.s1('Merging update-failed packages, assuming --no-offline.')
 			else:
-				os.putenv('ESCM_OFFLINE', 'true')
+				os.environ['ESCM_OFFLINE'] = 'true'
 
 		if len(packages) < 1:
 			out.s1('No updates found')
