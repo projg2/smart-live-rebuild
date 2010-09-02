@@ -2,9 +2,12 @@
 # (c) 2010 Michał Górny <gentoo@mgorny.alt.pl>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
+import os
 from optparse import OptionParser
 
 from SmartLiveRebuild import PV
+from SmartLiveRebuild.core import Config, SmartLiveRebuild, SLRFailure
+from SmartLiveRebuild.output import out
 
 def parse_options(argv):
 	opt = OptionParser(
@@ -40,3 +43,64 @@ def parse_options(argv):
 		help='Allow running as an unprivileged user.')
 
 	return opt.parse_args(argv[1:])
+
+def main(argv):
+	# initialize config with defaults
+	c = Config()
+
+	# parse opts to get the config file
+	(opts, args) = parse_options(argv)
+	c.apply_optparse(opts)
+
+	# do the config file parsing
+	c.parse_configfiles()
+
+	# and now reapply the options to override config file defaults
+	c.apply_optparse(opts)
+	opts = c.get_options()
+
+	if not opts.pretend:
+		try:
+			import psutil
+
+			def getproc(pid):
+				for ps in psutil.get_process_list():
+					if pid == ps.pid:
+						return ps
+				raise Exception()
+
+			def getscriptname(ps):
+				if os.path.basename(ps.cmdline[0]) != ps.name:
+					return ps.cmdline[0]
+				cmdline = ps.cmdline[1:]
+				while cmdline[0].startswith('-'): # omit options
+					cmdline.pop(0)
+				return os.path.basename(cmdline[0])
+
+			ps = getproc(os.getppid())
+			# traverse upstream to find the emerge process
+			while ps.pid > 1:
+				if getscriptname(ps) == 'emerge':
+					out.s1('Running under the emerge process, assuming --pretend.')
+					opts.pretend = True
+					break
+				ps = ps.parent
+		except Exception:
+			pass
+
+	try:
+		packages = SmartLiveRebuild(opts)
+	except SLRFailure:
+		return 1
+
+	if opts.pretend:
+		for p in packages:
+			print('>=%s' % p)
+		return 0
+	else:
+		cmd = ['emerge', '--oneshot']
+		cmd.extend(args)
+		cmd.extend(['>=%s' % x for x in packages])
+		out.s2(' '.join(cmd))
+		os.execv('/usr/bin/emerge', cmd)
+		return 126
