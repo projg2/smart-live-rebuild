@@ -21,5 +21,17 @@ setup(
 		url = 'http://github.com/mgorny/smart-live-rebuild',
 
 		packages = ['SmartLiveRebuild', 'SmartLiveRebuild.vcs'],
-		scripts = ['smart-live-rebuild']
+		scripts = ['smart-live-rebuild'],
+
+		classifiers = [
+			'Development Status :: 4 - Beta',
+			'Environment :: Console',
+			'Environment :: Plugins',
+			'Intended Audience :: System Administrators',
+			'License :: OSI Approved :: BSD License',
+			'License :: OSI Approved :: GNU General Public License (GPL)',
+			'Operating System :: POSIX',
+			'Programming Language :: Python',
+			'Topic :: System :: Installation/Setup'
+		]
 )
