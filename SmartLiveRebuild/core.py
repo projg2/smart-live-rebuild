@@ -162,7 +162,7 @@ def SmartLiveRebuild(opts, db = None):
 				commpipe = os.pipe()
 				childpid = os.fork()
 		else:
-			out.err("'userpriv' is set but there's no 'portage' user in the system")
+			out.err("setuid requested but there's no 'portage' user in the system")
 
 	if not opts.unprivileged_user and not userok:
 		out.err('Either superuser or portage privileges are required!')
