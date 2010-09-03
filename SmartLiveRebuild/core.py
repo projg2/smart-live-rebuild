@@ -125,7 +125,7 @@ class Config(ConfigParser):
 class SLRFailure(Exception):
 	pass
 
-def SmartLiveRebuild(opts, db = None):
+def SmartLiveRebuild(opts, db = None, saveuid = False):
 	if not opts.color:
 		out.monochromize()
 
@@ -154,7 +154,7 @@ def SmartLiveRebuild(opts, db = None):
 					if opts.quickpkg:
 						out.err("Running as the portage user, --quickpkg probably won't work")
 					userok = True
-			elif opts.pretend and not opts.quickpkg:
+			elif opts.pretend and not opts.quickpkg and not saveuid:
 				out.s1('Dropping superuser privileges ...')
 				os.setuid(puid)
 			else:

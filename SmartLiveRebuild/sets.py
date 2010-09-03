@@ -16,8 +16,7 @@ class SmartLiveRebuildSet(PackageSet):
 	description = "Package set containing live packages awaiting update"
 
 	def __init__(self, opts, dbapi, settings):
-		# required in order to force fork() before setuid()
-		opts.pretend = False
+		opts.pretend = True
 
 		self._options = opts
 		self._dbapi = dbapi
@@ -27,7 +26,7 @@ class SmartLiveRebuildSet(PackageSet):
 	def load(self):
 		try:
 			packages = SmartLiveRebuild(self._options,
-					db = self._dbapi)
+					db = self._dbapi, saveuid = True)
 		except SLRFailure:
 			pass
 		else:
