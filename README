@@ -97,15 +97,9 @@ Moreover, in the latter case s-l-r can be run directly by the 'portage' user.
 
 PORTAGE SET SUPPORT
 --------------------
-Apart from being called directly, smart-live-rebuild might also be used through
-portage-2.2 CommandOutputSet. In order to do so, you need to add it to your
-sets.conf (/etc/portage/sets.conf) file. You may see the 'sets.conf.example'
-file for reference.
-
-Please notice that if you don't have the 'psutil' Python module (required to
-traverse the process tree) you need to explicitly specify '--pretend' ('-p')
-when being called from sets.conf. Otherwise, the program will spawn second
-emerge instance.
+Apart from being called directly, smart-live-rebuild provides a package set
+for portage-2.2, called SmartLiveRebuild.sets.SmartLiveRebuildSet. Please take
+a look at 'sets.conf.example' file for a use example.
 
 
 CONFIGURATION FILE
