@@ -148,13 +148,8 @@ def SmartLiveRebuild(opts, db = None, saveuid = False):
 		if puid and pgid:
 			if not userok:
 				if os.getuid() == puid:
-					if not opts.pretend:
-						out.s1('Running as the portage user, assuming --pretend.')
-						opts.pretend = True
-					if opts.quickpkg:
-						out.err("Running as the portage user, --quickpkg probably won't work")
 					userok = True
-			elif opts.pretend and not opts.quickpkg and not saveuid:
+			elif not saveuid and not opts.quickpkg:
 				out.s1('Dropping superuser privileges ...')
 				os.setuid(puid)
 			else:
@@ -163,6 +158,7 @@ def SmartLiveRebuild(opts, db = None, saveuid = False):
 				childpid = os.fork()
 		else:
 			out.err("setuid requested but there's no 'portage' user in the system")
+			return 1
 
 	if not opts.unprivileged_user and not userok:
 		out.err('Either superuser or portage privileges are required!')

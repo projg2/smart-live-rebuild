@@ -5,6 +5,8 @@
 import os
 from optparse import OptionParser
 
+import portage
+
 from SmartLiveRebuild import PV
 from SmartLiveRebuild.core import Config, SmartLiveRebuild, SLRFailure
 from SmartLiveRebuild.output import out
@@ -88,8 +90,18 @@ def main(argv):
 		except Exception:
 			pass
 
+	if opts.setuid:
+		puid = portage.data.portage_uid
+		pgid = portage.data.portage_gid
+		if puid and pgid and os.geteuid() != 0 and os.getuid() == puid:
+			if not opts.pretend:
+				out.s1('Running as the portage user, assuming --pretend.')
+				opts.pretend = True
+			if opts.quickpkg:
+				out.err("Running as the portage user, --quickpkg probably won't work")
+
 	try:
-		packages = SmartLiveRebuild(opts)
+		packages = SmartLiveRebuild(opts, saveuid = not opts.pretend)
 	except SLRFailure:
 		return 1
 

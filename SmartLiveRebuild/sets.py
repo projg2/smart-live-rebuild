@@ -16,8 +16,6 @@ class SmartLiveRebuildSet(PackageSet):
 	description = "Package set containing live packages awaiting update"
 
 	def __init__(self, opts, dbapi, settings):
-		opts.pretend = True
-
 		self._options = opts
 		self._dbapi = dbapi
 		self._settings = settings
