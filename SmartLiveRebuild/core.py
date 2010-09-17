@@ -46,6 +46,8 @@ class Config(ConfigParser):
 			except (AttributeError, ValueError):
 				pass
 			else:
+				if isinstance(v, list):
+					v = ','.join(v)
 				self.set(self._current_section, k, str(v))
 
 	def apply_dict(self, values):
