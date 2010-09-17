@@ -31,7 +31,7 @@ class VCSSupport:
 
 		missingvars = [v for v in self.reqenv if self.env[v] == '']
 		if len(missingvars) > 0:
-			raise KeyError('Environment does not declare: %s' % self.reqenv)
+			raise KeyError('Environment does not declare: %s' % missingvars)
 
 	def getpath(self):
 		raise NotImplementedError('VCS class needs to override getpath()')
