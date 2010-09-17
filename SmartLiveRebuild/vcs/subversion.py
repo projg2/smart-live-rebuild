@@ -7,8 +7,8 @@ import re
 from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
 
 class SvnSupport(VCSSupport):
-	reqenv = ['ESVN_STORE_DIR', 'ESVN_UPDATE_CMD', 'ESVN_WC_PATH']
-	optenv = ['ESVN_REVISION', 'ESVN_OPTIONS', 'ESVN_PASSWORD', 'ESVN_REPO_URI', 'ESVN_USER', 'ESVN_WC_REVISION']
+	reqenv = ['ESVN_STORE_DIR', 'ESVN_UPDATE_CMD']
+	optenv = ['ESVN_REVISION', 'ESVN_OPTIONS', 'ESVN_PASSWORD', 'ESVN_REPO_URI', 'ESVN_USER', 'ESVN_WC_PATH', 'ESVN_WC_REVISION']
 
 	revre = re.compile('(?m)^Last Changed Rev: (\d+)$')
 
@@ -18,6 +18,8 @@ class SvnSupport(VCSSupport):
 			raise NonLiveEbuild('ESVN_REPO_URI specifies revision, package is not really a live one')
 		elif self.env['ESVN_REVISION']:
 			raise NonLiveEbuild('ESVN_REVISION set, package is not really a live one')
+		elif not self.env['ESVN_WC_PATH']:
+			raise KeyError('Environment does not declare ESVN_WC_PATH while the package is a live one')
 
 	def getpath(self):
 		return self.env['ESVN_WC_PATH']
