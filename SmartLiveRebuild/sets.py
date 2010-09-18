@@ -2,6 +2,8 @@
 # (c) 2010 Michał Górny <gentoo@mgorny.alt.pl>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
+import os
+
 try:
 	from portage.sets.base import PackageSet
 	from portage.sets import SetConfigError
@@ -22,13 +24,27 @@ class SmartLiveRebuildSet(PackageSet):
 		PackageSet.__init__(self)
 
 	def load(self):
+		# We're caching the resulting package in an environment
+		# variable, using the pid as a safety measure to avoid random
+		# data catching. This allows us to avoid updating all
+		# the packages once again after emerge reloads itself.
+
+		cachevar = 'PORTAGE_SLR_PACKAGE_LIST'
+		pid = str(os.getpid())
+
+		packages = os.environ.get(cachevar, '').split()
+		if not packages or packages.pop(0) != pid:
+			packages = None
+
 		try:
-			packages = SmartLiveRebuild(self._options,
-					db = self._dbapi, saveuid = True)
+			if packages is None:
+				packages = SmartLiveRebuild(self._options,
+						db = self._dbapi, saveuid = True)
 		except SLRFailure:
 			pass
 		else:
 			self._setAtoms('>=%s' % p for p in packages)
+			os.environ[cachevar] = ' '.join([pid] + packages)
 
 			if self._options.offline:
 				s = self._settings
