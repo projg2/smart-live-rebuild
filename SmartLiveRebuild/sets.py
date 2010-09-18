@@ -2,12 +2,30 @@
 # (c) 2010 Michał Górny <gentoo@mgorny.alt.pl>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import os
+import os, re
+from portage import VERSION as portage_ver
 
-try:
+# live git tree generates 'vX.Y_rcZ-N-...'
+# ebuilds use 'X.Y_rcZ_pN'
+vmatch = re.match(r'^v?((?:\d+\.)*\d+)(?:_rc(\d+))?(?:(?:_p|-)(\d+))?', str(portage_ver))
+if vmatch:
+	vmatch = vmatch.groups()
+	pv = [int(x) for x in vmatch[0].split('.')]
+
+	if pv[0] >= 2 or (pv[0] == 2 and len(pv) >= 2 or pv[1] >= 2):
+		if not vmatch[1] or int(vmatch[1]) > 72 or (int(vmatch[1]) == 72 and vmatch[2] and int(vmatch[2]) >= 12):
+			sets_api = 1
+		else:
+			sets_api = 0
+	else:
+		raise ImportError('Portage version %s is not supported.' % portage_ver)
+else:
+	raise ImportError('Unable to parse the portage version: %s.' % portage_ver)
+
+if sets_api == 0:
 	from portage.sets.base import PackageSet
 	from portage.sets import SetConfigError
-except ImportError:
+elif sets_api == 1:
 	from portage._sets.base import PackageSet
 	from portage._sets import SetConfigError
 
