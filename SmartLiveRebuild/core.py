@@ -297,7 +297,13 @@ user account, please pass the --unprivileged-user option.
 
 		if opts.quickpkg and len(packages) >= 1:
 			out.s1('Calling quickpkg to create %s%d%s binary packages ...' % (out.white, len(packages), out.s1reset))
-			cmd = ['quickpkg', '--include-config=y']
+
+			# backwards compat, nowadays quickpkg is in ${PATH}
+			if os.path.exists('/usr/sbin/quickpkg'):
+				cmd = ['/usr/sbin/quickpkg']
+			else:
+				cmd = ['quickpkg']
+			cmd.append('--include-config=y')
 			cmd.extend(['=%s' % x for x in packages])
 			out.s2(' '.join(cmd))
 			subprocess.Popen(cmd, stdout=sys.stderr).wait()
