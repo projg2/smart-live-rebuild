@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #	vim:fileencoding=utf-8
-# (c) 2010 Michał Górny <gentoo@mgorny.alt.pl>
+# (c) 2010 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 from distutils.core import setup
@@ -17,7 +17,7 @@ setup(
 		name = 'smart-live-rebuild',
 		version = PV,
 		author = 'Michał Górny',
-		author_email = 'gentoo@mgorny.alt.pl',
+		author_email = 'mgorny@gentoo.org',
 		url = 'http://github.com/mgorny/smart-live-rebuild',
 
 		packages = ['SmartLiveRebuild', 'SmartLiveRebuild.vcs'],

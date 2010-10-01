@@ -1,5 +1,5 @@
 #	vim:fileencoding=utf-8
-# (c) 2010 Michał Górny <gentoo@mgorny.alt.pl>
+# (c) 2010 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 import os.path, subprocess, sys
