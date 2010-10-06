@@ -105,6 +105,9 @@ def main(argv):
 	except SLRFailure:
 		return 1
 
+	if not packages:
+		return 0
+
 	if opts.pretend:
 		for p in packages:
 			print('>=%s' % p)
