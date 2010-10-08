@@ -57,7 +57,7 @@ class SmartLiveRebuildSet(PackageSet):
 		try:
 			if packages is None:
 				packages = SmartLiveRebuild(self._options,
-						db = self._dbapi, saveuid = True)
+						db = self._dbapi, saveuid = True, settings = self._settings)
 		except SLRFailure:
 			pass
 		else:

@@ -127,7 +127,9 @@ class Config(ConfigParser):
 class SLRFailure(Exception):
 	pass
 
-def SmartLiveRebuild(opts, db = None, saveuid = False):
+def SmartLiveRebuild(opts, db = None, saveuid = False, settings = None):
+	if settings is None:
+		settings = portage.settings
 	if not opts.color:
 		out.monochromize()
 
@@ -190,7 +192,7 @@ user account, please pass the --unprivileged-user option.
 			envtmpf = tempfile.NamedTemporaryFile('w+b')
 			try:
 				if db is None:
-					db = portage.db[portage.settings['ROOT']]['vartree'].dbapi
+					db = portage.db[settings['ROOT']]['vartree'].dbapi
 
 				for cpv in db.cpv_all():
 					try:
@@ -209,7 +211,7 @@ user account, please pass the --unprivileged-user option.
 
 							if vcses[vcs] is not None:
 								env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
-								vcs = vcses[vcs](cpv, env, envtmpf, opts)
+								vcs = vcses[vcs](cpv, env, envtmpf, opts, settings)
 								env.close()
 								if opts.network or vcs.getsavedrev():
 									dir = vcs.getpath()

@@ -19,7 +19,7 @@ class HgSupport(VCSSupport):
 			raise NonLiveEbuild('EHG_REVISION set, package is not really a live one')
 
 	def getpath(self):
-		dd = portage.settings['PORTAGE_ACTUAL_DISTDIR'] or portage.settings['DISTDIR']
+		dd = self._settings['PORTAGE_ACTUAL_DISTDIR'] or self._settings['DISTDIR']
 		bn = os.path.basename(self.env['EHG_REPO_URI']) or os.path.basename(os.path.dirname(self.env['EHG_REPO_URI']))
 		assert (bn != '')
 

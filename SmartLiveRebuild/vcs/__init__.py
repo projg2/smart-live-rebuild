@@ -24,10 +24,11 @@ class VCSSupport:
 
 		return dict(zip(vars, self.call(['bash', '-c', script]).split('\0')))
 
-	def __init__(self, cpv, envf, tmpf, opts):
+	def __init__(self, cpv, envf, tmpf, opts, settings):
 		self.cpv = [cpv]
 		self.env = self.bashparse(envf, self.reqenv + self.optenv, tmpf)
 		self._opts = opts
+		self._settings = settings
 
 		missingvars = [v for v in self.reqenv if self.env[v] == '']
 		if len(missingvars) > 0:
