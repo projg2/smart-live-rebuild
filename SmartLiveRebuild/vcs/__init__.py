@@ -17,12 +17,10 @@ class VCSSupport:
 		f.seek(0, 0)
 		f.truncate(0)
 		shutil.copyfileobj(envf, f)
+		f.write('\nprintf "%%s\\0" %s\n' % ' '.join(['"${%s}"' % x for x in vars]))
 		f.flush()
 
-		script = 'source "%s"||exit 1;%s' % (f.name,
-			';echo -ne "\\0";'.join(['echo -n "${%s}"' % x for x in vars]))
-
-		return dict(zip(vars, self.call(['bash', '-c', script]).split('\0')))
+		return dict(zip(vars, self.call(['bash', f.name]).split('\0')))
 
 	def __init__(self, cpv, envf, tmpf, opts, settings):
 		self.cpv = [cpv]
