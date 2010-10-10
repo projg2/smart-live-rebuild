@@ -9,7 +9,7 @@ from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
 
 class HgSupport(VCSSupport):
 	reqenv = ['EHG_PROJECT', 'EHG_PULL_CMD', 'EHG_REPO_URI']
-	optenv = ['EHG_REVISION']
+	optenv = ['EHG_REVISION', 'HG_REV_ID']
 
 	trustopt = ['--config', 'trusted.users=portage']
 
@@ -27,6 +27,9 @@ class HgSupport(VCSSupport):
 
 	def __str__(self):
 		return self.env['EHG_REPO_URI'] or VCSSupport.__str__(self)
+
+	def getsavedrev(self):
+		return self.env['HG_REV_ID']
 
 	def getrev(self):
 		return self.call(['hg', 'tip', '--template', '{node}'] + self.trustopt)
