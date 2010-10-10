@@ -2,7 +2,7 @@
 # (c) 2010 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import os, shutil, subprocess, sys
+import os, subprocess, sys
 
 from SmartLiveRebuild.output import out
 
@@ -13,18 +13,9 @@ class VCSSupport:
 	reqenv = []
 	optenv = []
 
-	def bashparse(self, envf, vars, f):
-		f.seek(0, 0)
-		f.truncate(0)
-		shutil.copyfileobj(envf, f)
-		f.write('\nprintf "%%s\\0" %s\n' % ' '.join(['"${%s}"' % x for x in vars]))
-		f.flush()
-
-		return dict(zip(vars, self.call(['bash', f.name]).split('\0')))
-
-	def __init__(self, cpv, envf, tmpf, opts, settings):
+	def __init__(self, cpv, bash, opts, settings):
 		self.cpv = [cpv]
-		self.env = self.bashparse(envf, self.reqenv + self.optenv, tmpf)
+		self.env = bash(self.reqenv + self.optenv)
 		self._opts = opts
 		self._settings = settings
 
