@@ -34,6 +34,10 @@ class HgSupport(VCSSupport):
 	def getrev(self):
 		return self.call(['hg', 'tip', '--template', '{node}'] + self.trustopt)
 
+	@staticmethod
+	def revcmp(oldrev, newrev):
+		return newrev.startswith(oldrev)
+
 	def getupdatecmd(self):
 		return ' '.join([self.env['EHG_PULL_CMD']] + self.trustopt)
 
