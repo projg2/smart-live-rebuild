@@ -146,19 +146,29 @@ class BashParser(object):
 
 	def __call__(self, vars):
 		# File ready, now ping the server...
-		self._bashproc.stdin.write('%s\n' % ' '.join(['"${%s}"' % x for x in vars]))
+		self._bashproc.stdin.write(('%s\n' % ' '.join(['"${%s}"' % x for x in vars])).encode('ASCII'))
 		self._bashproc.stdin.flush()
 
 		# ...and grab the output (hopefully, we're in non-blocking mode).
-		l = ''
-		while len(l.split('\0')) <= len(vars):
+		l = bytes()
+		spl = []
+		while len(spl) <= len(vars):
 			try:
-				l += self._bashproc.stdout.read()
+				ret = self._bashproc.stdout.read()
+				if ret is None:
+					continue
+				l += ret
 			except IOError as e:
 				if e.errno not in (errno.EAGAIN, errno.EWOULDBLOCK):
 					raise
+			else:
+				try:
+					spl = l.decode('utf8').split('\0')
+				except UnicodeError:
+					# got stuck in the middle of a character?
+					spl = []
 
-		return dict(zip(vars, l.split('\0')))
+		return dict(zip(vars, spl))
 
 	def terminate(self):
 		self._bashproc.terminate()
