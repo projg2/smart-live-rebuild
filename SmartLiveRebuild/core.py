@@ -2,7 +2,7 @@
 # (c) 2010 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import bz2, errno, fcntl, os.path, pickle, shutil, signal, subprocess, sys, tempfile, time
+import bz2, errno, fcntl, os.path, pickle, select, shutil, signal, subprocess, sys, tempfile, time
 import portage
 
 try:
@@ -153,6 +153,7 @@ class BashParser(object):
 		l = bytes()
 		spl = []
 		while len(spl) <= len(vars):
+			select.select((self._bashproc.stdout,), (), (), 5)
 			try:
 				ret = self._bashproc.stdout.read()
 				if ret is None:
