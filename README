@@ -7,8 +7,8 @@ smart-live-rebuild is a Python script to aggregate live packages from users'
 system, update them and merge the updated ones.
 
 
-MOTIVATION
------------
+Motivation
+----------
 What's the point in creating such tool when portage-2.2 comes with builtin
 @live-rebuild support?
 
@@ -29,8 +29,8 @@ packages on its own, and supplies portage with ready-made list of packages which
 indeed have changed and need to be rebuilt.
 
 
-FEATURES
----------
+Features
+--------
 1) parallel updates support
 
 As you might have already noticed, fetching from remote repositories suffers
@@ -72,8 +72,8 @@ This means you no longer have to worry about having to manually update packages
 whenever you abort the merge or update process.
 
 
-SECURITY
----------
+Security
+--------
 In most cases, s-l-r needs to be run as root. This has serious security impli-
 cations, which the scripts tries to overcome dropping the privileges whenever
 possible.
@@ -95,15 +95,15 @@ it directly drops the privileges in the parent process.
 Moreover, in the latter case s-l-r can be run directly by the 'portage' user.
 
 
-PORTAGE SET SUPPORT
---------------------
+Portage set support
+-------------------
 Apart from being called directly, smart-live-rebuild provides a package set
 for portage-2.2, called SmartLiveRebuild.sets.SmartLiveRebuildSet. Please take
 a look at 'sets.conf.example' file for a use example.
 
 
-CONFIGURATION FILE
--------------------
+Configuration file
+------------------
 Various options to smart-live-rebuild may be set in a configuration file too.
 The path to that file can be specified as '--config-file' (or '-c'), and
 the default one is '/etc/portage/smart-live-rebuild.conf'.
@@ -118,12 +118,12 @@ The values for boolean types can be specified in any way suitable for
 ConfigParser python class (i.e. true/false/yes/no/on/off). The 'type' list
 has to be comma-separated.
 
-Example config file may look like:
+An example config file may look like:
 
-[smart-live-rebuild]
-jobs=3
-erraneous_merge=no
-type=git,subversion
+	[smart-live-rebuild]
+	jobs=3
+	erraneous_merge=no
+	type=git,subversion
 
 Additionally, configuration files can be chained. To do so, just specify path
 to the next configuration file as 'config_file'. Please notice though that
@@ -131,6 +131,8 @@ currently they aren't read in reverse order, so further configuration files will
 replace values set by yours.
 
 
-CONTACT / BUG REPORTING
-------------------------
+Contact / bug reporting
+-----------------------
 http://github.com/mgorny/smart-live-rebuild/issues
+
+<!-- vim:se syn=markdown : -->
