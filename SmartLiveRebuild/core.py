@@ -285,44 +285,31 @@ user account, please pass the --unprivileged-user option.
 				out.s1('Updating the repositories using %s%d%s parallel jobs...' % (out.white, opts.jobs, out.s1reset))
 			packages = []
 
-			processes = []
-			items = list(rebuilds.values())
-			while True:
-				try:
-					if len(processes) < opts.jobs and len(items) > 0:
-						vcs = items.pop(0)
+			processes = list(rebuilds.values())
+			try:
+				while processes:
+					needsleep = True
+					for i, vcs in reversed(list(enumerate(processes[:opts.jobs]))):
 						try:
-							vcs.startupdate()
-							if opts.jobs == 1:
-								ret = vcs.endupdate(True)
-							else:
-								processes.append(vcs)
+							ret = vcs((opts.jobs == 1))
+							if ret is not None:
+								needsleep = False
+								if ret:
+									packages.extend(vcs.cpv)
+								del processes[i]
 						except KeyboardInterrupt:
-							vcs.abortupdate()
 							raise
-					elif len(processes) == 0: # which is true if jobs == 1 too
-						break
-					else:
+						except Exception as e:
+							out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
+							erraneous.extend(vcs.cpv)
+							del processes[i]
+
+					if needsleep:
 						time.sleep(0.3)
-
-					for vcs in processes:
-						ret = vcs.endupdate()
-						if ret is not None:
-							processes.remove(vcs)
-							break
-
-					if ret:
-						packages.extend(vcs.cpv)
-				except KeyboardInterrupt:
-					out.err('Updates interrupted, proceeding with already updated repos.')
-					for vcs in processes:
-						vcs.abortupdate()
-					break
-				except Exception as e:
-					out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
-					if opts.jobs != 1 and vcs in processes:
-						processes.remove(vcs)
-					erraneous.extend(vcs.cpv)
+			except KeyboardInterrupt:
+				out.err('Updates interrupted, proceeding with already updated repos.')
+				for vcs in processes:
+					vcs.abortupdate()
 
 			if childpid == 0:
 				pdata = {'packages': packages, 'erraneous': erraneous}

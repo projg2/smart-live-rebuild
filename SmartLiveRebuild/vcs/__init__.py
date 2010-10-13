@@ -18,10 +18,21 @@ class VCSSupport:
 		self.env = bash(self.reqenv + self.optenv)
 		self._opts = opts
 		self._settings = settings
+		self._running = False
 
 		missingvars = [v for v in self.reqenv if self.env[v] == '']
 		if len(missingvars) > 0:
 			raise KeyError('Environment does not declare: %s' % missingvars)
+
+	def __call__(self, blocking = False):
+		if not self._running:
+			self.startupdate()
+			self._running = True
+			if blocking:
+				return self.endupdate(True)
+			return None
+		else:
+			return self.endupdate()
 
 	def getpath(self):
 		raise NotImplementedError('VCS class needs to override getpath()')
@@ -96,7 +107,7 @@ class VCSSupport:
 			raise Exception('update command returned non-zero result')
 
 	def abortupdate(self):
-		if self.subprocess is not None:
+		if self._running and self.subprocess is not None:
 			self.subprocess.terminate()
 
 	def __str__(self):
