@@ -2,7 +2,7 @@
 # (c) 2010 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import os, subprocess, sys
+import locale, os, subprocess, sys
 
 from SmartLiveRebuild.output import out
 
@@ -55,7 +55,7 @@ class VCSSupport:
 	@staticmethod
 	def call(cmd):
 		p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-		ret = p.communicate()[0].decode('utf8')
+		ret = p.communicate()[0].decode(locale.getpreferredencoding(), 'replace')
 		if p.wait() != 0:
 			raise SystemError('Command failed: %s' % cmd)
 		return ret

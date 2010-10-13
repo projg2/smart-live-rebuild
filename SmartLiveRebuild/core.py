@@ -164,6 +164,7 @@ class BashParser(object):
 					raise
 			else:
 				try:
+					# the environment file should be utf8-encoded
 					spl = l.decode('utf8').split('\0')
 				except UnicodeError:
 					# got stuck in the middle of a character?
