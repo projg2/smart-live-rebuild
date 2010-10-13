@@ -297,8 +297,12 @@ user account, please pass the --unprivileged-user option.
 											rebuilds[dir] = vcs
 											processes.append(vcs)
 											loop_iter()
-										else:
+										elif rebuilds[dir] in processes:
 											rebuilds[dir].append(vcs)
+										elif rebuilds[dir].cpv[0] in packages:
+											packages.extend(vcs.cpv)
+										elif rebuilds[dir].cpv[0] in erraneous:
+											erraneous.extend(vcs.cpv)
 						except KeyboardInterrupt:
 							raise
 						except NonLiveEbuild as e:
