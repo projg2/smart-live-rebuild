@@ -286,11 +286,11 @@ user account, please pass the --unprivileged-user option.
 			packages = []
 
 			processes = []
-			items = list(rebuilds.items())
+			items = list(rebuilds.values())
 			while True:
 				try:
 					if len(processes) < opts.jobs and len(items) > 0:
-						(dir, vcs) = items.pop(0)
+						vcs = items.pop(0)
 						try:
 							vcs.startupdate()
 							if opts.jobs == 1:
