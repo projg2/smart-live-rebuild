@@ -179,6 +179,9 @@ class BashParser(object):
 def SmartLiveRebuild(opts, db = None, saveuid = False, settings = None):
 	if settings is None:
 		settings = portage.settings
+	if db is None:
+		db = portage.db[settings['ROOT']]['vartree'].dbapi
+
 	if not opts.color:
 		out.monochromize()
 
@@ -240,9 +243,6 @@ user account, please pass the --unprivileged-user option.
 			vcses = {}
 			bash = BashParser()
 			try:
-				if db is None:
-					db = portage.db[settings['ROOT']]['vartree'].dbapi
-
 				for cpv in db.cpv_all():
 					try:
 						inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
