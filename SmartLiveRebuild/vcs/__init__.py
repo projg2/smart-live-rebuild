@@ -108,7 +108,10 @@ class VCSSupport:
 
 	def abortupdate(self):
 		if self._running and self.subprocess is not None:
-			self.subprocess.terminate()
+			try:
+				self.subprocess.terminate()
+			except OSError:
+				pass
 
 	def __str__(self):
 		return ', '.join(self.cpv)
