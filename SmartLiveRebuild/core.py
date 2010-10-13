@@ -235,76 +235,82 @@ user account, please pass the --unprivileged-user option.
 			else:
 				allowed = None
 
-			out.s1('Enumerating the packages ...')
-
-			erraneous = []
-			rebuilds = {}
-
-			vcses = {}
-			bash = BashParser()
-			try:
-				for cpv in db.cpv_all():
-					try:
-						inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
-
-						for vcs in inherits:
-							if vcs not in vcses:
-								if allowed and vcs not in allowed:
-									vcses[vcs] = None
-								else:
-									try:
-										modname = 'SmartLiveRebuild.vcs.%s' % vcs.replace('-', '_')
-										vcses[vcs] = __import__(modname, globals(), locals(), ['myvcs']).myvcs
-									except ImportError:
-										vcses[vcs] = None
-
-							if vcses[vcs] is not None:
-								env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
-								bash.grabenv(env)
-								vcs = vcses[vcs](cpv, bash, opts, settings)
-								env.close()
-								if opts.network or vcs.getsavedrev():
-									dir = vcs.getpath()
-									if dir not in rebuilds:
-										rebuilds[dir] = vcs
-									else:
-										rebuilds[dir].append(vcs)
-					except KeyboardInterrupt:
-						raise
-					except NonLiveEbuild as e:
-						out.err('%s: %s' % (cpv, e))
-					except Exception as e:
-						out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
-						erraneous.append(cpv)
-			finally:
-				bash.terminate()
-
 			if opts.jobs == 1:
 				out.s1('Updating the repositories...')
 			else:
 				out.s1('Updating the repositories using %s%d%s parallel jobs...' % (out.white, opts.jobs, out.s1reset))
-			packages = []
 
-			processes = list(rebuilds.values())
+			atoms = db.cpv_all()
+			processes = []
+
+			packages = []
+			erraneous = []
+			rebuilds = {}
+
+			def loop_iter(blocking = False):
+				needsleep = True
+				for i, vcs in reversed(list(enumerate(processes[:opts.jobs]))):
+					try:
+						ret = vcs(blocking)
+						if ret is not None:
+							needsleep = False
+							if ret:
+								packages.extend(vcs.cpv)
+							del processes[i]
+					except KeyboardInterrupt:
+						raise
+					except Exception as e:
+						out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
+						erraneous.extend(vcs.cpv)
+						del processes[i]
+				return needsleep
+
+			vcses = {}
+			bash = BashParser()
 			try:
-				while processes:
-					needsleep = True
-					for i, vcs in reversed(list(enumerate(processes[:opts.jobs]))):
+				try:
+					while atoms:
+						cpv = atoms.pop(0)
+
 						try:
-							ret = vcs((opts.jobs == 1))
-							if ret is not None:
-								needsleep = False
-								if ret:
-									packages.extend(vcs.cpv)
-								del processes[i]
+							inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
+
+							for vcs in inherits:
+								if vcs not in vcses:
+									if allowed and vcs not in allowed:
+										vcses[vcs] = None
+									else:
+										try:
+											modname = 'SmartLiveRebuild.vcs.%s' % vcs.replace('-', '_')
+											vcses[vcs] = __import__(modname, globals(), locals(), ['myvcs']).myvcs
+										except ImportError:
+											vcses[vcs] = None
+
+								if vcses[vcs] is not None:
+									env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
+									bash.grabenv(env)
+									vcs = vcses[vcs](cpv, bash, opts, settings)
+									env.close()
+									if opts.network or vcs.getsavedrev():
+										dir = vcs.getpath()
+										if dir not in rebuilds:
+											rebuilds[dir] = vcs
+											processes.append(vcs)
+											loop_iter()
+										else:
+											rebuilds[dir].append(vcs)
 						except KeyboardInterrupt:
 							raise
+						except NonLiveEbuild as e:
+							out.err('%s: %s' % (cpv, e))
 						except Exception as e:
-							out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
-							erraneous.extend(vcs.cpv)
-							del processes[i]
+							out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
+							erraneous.append(cpv)
+				finally:
+					bash.terminate()
 
-					if needsleep:
+				while processes:
+					if loop_iter((opts.jobs == 1)):
 						time.sleep(0.3)
 			except KeyboardInterrupt:
 				out.err('Updates interrupted, proceeding with already updated repos.')
