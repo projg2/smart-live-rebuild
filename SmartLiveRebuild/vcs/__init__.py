@@ -53,8 +53,8 @@ class VCSSupport:
 		return oldrev == newrev
 
 	@staticmethod
-	def call(cmd):
-		p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+	def call(cmd, **kwargs):
+		p = subprocess.Popen(cmd, stdout=subprocess.PIPE, **kwargs)
 		ret = p.communicate()[0].decode(locale.getpreferredencoding(), 'replace')
 		if p.wait() != 0:
 			raise SystemError('Command failed: %s' % cmd)
