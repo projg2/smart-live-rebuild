@@ -245,7 +245,7 @@ user account, please pass the --unprivileged-user option.
 
 			packages = []
 			erraneous = []
-			rebuilds = {}
+			dirs = []
 
 			def loop_iter(blocking = False):
 				needsleep = True
@@ -293,12 +293,10 @@ user account, please pass the --unprivileged-user option.
 									env.close()
 									if opts.network or vcs.getsavedrev():
 										dir = vcs.getpath()
-										if dir not in rebuilds:
-											rebuilds[dir] = vcs
+										if dir not in dirs:
+											dirs.append(dir)
 											processes.append(vcs)
 											loop_iter()
-										else:
-											rebuilds[dir].append(vcs)
 						except KeyboardInterrupt:
 							raise
 						except NonLiveEbuild as e:
