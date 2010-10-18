@@ -2,7 +2,7 @@
 # (c) 2010 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import bz2, errno, fcntl, os.path, pickle, select, shutil, signal, subprocess, sys, tempfile, time
+import bz2, errno, fcntl, itertools, os.path, pickle, select, shutil, signal, subprocess, sys, tempfile, time
 import portage
 
 try:
@@ -47,7 +47,7 @@ class Config(ConfigParser):
 				pass
 			else:
 				if isinstance(v, list):
-					v = ','.join(v)
+					v = ','.join(itertools.chain(*v))
 				self.set(self._current_section, k, str(v))
 
 	def apply_dict(self, values):
@@ -116,7 +116,16 @@ class Config(ConfigParser):
 					val[k] = int(self._real_defaults[k])
 			elif k == 'type':
 				if v != '':
-					val[k] = v.split(',')
+					val[k] = []
+					for vcs in v.split(','):
+						if GetVCS(vcs):
+							val[k].append(vcs)
+						else:
+							out.err('VCS type not supported: %s' % vcs)
+
+					if not val[k]:
+						out.err('None of specified VCS types matched, aborting.')
+						sys.exit(1)
 				else:
 					val[k] = None
 			else:

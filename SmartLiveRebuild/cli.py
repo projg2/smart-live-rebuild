@@ -3,19 +3,34 @@
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 import os
-from optparse import OptionParser
+from copy import copy
+from optparse import OptionParser, Option, OptionValueError
 
 import portage
 
 from SmartLiveRebuild import PV
 from SmartLiveRebuild.core import Config, SmartLiveRebuild, SLRFailure
 from SmartLiveRebuild.output import out
+from SmartLiveRebuild.vcs import GetVCS
+
+def check_vcslist(opt, optstr, val):
+	val = val.split(',')
+	for vcs in val:
+		if GetVCS(vcs) is None:
+			raise OptionValueError("option %s: VCS eclass '%s' is not supported." % (optstr, vcs))
+	return val
+
+class SLROption(Option):
+	TYPES = Option.TYPES + ('vcslist',)
+	TYPE_CHECKER = copy(Option.TYPE_CHECKER)
+	TYPE_CHECKER['vcslist'] = check_vcslist
 
 def parse_options(argv):
 	opt = OptionParser(
 			usage='%prog [options] -- [emerge options]',
 			version='%%prog %s' % PV,
-			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones.'
+			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones.',
+			option_class=SLROption
 	)
 	opt.add_option('-c', '--config-file', action='store', dest='config_file',
 		help='Configuration file (default: /etc/portage/smart-live-rebuild.conf)')
@@ -39,7 +54,7 @@ def parse_options(argv):
 		help='Call quickpkg to create binary backups of packages which are going to be updated.')
 	opt.add_option('-S', '--no-setuid', action='store_false', dest='setuid',
 		help='Do not switch UID to portage when FEATURES=userpriv is set.')
-	opt.add_option('-t', '--type', action='append', dest='type',
+	opt.add_option('-t', '--type', action='append', type='vcslist', dest='type',
 		help='Limit rebuild to packages using specific VCS (eclass name). If used multiple times, all specified VCS-es will be used.')
 	opt.add_option('-U', '--unprivileged-user', action='store_true', dest='unprivileged_user',
 		help='Allow running as an unprivileged user.')
