@@ -366,8 +366,6 @@ user account, please pass the --unprivileged-user option.
 				packages = ['-'.join(pkgsplit(x)[0:2]) for x in packages]
 			packages = ['>=%s' % x for x in packages]
 
-		print packages
-
 		if len(packages) < 1:
 			out.s1('No updates found')
 		else:
