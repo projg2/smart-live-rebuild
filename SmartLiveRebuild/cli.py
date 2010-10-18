@@ -13,6 +13,11 @@ from SmartLiveRebuild.core import Config, SmartLiveRebuild, SLRFailure
 from SmartLiveRebuild.output import out
 from SmartLiveRebuild.vcs import GetVCS
 
+def check_downgrade(opt, optstr, val):
+	if val not in ('always', 'same-pv', 'never'):
+		raise OptionValueError("option %s: incorrect value %s." % (optstr, val))
+	return val
+
 def check_vcslist(opt, optstr, val):
 	val = val.split(',')
 	for vcs in val:
@@ -21,8 +26,9 @@ def check_vcslist(opt, optstr, val):
 	return val
 
 class SLROption(Option):
-	TYPES = Option.TYPES + ('vcslist',)
+	TYPES = Option.TYPES + ('downgrade', 'vcslist')
 	TYPE_CHECKER = copy(Option.TYPE_CHECKER)
+	TYPE_CHECKER['downgrade'] = check_downgrade
 	TYPE_CHECKER['vcslist'] = check_vcslist
 
 class CLIConfig(Config):
@@ -50,6 +56,8 @@ def parse_options(argv):
 		help='Configuration file (default: /etc/portage/smart-live-rebuild.conf)')
 	opt.add_option('-C', '--no-color', action='store_false', dest='color',
 		help='Disable colorful output.')
+	opt.add_option('-D', '--allow-downgrade', action='store', type='downgrade', dest='allow_downgrade',
+		help="When to allow downgrading package (one of 'never', 'same-pv', 'always')")
 	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='erraneous_merge',
 		help='Disable emerging packages for which the update has failed.')
 	opt.add_option('-j', '--jobs', action='store', type='int', dest='jobs',

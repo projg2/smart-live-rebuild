@@ -4,6 +4,7 @@
 
 import bz2, errno, fcntl, os.path, pickle, select, shutil, signal, subprocess, sys, tempfile, time
 import portage
+from portage.versions import pkgsplit
 
 try:
 	from configparser import ConfigParser, NoOptionError
@@ -19,6 +20,7 @@ class Config(ConfigParser):
 			settings = portage.settings
 
 		self._real_defaults = {
+			'allow_downgrade': 'same-pv',
 			'color': 'True',
 			'config_file': '/etc/portage/smart-live-rebuild.conf',
 			'erraneous_merge': 'True',
@@ -101,6 +103,12 @@ class Config(ConfigParser):
 				except ValueError:
 					out.err('Incorrect int value: %s=%s' % (k, v))
 					val[k] = int(self._real_defaults[k])
+			elif k == 'allow_downgrade':
+				if v not in ('always', 'same-pv', 'never'):
+					out.err('Incorrect value: %s=%s' % (k, v))
+					val[k] = self._real_defaults[k]
+				else:
+					val[k] = v
 			elif k == 'type':
 				if v != '':
 					val[k] = []
@@ -351,7 +359,14 @@ user account, please pass the --unprivileged-user option.
 			else:
 				os.environ['ESCM_OFFLINE'] = 'true'
 
-		packages = ['>=%s' % x for x in packages]
+		if opts.allow_downgrade == 'always':
+			packages = [pkgsplit(x)[0] for x in packages]
+		else:
+			if opts.allow_downgrade == 'same-pv':
+				packages = ['-'.join(pkgsplit(x)[0:2]) for x in packages]
+			packages = ['>=%s' % x for x in packages]
+
+		print packages
 
 		if len(packages) < 1:
 			out.s1('No updates found')
