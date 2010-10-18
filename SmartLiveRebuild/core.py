@@ -351,6 +351,8 @@ user account, please pass the --unprivileged-user option.
 			else:
 				os.environ['ESCM_OFFLINE'] = 'true'
 
+		packages = ['>=%s' % x for x in packages]
+
 		if len(packages) < 1:
 			out.s1('No updates found')
 		else:

@@ -139,12 +139,12 @@ def main(argv):
 
 	if opts.pretend:
 		for p in packages:
-			print('>=%s' % p)
+			print(p)
 		return 0
 	else:
 		cmd = ['emerge', '--oneshot']
 		cmd.extend(args)
-		cmd.extend(['>=%s' % x for x in packages])
+		cmd.extend(packages)
 		out.s2(' '.join(cmd))
 		os.execv('/usr/bin/emerge', cmd)
 		return 126

@@ -61,7 +61,7 @@ class SmartLiveRebuildSet(PackageSet):
 		except SLRFailure:
 			pass
 		else:
-			self._setAtoms('>=%s' % p for p in packages)
+			self._setAtoms(packages)
 			os.environ[cachevar] = ' '.join([pid] + packages)
 
 			if self._options.offline:
