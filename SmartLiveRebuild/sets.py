@@ -35,9 +35,10 @@ class SmartLiveRebuildSet(PackageSet):
 	_operations = ["merge"]
 	description = "Package set containing live packages awaiting update"
 
-	def __init__(self, opts, dbapi, settings):
+	def __init__(self, opts, vardbapi, portdbapi, settings):
 		self._options = opts
-		self._dbapi = dbapi
+		self._dbapi = vardbapi
+		self._portdb = portdbapi
 		self._settings = settings
 		PackageSet.__init__(self)
 
@@ -57,7 +58,8 @@ class SmartLiveRebuildSet(PackageSet):
 		try:
 			if packages is None:
 				packages = SmartLiveRebuild(self._options,
-						db = self._dbapi, saveuid = True, settings = self._settings)
+						db = self._dbapi, portdb = self._portdb,
+						saveuid = True, settings = self._settings)
 		except SLRFailure:
 			pass
 		else:
@@ -80,6 +82,7 @@ class SmartLiveRebuildSet(PackageSet):
 		c.parse_configfiles()
 		c.apply_dict(options)
 
-		db = trees['vartree'].dbapi
+		vardb = trees['vartree'].dbapi
+		portdb = trees['porttree'].dbapi
 
-		return cls(c.get_options(), db, settings)
+		return cls(c.get_options(), vardb, portdb, settings)

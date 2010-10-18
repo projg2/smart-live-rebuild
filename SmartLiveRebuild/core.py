@@ -181,11 +181,13 @@ class BashParser(object):
 		self._bashproc.communicate()
 		self._tmpf.close()
 
-def SmartLiveRebuild(opts, db = None, saveuid = False, settings = None):
+def SmartLiveRebuild(opts, db = None, portdb = None, saveuid = False, settings = None):
 	if settings is None:
 		settings = portage.settings
 	if db is None:
 		db = portage.db[settings['ROOT']]['vartree'].dbapi
+	if portdb is None:
+		portdb = portage.db[settings['ROOT']]['porttree'].dbapi
 
 	if not opts.color:
 		out.monochromize()
@@ -365,6 +367,12 @@ user account, please pass the --unprivileged-user option.
 			if opts.allow_downgrade == 'same-pv':
 				packages = ['-'.join(pkgsplit(x)[0:2]) for x in packages]
 			packages = ['>=%s' % x for x in packages]
+
+		# Check portdb for matches. Drop unmatched packages.
+		for p in list(packages):
+			if not portdb.match(p):
+				out.err('No packages matching %s in portdb, skipping.' % p)
+				packages.remove(p)
 
 		if len(packages) < 1:
 			out.s1('No updates found')
