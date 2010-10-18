@@ -11,7 +11,7 @@ except ImportError: # py2
 	from ConfigParser import ConfigParser, NoOptionError
 
 from SmartLiveRebuild.output import out
-from SmartLiveRebuild.vcs import NonLiveEbuild
+from SmartLiveRebuild.vcs import NonLiveEbuild, GetVCS
 
 class Config(ConfigParser):
 	def __init__(self, settings = None):
@@ -266,7 +266,6 @@ user account, please pass the --unprivileged-user option.
 						del processes[i]
 				return needsleep
 
-			vcses = {}
 			bash = BashParser()
 			try:
 				try:
@@ -277,20 +276,11 @@ user account, please pass the --unprivileged-user option.
 							inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
 
 							for vcs in inherits:
-								if vcs not in vcses:
-									if allowed and vcs not in allowed:
-										vcses[vcs] = None
-									else:
-										try:
-											modname = 'SmartLiveRebuild.vcs.%s' % vcs.replace('-', '_')
-											vcses[vcs] = __import__(modname, globals(), locals(), ['myvcs']).myvcs
-										except ImportError:
-											vcses[vcs] = None
-
-								if vcses[vcs] is not None:
+								vcscl = GetVCS(vcs, allowed)
+								if vcscl is not None:
 									env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
 									bash.grabenv(env)
-									vcs = vcses[vcs](cpv, bash, opts, settings)
+									vcs = vcscl(cpv, bash, opts, settings)
 									env.close()
 									if opts.network or vcs.getsavedrev():
 										dir = vcs.getpath()

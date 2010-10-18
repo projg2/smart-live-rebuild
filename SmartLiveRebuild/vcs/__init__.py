@@ -115,3 +115,18 @@ class VCSSupport:
 
 	def __str__(self):
 		return ', '.join(self.cpv)
+
+vcs_cache = {}
+
+def GetVCS(eclassname, allowed = []):
+	if eclassname not in vcs_cache:
+		if allowed and eclassname not in allowed:
+			vcs_cache[eclassname] = None
+		else:
+			try:
+				modname = 'SmartLiveRebuild.vcs.%s' % eclassname.replace('-', '_')
+				vcs_cache[eclassname] = __import__(modname, globals(), locals(), ['myvcs']).myvcs
+			except ImportError:
+				vcs_cache[eclassname] = None
+
+	return vcs_cache[eclassname]
