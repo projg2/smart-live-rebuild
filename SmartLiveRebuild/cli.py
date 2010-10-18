@@ -2,7 +2,7 @@
 # (c) 2010 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import os
+import itertools, os
 from copy import copy
 from optparse import OptionParser, Option, OptionValueError
 
@@ -24,6 +24,20 @@ class SLROption(Option):
 	TYPES = Option.TYPES + ('vcslist',)
 	TYPE_CHECKER = copy(Option.TYPE_CHECKER)
 	TYPE_CHECKER['vcslist'] = check_vcslist
+
+class CLIConfig(Config):
+	def apply_optparse(self, values):
+		for k in self.defaults():
+			try:
+				v = getattr(values, k)
+				if v is None:
+					raise ValueError
+			except (AttributeError, ValueError):
+				pass
+			else:
+				if isinstance(v, list):
+					v = ','.join(itertools.chain(*v))
+				self.set(self._current_section, k, str(v))
 
 def parse_options(argv):
 	opt = OptionParser(
@@ -63,7 +77,7 @@ def parse_options(argv):
 
 def main(argv):
 	# initialize config with defaults
-	c = Config()
+	c = CLIConfig()
 
 	# parse opts to get the config file
 	(opts, args) = parse_options(argv)

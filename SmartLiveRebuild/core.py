@@ -2,7 +2,7 @@
 # (c) 2010 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import bz2, errno, fcntl, itertools, os.path, pickle, select, shutil, signal, subprocess, sys, tempfile, time
+import bz2, errno, fcntl, os.path, pickle, select, shutil, signal, subprocess, sys, tempfile, time
 import portage
 
 try:
@@ -36,19 +36,6 @@ class Config(ConfigParser):
 
 		self._current_section = 'DEFAULT'
 		ConfigParser.__init__(self, self._real_defaults)
-
-	def apply_optparse(self, values):
-		for k in self.defaults():
-			try:
-				v = getattr(values, k)
-				if v is None:
-					raise ValueError
-			except (AttributeError, ValueError):
-				pass
-			else:
-				if isinstance(v, list):
-					v = ','.join(itertools.chain(*v))
-				self.set(self._current_section, k, str(v))
 
 	def apply_dict(self, values):
 		for k, v in values.items():
