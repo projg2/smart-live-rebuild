@@ -24,10 +24,8 @@ else:
 
 if sets_api == 0:
 	from portage.sets.base import PackageSet
-	from portage.sets import SetConfigError
 elif sets_api == 1:
 	from portage._sets.base import PackageSet
-	from portage._sets import SetConfigError
 
 from SmartLiveRebuild.config import Config
 from SmartLiveRebuild.core import SmartLiveRebuild, SLRFailure
