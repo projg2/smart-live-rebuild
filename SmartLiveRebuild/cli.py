@@ -9,7 +9,8 @@ from optparse import OptionParser, Option, OptionValueError
 import portage
 
 from SmartLiveRebuild import PV
-from SmartLiveRebuild.core import Config, SmartLiveRebuild, SLRFailure
+from SmartLiveRebuild.config import Config
+from SmartLiveRebuild.core import SmartLiveRebuild, SLRFailure
 from SmartLiveRebuild.output import out
 from SmartLiveRebuild.vcs import GetVCS
 
