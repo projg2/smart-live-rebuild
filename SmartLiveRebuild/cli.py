@@ -57,6 +57,8 @@ def parse_options(argv):
 		help='Configuration file (default: /etc/portage/smart-live-rebuild.conf)')
 	opt.add_option('-C', '--no-color', action='store_false', dest='color',
 		help='Disable colorful output.')
+	opt.add_option('-d', '--diffstat', action='store_true', dest='diffstat',
+		help='Print a diffstat after the update (if VCS supports that)')
 	opt.add_option('-D', '--allow-downgrade', action='store', type='downgrade', dest='allow_downgrade',
 		help="When to allow downgrading package (one of 'never', 'same-pv', 'always')")
 	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='erraneous_merge',

@@ -100,7 +100,8 @@ class VCSSupport:
 				out.s3('at rev %s%s%s (no changes)' % (out.green, self.oldrev, out.reset))
 				return False
 			else:
-				self.diffstat(self.oldrev, newrev)
+				if self._opts.diffstat:
+					self.diffstat(self.oldrev, newrev)
 				out.s3('update from %s%s%s to %s%s%s' % (out.green, self.oldrev, out.reset, out.lime, newrev, out.reset))
 				return True
 		else:
