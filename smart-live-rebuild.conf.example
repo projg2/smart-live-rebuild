@@ -1,5 +1,5 @@
 [smart-live-rebuild]
-jobs = 16
+jobs = 6
 quickpkg = on
 
 [nonetwork]
