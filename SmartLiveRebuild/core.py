@@ -65,10 +65,12 @@ class BashParser(object):
 def SmartLiveRebuild(opts, db = None, portdb = None, saveuid = False, settings = None):
 	if settings is None:
 		settings = portage.settings
-	if db is None:
-		db = portage.db[settings['ROOT']]['vartree'].dbapi
-	if portdb is None:
-		portdb = portage.db[settings['ROOT']]['porttree'].dbapi
+	if db is None or portdb is None:
+		trees = portage.create_trees()
+		if db is None:
+			db = trees[settings['ROOT']]['vartree'].dbapi
+		if portdb is None:
+			portdb = trees[settings['ROOT']]['porttree'].dbapi
 
 	if not opts.color:
 		out.monochromize()
