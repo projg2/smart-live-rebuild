@@ -2,8 +2,9 @@
 # (c) 2010 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import bz2, errno, fcntl, os.path, pickle, select, shutil, signal, subprocess, sys, tempfile, time
+import bz2, errno, fcntl, os, os.path, pickle, select, shutil, signal, subprocess, sys, tempfile, time
 import portage
+from portage import create_trees
 from portage.versions import pkgsplit
 
 from SmartLiveRebuild.output import out
@@ -63,14 +64,17 @@ class BashParser(object):
 		self._tmpf.close()
 
 def SmartLiveRebuild(opts, db = None, portdb = None, saveuid = False, settings = None):
-	if settings is None:
-		settings = portage.settings
-	if db is None or portdb is None:
-		trees = portage.create_trees()
+	if db is None or portdb is None or settings is None:
+		trees = create_trees(
+				config_root = os.environ.get('PORTAGE_CONFIGROOT'),
+				target_root = os.environ.get('ROOT'))
+		tree = trees[max(trees)]
 		if db is None:
-			db = trees[settings['ROOT']]['vartree'].dbapi
+			db = tree['vartree'].dbapi
 		if portdb is None:
-			portdb = trees[settings['ROOT']]['porttree'].dbapi
+			portdb = tree['porttree'].dbapi
+		if settings is None:
+			settings = db.settings
 
 	if not opts.color:
 		out.monochromize()
