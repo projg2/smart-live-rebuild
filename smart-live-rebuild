@@ -10,7 +10,7 @@ try:
 	from SmartLiveRebuild.cli import main
 except ImportError:
 	import os.path
-	sys.path.insert(0, os.path.dirname(sys.argv[0]))
+	sys.path.insert(0, os.path.dirname(__file__))
 	# Ensure a clean reload from the new location.
 	if 'SmartLiveRebuild' in sys.modules:
 		try: # py3 compat

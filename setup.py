@@ -7,7 +7,7 @@ from distutils.core import setup
 
 import os.path, sys
 
-sys.path.insert(0, os.path.dirname(sys.argv[0]))
+sys.path.insert(0, os.path.dirname(__file__))
 try:
 	from SmartLiveRebuild import PV
 except ImportError:
