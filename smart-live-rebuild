@@ -13,6 +13,11 @@ except ImportError:
 	sys.path.insert(0, os.path.dirname(sys.argv[0]))
 	# Ensure a clean reload from the new location.
 	if 'SmartLiveRebuild' in sys.modules:
+		try: # py3 compat
+			from imp import reload
+		except ImportError:
+			pass
+
 		reload(sys.modules['SmartLiveRebuild'])
 		del sys.modules['SmartLiveRebuild']
 	from SmartLiveRebuild.cli import main
