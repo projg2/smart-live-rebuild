@@ -6,7 +6,7 @@ import itertools, os
 from copy import copy
 from optparse import OptionParser, Option, OptionValueError
 
-import portage
+from portage.data import portage_uid, portage_gid
 
 from SmartLiveRebuild import PV
 from SmartLiveRebuild.config import Config
@@ -131,9 +131,7 @@ def main(argv):
 			pass
 
 	if opts.setuid:
-		puid = portage.data.portage_uid
-		pgid = portage.data.portage_gid
-		if puid and pgid and os.geteuid() != 0 and os.getuid() == puid:
+		if portage_uid and portage_gid and os.geteuid() != 0 and os.getuid() == portage_uid:
 			if not opts.pretend:
 				out.s1('Running as the portage user, assuming --pretend.')
 				opts.pretend = True

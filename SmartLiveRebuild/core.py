@@ -3,8 +3,9 @@
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 import bz2, errno, fcntl, os, os.path, pickle, select, shutil, signal, subprocess, sys, tempfile, time
-import portage
+
 from portage import create_trees
+from portage.data import portage_uid, portage_gid
 from portage.versions import pkgsplit
 
 from SmartLiveRebuild.output import out
@@ -93,15 +94,13 @@ def SmartLiveRebuild(opts, db = None, portdb = None, saveuid = False, settings =
 	commpipe = None
 	userok = (os.geteuid() == 0)
 	if opts.setuid:
-		puid = portage.data.portage_uid
-		pgid = portage.data.portage_gid
-		if puid and pgid:
+		if portage_uid and portage_gid:
 			if not userok:
-				if os.getuid() == puid:
+				if os.getuid() == portage_uid:
 					userok = True
 			elif not saveuid and not opts.quickpkg:
 				out.s1('Dropping superuser privileges ...')
-				os.setuid(puid)
+				os.setuid(portage_uid)
 			else:
 				out.s1('Forking to drop superuser privileges ...')
 				commpipe = os.pipe()
@@ -123,7 +122,7 @@ user account, please pass the --unprivileged-user option.
 		if not childpid:
 			if childpid == 0:
 				os.close(commpipe[0])
-				os.setuid(puid)
+				os.setuid(portage_uid)
 			if opts.type:
 				allowed = frozenset(opts.type)
 			else:
