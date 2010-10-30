@@ -13,6 +13,8 @@ class VCSSupport:
 	reqenv = []
 	optenv = []
 
+	callenv = {}
+
 	def __init__(self, cpv, bash, opts, settings):
 		self.cpv = [cpv]
 		self.env = bash(self.reqenv + self.optenv)
@@ -52,9 +54,8 @@ class VCSSupport:
 	def revcmp(oldrev, newrev):
 		return oldrev == newrev
 
-	@staticmethod
-	def call(cmd, **kwargs):
-		p = subprocess.Popen(cmd, stdout=subprocess.PIPE, **kwargs)
+	def call(self, cmd, **kwargs):
+		p = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=self.callenv, **kwargs)
 		ret = p.communicate()[0].decode(locale.getpreferredencoding(), 'replace')
 		if p.wait() != 0:
 			raise SystemError('Command failed: %s' % cmd)
@@ -74,7 +75,7 @@ class VCSSupport:
 		if self._opts.network:
 			cmd = self.getupdatecmd()
 			out.s3(cmd)
-			self.subprocess = subprocess.Popen(cmd, stdout=sys.stderr, shell=True)
+			self.subprocess = subprocess.Popen(cmd, stdout=sys.stderr, env=self.callenv, shell=True)
 		else:
 			self.subprocess = None
 

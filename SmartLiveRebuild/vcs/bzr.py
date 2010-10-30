@@ -8,6 +8,10 @@ class BzrSupport(VCSSupport):
 	reqenv = ['EBZR_CACHE_DIR', 'EBZR_REVNO_CMD', 'EBZR_STORE_DIR', 'EBZR_UPDATE_CMD']
 	optenv = ['EBZR_OPTIONS', 'EBZR_REPO_URI', 'EBZR_REVISION']
 
+	callenv = {
+		'BZR_LOG': '/dev/null'
+	}
+
 	def __init__(self, *args):
 		VCSSupport.__init__(self, *args)
 		if self.env['EBZR_REVISION']:
@@ -20,7 +24,9 @@ class BzrSupport(VCSSupport):
 		return self.env['EBZR_REPO_URI'] or VCSSupport.__str__(self)
 
 	def getrev(self):
-		return self.call(self.env['EBZR_REVNO_CMD'])
+		ret = self.call(self.env['EBZR_REVNO_CMD'].split(),
+				stderr = open('/dev/null', 'w')).strip()
+		return ret
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
