@@ -3,7 +3,6 @@
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 import os.path, subprocess, sys
-import portage
 
 from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
 
