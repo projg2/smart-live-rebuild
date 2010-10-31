@@ -7,14 +7,15 @@ import subprocess, sys, re
 from SmartLiveRebuild.vcs import VCSSupport
 
 class DarcsSupport(VCSSupport):
-	reqenv = ['EDARCS_REPOSITORY', 'EDARCS_GET_CMD', 'EDARCS_UPDATE_CMD', 
-			'EDARCS_LOCALREPO','EDARCS_TOP_DIR','EDARCS_OPTIONS','EDARCS_DARCS_CMD']
+	reqenv = ['EDARCS_REPOSITORY', 'EDARCS_GET_CMD', 'EDARCS_UPDATE_CMD',
+			'EDARCS_LOCALREPO', 'EDARCS_TOP_DIR', 'EDARCS_OPTIONS',
+			'EDARCS_DARCS_CMD']
 
 	def __init__(self, *args):
 		VCSSupport.__init__(self, *args)
 
 	def getpath(self):
-		return '%s/%s/' \
+		return '%s/%s' \
 			% (self.env['EDARCS_TOP_DIR'], self.env['EDARCS_LOCALREPO'])
 
 	def __str__(self):
@@ -29,15 +30,15 @@ class DarcsSupport(VCSSupport):
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
-		return int(oldrev)==int(newrev)
+		return int(oldrev) == int(newrev)
 
 	def getupdatecmd(self):
-        # darcs trying to close stderr as cvs does
-        # see SmartLiveRebuild/vcs/cvs.py for comments
+		# darcs trying to close stderr as cvs does
+		# see SmartLiveRebuild/vcs/cvs.py for comments
 		return '%s %s --all %s %s 2>&1' % \
 			(self.env['EDARCS_DARCS_CMD'],
-			self.env['EDARCS_UPDATE_CMD'], 
-			self.env['EDARCS_OPTIONS'],    
+			self.env['EDARCS_UPDATE_CMD'],
+			self.env['EDARCS_OPTIONS'],
 			self.env['EDARCS_REPOSITORY'])
 
 	def diffstat(self, oldrev, newrev):
