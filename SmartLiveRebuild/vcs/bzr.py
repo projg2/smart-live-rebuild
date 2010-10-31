@@ -24,9 +24,8 @@ class BzrSupport(VCSSupport):
 		return self.env['EBZR_REPO_URI'] or VCSSupport.__str__(self)
 
 	def getrev(self):
-		ret = self.call(self.env['EBZR_REVNO_CMD'].split(),
-				stderr = open('/dev/null', 'w')).strip()
-		return ret
+		cmd = '%s --quiet --tree' % self.env['EBZR_REVNO_CMD']
+		return self.call(cmd.split()).strip()
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
