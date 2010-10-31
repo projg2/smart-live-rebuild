@@ -8,14 +8,11 @@ class BzrSupport(VCSSupport):
 	reqenv = ['EBZR_CACHE_DIR', 'EBZR_REVNO_CMD', 'EBZR_STORE_DIR', 'EBZR_UPDATE_CMD']
 	optenv = ['EBZR_OPTIONS', 'EBZR_REPO_URI', 'EBZR_REVISION']
 
-	callenv = {
-		'BZR_LOG': '/dev/null'
-	}
-
 	def __init__(self, *args):
 		VCSSupport.__init__(self, *args)
 		if self.env['EBZR_REVISION']:
 			raise NonLiveEbuild('EBZR_REVISION set, package is not really a live one')
+		self.callenv['BZR_LOG'] = '/dev/null'
 
 	def getpath(self):
 		return '%s/%s' % (self.env['EBZR_STORE_DIR'], self.env['EBZR_CACHE_DIR'])
