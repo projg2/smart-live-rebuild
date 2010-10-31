@@ -36,6 +36,7 @@ class DarcsSupport(VCSSupport):
 			self.env['EDARCS_REPOSITORY'])
 
 	def diffstat(self, oldrev, newrev):
-		subprocess.Popen('%s %s' % ('darcs chan --last', int(newrev)-int(oldrev)), stdout=sys.stderr, shell=True).wait()
+		subprocess.Popen(['darcs', 'chan', '--last', int(newrev) - int(oldrev)],
+				stdout=sys.stderr).wait()
 
 myvcs = DarcsSupport
