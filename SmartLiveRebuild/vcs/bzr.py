@@ -29,7 +29,7 @@ class BzrSupport(VCSSupport):
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
-		return newrev.startswith(oldrev)
+		return oldrev >= newrev
 
 	def getupdatecmd(self):
 		return '%s %s' % (self.env['EBZR_UPDATE_CMD'], self.env['EBZR_OPTIONS'])
