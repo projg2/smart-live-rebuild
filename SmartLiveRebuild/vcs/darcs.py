@@ -32,7 +32,10 @@ class DarcsSupport(VCSSupport):
 		return int(oldrev)==int(newrev)
 
 	def getupdatecmd(self):
-		return '%s %s --all %s %s' % (self.env['EDARCS_DARCS_CMD'],
+        # darcs trying to close stderr as cvs does
+        # see SmartLiveRebuild/vcs/cvs.py for comments
+		return '%s %s --all %s %s 2>&1' % \
+			(self.env['EDARCS_DARCS_CMD'],
 			self.env['EDARCS_UPDATE_CMD'], 
 			self.env['EDARCS_OPTIONS'],    
 			self.env['EDARCS_REPOSITORY'])
