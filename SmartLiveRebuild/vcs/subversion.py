@@ -28,13 +28,13 @@ class SvnSupport(VCSSupport):
 		return self.env['ESVN_REPO_URI'] or VCSSupport.__str__(self)
 
 	def getsavedrev(self):
-		return self.env['ESVN_WC_REVISION']
+		return int(self.env['ESVN_WC_REVISION'])
 
 	def getrev(self):
 		svninfo = self.call(['svn', '--config-dir', '%s/.subversion' % self.env['ESVN_STORE_DIR'], 'info'],
 				env = {'LC_ALL': 'C'})
 		m = self.revre.search(svninfo)
-		return m.group(1) if m is not None else None
+		return int(m.group(1)) if m is not None else None
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
