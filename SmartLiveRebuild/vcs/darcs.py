@@ -20,11 +20,11 @@ class DarcsSupport(VCSSupport):
 
 	def getrev(self):
 		result = self.call(['darcs', 'show', 'repo'])
-		return re.search('Num Patches: ([0-9]+)', result).group(1)
+		return int(re.search('Num Patches: ([0-9]+)', result).group(1))
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
-		return int(oldrev) == int(newrev)
+		return oldrev == newrev
 
 	def getupdatecmd(self):
 		# darcs trying to close stderr as cvs does
@@ -36,7 +36,7 @@ class DarcsSupport(VCSSupport):
 			self.env['EDARCS_REPOSITORY'])
 
 	def diffstat(self, oldrev, newrev):
-		subprocess.Popen(['darcs', 'chan', '--last', int(newrev) - int(oldrev)],
+		subprocess.Popen(['darcs', 'chan', '--last', newrev - oldrev],
 				stdout=sys.stderr).wait()
 
 myvcs = DarcsSupport
