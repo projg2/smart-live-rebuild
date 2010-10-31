@@ -11,18 +11,12 @@ class DarcsSupport(VCSSupport):
 			'EDARCS_LOCALREPO', 'EDARCS_TOP_DIR', 'EDARCS_OPTIONS',
 			'EDARCS_DARCS_CMD']
 
-	def __init__(self, *args):
-		VCSSupport.__init__(self, *args)
-
 	def getpath(self):
 		return '%s/%s' \
 			% (self.env['EDARCS_TOP_DIR'], self.env['EDARCS_LOCALREPO'])
 
 	def __str__(self):
 		return self.env['EDARCS_REPOSITORY'] or VCSSupport.__str__(self)
-
-	def getsavedrev(self):
-		return self.getrev()
 
 	def getrev(self):
 		result = self.call(['darcs', 'show', 'repo'])
