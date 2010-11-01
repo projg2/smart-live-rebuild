@@ -2,10 +2,12 @@
 # (c) 2010 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
+import codecs
+
 from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
 
 class BzrSupport(VCSSupport):
-	reqenv = ['EBZR_CACHE_DIR', 'EBZR_REVNO_CMD', 'EBZR_STORE_DIR', 'EBZR_UPDATE_CMD']
+	reqenv = ['EBZR_CACHE_DIR', 'EBZR_STORE_DIR', 'EBZR_UPDATE_CMD']
 	optenv = ['EBZR_OPTIONS', 'EBZR_REPO_URI', 'EBZR_REVISION']
 
 	def __init__(self, *args):
@@ -20,13 +22,21 @@ class BzrSupport(VCSSupport):
 	def __str__(self):
 		return self.env['EBZR_REPO_URI'] or VCSSupport.__str__(self)
 
+	# bzr revno requires network interaction, so we just use the checksum.
 	def getrev(self):
-		cmd = '%s --quiet --tree' % self.env['EBZR_REVNO_CMD']
-		return self.call(cmd.split()).strip()
+		inp = codecs.open('%s/.bzr/checkout/dirstate' % self.getpath(), 'r', 'utf8', 'ignore')
+		for l in inp:
+			lf = l.split(None, 3)
+			if lf[0] == 'crc32:':
+				inp.close()
+				return int(lf[1])
+		else:
+			inp.close()
+			raise ValueError('Unable to find crc32 in .bzr/checkout/dirstate')
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
-		return oldrev >= newrev
+		return oldrev == newrev
 
 	def getupdatecmd(self):
 		return '%s %s' % (self.env['EBZR_UPDATE_CMD'], self.env['EBZR_OPTIONS'])
