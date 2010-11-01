@@ -8,7 +8,7 @@ from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
 
 class BzrSupport(VCSSupport):
 	reqenv = ['EBZR_CACHE_DIR', 'EBZR_STORE_DIR', 'EBZR_UPDATE_CMD']
-	optenv = ['EBZR_OPTIONS', 'EBZR_REPO_URI', 'EBZR_REVISION']
+	optenv = ['EBZR_OPTIONS', 'EBZR_REPO_URI', 'EBZR_REVISION', 'EBZR_TREE_CRC32']
 
 	def __init__(self, *args):
 		VCSSupport.__init__(self, *args)
@@ -33,6 +33,10 @@ class BzrSupport(VCSSupport):
 		else:
 			inp.close()
 			raise ValueError('Unable to find crc32 in .bzr/checkout/dirstate')
+
+	def getsavedrev(self):
+		crc = self.env['EBZR_TREE_CRC32']
+		return int(crc) if crc else None
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
