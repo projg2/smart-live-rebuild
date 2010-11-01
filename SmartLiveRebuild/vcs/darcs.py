@@ -10,6 +10,7 @@ class DarcsSupport(VCSSupport):
 	reqenv = ['EDARCS_REPOSITORY', 'EDARCS_GET_CMD', 'EDARCS_UPDATE_CMD',
 			'EDARCS_LOCALREPO', 'EDARCS_TOP_DIR', 'EDARCS_OPTIONS',
 			'EDARCS_DARCS_CMD']
+	optenv = ['EDARCS_PATCHCOUNT']
 
 	def getpath(self):
 		return '%s/%s' \
@@ -21,6 +22,10 @@ class DarcsSupport(VCSSupport):
 	def getrev(self):
 		result = self.call(['darcs', 'show', 'repo'])
 		return int(re.search('Num Patches: ([0-9]+)', result).group(1))
+
+	def getsavedrev(self):
+		pc = self.env['EDARCS_PATCHCOUNT']
+		return int(pc) if pc else None
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
