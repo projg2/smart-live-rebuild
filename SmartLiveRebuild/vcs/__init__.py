@@ -246,7 +246,7 @@ def GetVCS(eclassname, allowed = []):
 		else:
 			try:
 				modname = 'SmartLiveRebuild.vcs.%s' % eclassname.replace('-', '_')
-				vcs_cache[eclassname] = __import__(modname, globals(), locals(), ['myvcs']).myvcs
+				vcs_cache[eclassname] = __import__(modname, {}, {}, ['myvcs'], 0).myvcs
 			except ImportError:
 				vcs_cache[eclassname] = None
 
