@@ -68,5 +68,3 @@ class CVSSupport(VCSSupport):
 		cmd = '; '.join([trap_cmd, env_cmd, stdout_cmd, login_cmd, up_cmd])
 
 		return cmd
-
-myvcs = CVSSupport

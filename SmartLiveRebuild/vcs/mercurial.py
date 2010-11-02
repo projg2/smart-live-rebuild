@@ -42,5 +42,3 @@ class HgSupport(VCSSupport):
 
 	def diffstat(self, oldrev, newrev):
 		subprocess.Popen(['hg', 'diff', '--stat', '-r', oldrev, '-r', newrev] + self.trustopt, stdout=sys.stderr).wait()
-
-myvcs = HgSupport

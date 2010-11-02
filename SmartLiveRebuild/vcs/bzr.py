@@ -44,5 +44,3 @@ class BzrSupport(VCSSupport):
 
 	def getupdatecmd(self):
 		return '%s %s' % (self.env['EBZR_UPDATE_CMD'], self.env['EBZR_OPTIONS'])
-
-myvcs = BzrSupport

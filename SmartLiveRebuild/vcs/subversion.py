@@ -45,5 +45,3 @@ class SvnSupport(VCSSupport):
 		if self.env['ESVN_USER']:
 			cmd += ' --user "%s" --password "%s"' % (self.env['ESVN_USER'], self.env['ESVN_PASSWORD'])
 		return cmd
-
-myvcs = SvnSupport

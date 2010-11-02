@@ -43,5 +43,3 @@ class DarcsSupport(VCSSupport):
 	def diffstat(self, oldrev, newrev):
 		subprocess.Popen(['darcs', 'chan', '--last', newrev - oldrev],
 				stdout=sys.stderr).wait()
-
-myvcs = DarcsSupport

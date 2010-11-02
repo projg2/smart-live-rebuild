@@ -38,5 +38,3 @@ class GitSupport(VCSSupport):
 
 	def diffstat(self, oldrev, newrev):
 		subprocess.Popen('%s %s..%s' % (self.env['EGIT_DIFFSTAT_CMD'] or 'git diff', oldrev, newrev), stdout=sys.stderr, shell=True).wait()
-
-myvcs = GitSupport
