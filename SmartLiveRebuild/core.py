@@ -64,7 +64,7 @@ class BashParser(object):
 		self._bashproc.communicate()
 		self._tmpf.close()
 
-def SmartLiveRebuild(opts, db = None, portdb = None, saveuid = False, settings = None):
+def SmartLiveRebuild(opts, db = None, portdb = None, settings = None):
 	if db is None or portdb is None or settings is None:
 		trees = create_trees(
 				config_root = os.environ.get('PORTAGE_CONFIGROOT'),
@@ -76,7 +76,6 @@ def SmartLiveRebuild(opts, db = None, portdb = None, saveuid = False, settings =
 			portdb = tree['porttree'].dbapi
 		if settings is None:
 			settings = db.settings
-		saveuid = True
 
 	if not opts.color:
 		out.monochromize()
@@ -99,9 +98,6 @@ def SmartLiveRebuild(opts, db = None, portdb = None, saveuid = False, settings =
 			if not userok:
 				if os.getuid() == portage_uid:
 					userok = True
-			elif not saveuid and not opts.quickpkg:
-				out.s1('Dropping superuser privileges ...')
-				os.setuid(portage_uid)
 			else:
 				out.s1('Forking to drop superuser privileges ...')
 				commpipe = os.pipe()

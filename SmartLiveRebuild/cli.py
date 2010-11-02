@@ -139,7 +139,7 @@ def main(argv):
 				out.err("Running as the portage user, --quickpkg probably won't work")
 
 	try:
-		packages = SmartLiveRebuild(opts, saveuid = not opts.pretend)
+		packages = SmartLiveRebuild(opts)
 	except SLRFailure:
 		return 1
 
