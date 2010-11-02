@@ -246,7 +246,15 @@ def GetVCS(eclassname, allowed = []):
 		else:
 			try:
 				modname = 'SmartLiveRebuild.vcs.%s' % eclassname.replace('-', '_')
-				vcs_cache[eclassname] = __import__(modname, {}, {}, ['myvcs'], 0).myvcs
+				mod = __import__(modname, {}, {}, ['.'], 0)
+				for k in dir(mod):
+					modvar = getattr(mod, k)
+					if issubclass(modvar, VCSSupport) and \
+							not issubclass(VCSSupport, modvar):
+						vcs_cache[eclassname] = modvar
+						break
+				else:
+					raise ImportError('Unable to find a matching class in %s' % mod)
 			except ImportError:
 				vcs_cache[eclassname] = None
 
