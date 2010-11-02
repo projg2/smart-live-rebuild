@@ -134,7 +134,13 @@ class VCSSupport:
 			from self.callenv. Additional keyword arguments will be
 			passed to subprocess.Popen().
 		"""
-		p = subprocess.Popen(cmd, stdout=subprocess.PIPE, env=self.callenv, **kwargs)
+		env = self.callenv.copy()
+		if 'env' in kwargs:
+			env.update(kwargs['env'])
+		newkwargs = kwargs.copy()
+		newkwargs['env'] = env
+
+		p = subprocess.Popen(cmd, stdout=subprocess.PIPE, **newkwargs)
 		ret = p.communicate()[0].decode(locale.getpreferredencoding(), 'replace')
 		if p.wait() != 0:
 			raise SystemError('Command failed: %s' % cmd)
