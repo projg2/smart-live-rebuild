@@ -76,6 +76,7 @@ def SmartLiveRebuild(opts, db = None, portdb = None, saveuid = False, settings =
 			portdb = tree['porttree'].dbapi
 		if settings is None:
 			settings = db.settings
+		saveuid = True
 
 	if not opts.color:
 		out.monochromize()
