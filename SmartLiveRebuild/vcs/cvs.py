@@ -2,7 +2,7 @@
 # (c) 2010 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import hashlib, tempfile
+import hashlib, locale, tempfile
 
 from SmartLiveRebuild.vcs import VCSSupport
 
@@ -33,7 +33,7 @@ class CVSSupport(VCSSupport):
 		inp.sort()
 		inp.append('') # and readd it
 		hasher = hashlib.sha1()
-		hasher.update('\n'.join(inp))
+		hasher.update('\n'.join(inp).encode(locale.getpreferredencoding(), 'replace'))
 
 		return hasher.hexdigest()
 
