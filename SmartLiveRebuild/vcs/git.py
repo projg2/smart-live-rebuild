@@ -32,7 +32,9 @@ class GitSupport(VCSSupport):
 
 	def getupdatecmd(self):
 		if self.env['EGIT_HAS_SUBMODULES']:
-			return '%s %s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'])
+			upcmd = ['%s %s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'])]
+			upcmd += ['git submodule %s' % x for x in ('init', 'sync', 'update')]
+			return ' && '.join(upcmd)
 		else:
 			return '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
 
