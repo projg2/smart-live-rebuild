@@ -144,8 +144,10 @@ though that currently they aren't read in reverse order, so further
 configuration files will replace values set by yours.
 
 
-Contact / bug reporting
------------------------
-http://github.com/mgorny/smart-live-rebuild/issues
+Bug reporting
+-------------
+Please report the bugs using Gentoo Bugzilla [1]. Thank you.
+
+[1]:http://bugs.gentoo.org/enter_bug.cgi?product=Gentoo%20Linux&component=Applications&short_desc=app-portage/smart-live-rebuild:%20
 
 <!-- vim:se syn=markdown : -->
