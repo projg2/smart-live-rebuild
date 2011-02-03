@@ -41,7 +41,7 @@ class SvnSupport(VCSSupport):
 		return oldrev >= newrev
 
 	def getupdatecmd(self):
-		cmd = '%s %s --config-dir %s/.subversion' % (self.env['ESVN_UPDATE_CMD'], self.env['ESVN_OPTIONS'], self.env['ESVN_STORE_DIR'])
+		cmd = '%s %s --non-interactive --config-dir %s/.subversion' % (self.env['ESVN_UPDATE_CMD'], self.env['ESVN_OPTIONS'], self.env['ESVN_STORE_DIR'])
 		if self.env['ESVN_USER']:
 			cmd += ' --user "%s" --password "%s"' % (self.env['ESVN_USER'], self.env['ESVN_PASSWORD'])
 		return cmd
