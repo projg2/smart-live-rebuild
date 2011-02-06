@@ -182,7 +182,6 @@ class VCSSupport:
 
 			This function returns the spawned Popen() instance.
 		"""
-		out.s2(str(self))
 		try:
 			os.chdir(self.getpath())
 		except OSError:
@@ -202,6 +201,7 @@ class VCSSupport:
 
 			if self._opts.network:
 				cmd = self.getupdatecmd()
+				out.s2(str(self))
 				out.s3(cmd)
 				self.subprocess = subprocess.Popen(cmd, stdout=sys.stderr, env=self.callenv, shell=True)
 			else:
