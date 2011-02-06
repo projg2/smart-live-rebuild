@@ -36,6 +36,12 @@ class SvnSupport(VCSSupport):
 		m = self.revre.search(svninfo)
 		return int(m.group(1)) if m is not None else None
 
+	def getremoterev(self):
+		svninfo = self.call(['svn', '--config-dir', '%s/.subversion' % self.env['ESVN_STORE_DIR'], 'info',
+				self.env['ESVN_REPO_URI']], env = {'LC_ALL': 'C'})
+		m = self.revre.search(svninfo)
+		return int(m.group(1)) if m is not None else None
+
 	@staticmethod
 	def revcmp(oldrev, newrev):
 		return oldrev >= newrev
