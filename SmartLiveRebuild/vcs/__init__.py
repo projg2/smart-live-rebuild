@@ -97,6 +97,12 @@ class VCSSupport:
 			raise ValueError('Unable to append %s to %s' % (vcs.__class__, self.__class__))
 		self.cpv.append(vcs.cpv[0])
 
+	def getremoterev(self):
+		""" Return the revision given by the remote server without
+			touching the working copy.
+		"""
+		return None
+
 	def getsavedrev(self):
 		""" Return the revision saved by the eclass whenever the package
 			was built. This method should return the same type
@@ -177,15 +183,29 @@ class VCSSupport:
 			This function returns the spawned Popen() instance.
 		"""
 		out.s2(str(self))
-		os.chdir(self.getpath())
-		self.oldrev = (not self._opts.local_rev and self.getsavedrev()) or self.getrev()
-
-		if self._opts.network:
-			cmd = self.getupdatecmd()
-			out.s3(cmd)
-			self.subprocess = subprocess.Popen(cmd, stdout=sys.stderr, env=self.callenv, shell=True)
-		else:
+		try:
+			os.chdir(self.getpath())
+		except OSError:
+			# If the working copy was removed, we'll try to ping
+			# the remote server for updates. But for that:
+			# 1) user can't use --local-rev,
+			# 2) we have to able to get the saved rev.
+			# Otherwise, just re-raise the exception.
+			if self._opts.local_rev:
+				raise
+			self.oldrev = self.getsavedrev()
+			if not self.oldrev:
+				raise
 			self.subprocess = None
+		else:
+			self.oldrev = (not self._opts.local_rev and self.getsavedrev()) or self.getrev()
+
+			if self._opts.network:
+				cmd = self.getupdatecmd()
+				out.s3(cmd)
+				self.subprocess = subprocess.Popen(cmd, stdout=sys.stderr, env=self.callenv, shell=True)
+			else:
+				self.subprocess = None
 
 		return self.subprocess
 
@@ -213,8 +233,26 @@ class VCSSupport:
 				return None
 
 		if ret == 0:
-			os.chdir(self.getpath())
-			newrev = self.getrev()
+			doingremote = False
+			try:
+				os.chdir(self.getpath())
+			except OSError:
+				# The directory could have been removed during update.
+				if not self.oldrev:
+					raise
+				# If we're running offline, just ignore the repo.
+				# Otherwise, try to get the current rev off the remote
+				# server.
+				if not self._opts.network:
+					newrev = self.oldrev
+				else:
+					newrev = self.getremoterev()
+					if not newrev:
+						raise
+					doingremote = True
+			else:
+				newrev = self.getrev()
+
 			if self._opts.jobs > 1:
 				out.s2(str(self))
 
@@ -222,9 +260,11 @@ class VCSSupport:
 				out.s3('at rev %s%s%s (no changes)' % (out.green, self.oldrev, out.reset))
 				return False
 			else:
-				if self._opts.diffstat:
+				if not doingremote and self._opts.diffstat:
 					self.diffstat(self.oldrev, newrev)
 				out.s3('update from %s%s%s to %s%s%s' % (out.green, self.oldrev, out.reset, out.lime, newrev, out.reset))
+				if doingremote:
+					raise Exception('remote revision changed, forcing re-fetch')
 				return True
 		else:
 			raise Exception('update command returned non-zero result')
