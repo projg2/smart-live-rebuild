@@ -26,7 +26,7 @@ class HgSupport(VCSSupport):
 		return self.env['HG_REV_ID']
 
 	def getrev(self):
-		return self.call(['hg', 'tip', '--template', '{node}'] + self.trustopt)
+		return self.call(['hg', 'identify', '--id'] + self.trustopt)
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
