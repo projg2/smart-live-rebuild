@@ -4,18 +4,13 @@
 
 import os.path, subprocess, sys
 
-from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
+from SmartLiveRebuild.vcs import VCSSupport
 
 class HgSupport(VCSSupport):
 	reqenv = ['EHG_PROJECT', 'EHG_PULL_CMD', 'EHG_REPO_URI']
-	optenv = ['EHG_REVISION', 'HG_REV_ID']
+	optenv = ['HG_REV_ID']
 
 	trustopt = ['--config', 'trusted.users=portage']
-
-	def __init__(self, *args):
-		VCSSupport.__init__(self, *args)
-		if self.env['EHG_REVISION'] and self.env['EHG_REVISION'] != 'tip':
-			raise NonLiveEbuild('EHG_REVISION set, package is not really a live one')
 
 	def getpath(self):
 		dd = self._settings['PORTAGE_ACTUAL_DISTDIR'] or self._settings['DISTDIR']
