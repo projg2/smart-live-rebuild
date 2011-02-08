@@ -7,7 +7,7 @@ import os.path, subprocess, sys
 from SmartLiveRebuild.vcs import VCSSupport
 
 class HgSupport(VCSSupport):
-	reqenv = ['EHG_PROJECT', 'EHG_PULL_CMD', 'EHG_REPO_URI']
+	reqenv = ['EHG_PROJECT', 'EHG_PULL_CMD', 'EHG_REPO_URI', 'EHG_REVISION']
 	optenv = ['HG_REV_ID']
 
 	trustopt = ['--config', 'trusted.users=portage']
@@ -27,6 +27,10 @@ class HgSupport(VCSSupport):
 
 	def getrev(self):
 		return self.call(['hg', 'identify', '--id'] + self.trustopt)
+
+	def getremoterev(self):
+		return self.call(['hg', 'identify', '--id', '--rev', self.env['EHG_REVISION'],
+				self.env['EHG_REPO_URI']] + self.trustopt)
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
