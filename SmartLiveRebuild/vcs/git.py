@@ -30,6 +30,10 @@ class GitSupport(VCSSupport):
 			branch = 'origin/%s' % branch
 		return self.call(['git', 'rev-parse', branch]).split('\n')[0]
 
+	def getremoterev(self):
+		return self.call(['git', 'ls-remote', '--heads', self.env['EGIT_REPO_URI'],
+				self.env['EGIT_BRANCH']]).split()[0]
+
 	def getupdatecmd(self):
 		if self.env['EGIT_HAS_SUBMODULES']:
 			upcmd = ['%s %s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'])]
