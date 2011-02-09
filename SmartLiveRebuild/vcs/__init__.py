@@ -264,7 +264,7 @@ class VCSSupport:
 					self.diffstat(self.oldrev, newrev)
 				out.s3('update from %s%s%s to %s%s%s' % (out.green, self.oldrev, out.reset, out.lime, newrev, out.reset))
 				if doingremote:
-					raise Exception('remote revision changed, forcing re-fetch')
+					self._opts.offline = False
 				return True
 		else:
 			raise Exception('update command returned non-zero result')
