@@ -63,5 +63,12 @@ class BzrSupport(VCSSupport):
 		else:
 			return oldrev == newrev
 
+	def getremoterev(self):
+		if self.api == 2:
+			rev = self.call(self.env['EBZR_REVNO_CMD'].split() + [self.env['EBZR_REPO_URI']])
+			return int(rev) if rev else None
+		else:
+			return None
+
 	def getupdatecmd(self):
 		return '%s %s' % (self.env['EBZR_UPDATE_CMD'], self.env['EBZR_OPTIONS'])
