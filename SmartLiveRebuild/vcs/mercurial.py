@@ -26,7 +26,8 @@ class HgSupport(VCSSupport):
 		return self.env['HG_REV_ID']
 
 	def getrev(self):
-		return self.call(['hg', 'identify', '--id'] + self.trustopt)
+		return self.call(['hg', 'identify', '--id', '--rev', self.env['EHG_REVISION']]
+				+ self.trustopt)
 
 	def getremoterev(self):
 		return self.call(['hg', 'identify', '--id', '--rev', self.env['EHG_REVISION'],
