@@ -253,7 +253,7 @@ class VCSSupport:
 			else:
 				newrev = self.getrev()
 
-			if self._opts.jobs > 1:
+			if self._opts.jobs > 1 or not self._opts.network:
 				out.s2(str(self))
 
 			if self.revcmp(self.oldrev, newrev):
