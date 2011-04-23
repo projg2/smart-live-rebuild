@@ -14,6 +14,7 @@ class GitSupport(VCSSupport):
 		VCSSupport.__init__(self, *args)
 		if self.env['EGIT_COMMIT'] and self.env['EGIT_COMMIT'] != self.env['EGIT_BRANCH']:
 			raise NonLiveEbuild('EGIT_COMMIT set, package is not really a live one')
+		# XXX: EGIT_HAS_SUBMODULES requires no EVCS_OFFLINE
 
 	def getpath(self):
 		return self.env['EGIT_DIR']
@@ -35,12 +36,7 @@ class GitSupport(VCSSupport):
 				self.env['EGIT_BRANCH']]).split()[0]
 
 	def getupdatecmd(self):
-		if self.env['EGIT_HAS_SUBMODULES']:
-			upcmd = [self.env['EGIT_UPDATE_CMD']]
-			upcmd += ['git submodule %s' % x for x in ('init', 'sync', 'update')]
-			return ' && '.join(upcmd)
-		else:
-			return '%s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
+		return self.env['EGIT_UPDATE_CMD']
 
 	def diffstat(self, oldrev, newrev):
-		subprocess.Popen('%s %s..%s' % ('git diff', oldrev, newrev), stdout=sys.stderr, shell=True).wait()
+		subprocess.Popen('%s %s..%s' % ('git --no-pager diff --stat', oldrev, newrev), stdout=sys.stderr, shell=True).wait()
