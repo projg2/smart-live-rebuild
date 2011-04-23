@@ -69,7 +69,9 @@ class SmartLiveRebuildSet(PackageSet):
 				s = self._settings
 				s.unlock()
 				s['ESCM_OFFLINE'] = 'true'
+				s['EVCS_OFFLINE'] = 'true'
 				s.backup_changes('ESCM_OFFLINE')
+				s.backup_changes('EVCS_OFFLINE')
 				s.lock()
 
 	@classmethod

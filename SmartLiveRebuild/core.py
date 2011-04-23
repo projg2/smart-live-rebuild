@@ -243,6 +243,7 @@ user account, please pass the --unprivileged-user option.
 				opts.offline = False
 			else:
 				os.environ['ESCM_OFFLINE'] = 'true'
+				os.environ['EVCS_OFFLINE'] = 'true'
 
 		if opts.allow_downgrade == 'always':
 			packages = [pkgsplit(x)[0] for x in packages]

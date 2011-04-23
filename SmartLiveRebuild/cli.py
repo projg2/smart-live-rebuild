@@ -70,7 +70,7 @@ def parse_options(argv):
 	opt.add_option('-N', '--no-network', action='store_false', dest='network',
 		help='Disable network interaction and just aggregate already updated repositories (requires --local-rev not set).')
 	opt.add_option('-O', '--no-offline', action='store_false', dest='offline',
-		help='Disable setting ESCM_OFFLINE for emerge.')
+		help='Disable setting ESCM_OFFLINE & EVCS_OFFLINE for emerge.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend',
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
 	opt.add_option('-P', '--profile', action='store', dest='profile',
