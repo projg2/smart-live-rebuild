@@ -8,7 +8,7 @@ from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
 
 class GitSupport(VCSSupport):
 	reqenv = ['EGIT_BRANCH', 'EGIT_DIR', 'EGIT_UPDATE_CMD']
-	optenv = ['EGIT_COMMIT', 'EGIT_HAS_SUBMODULES', 'EGIT_OPTIONS', 'EGIT_REPO_URI', 'EGIT_VERSION']
+	optenv = ['EGIT_COMMIT', 'EGIT_HAS_SUBMODULES', 'EGIT_REPO_URI', 'EGIT_VERSION']
 
 	def __init__(self, *args):
 		VCSSupport.__init__(self, *args)
@@ -36,11 +36,11 @@ class GitSupport(VCSSupport):
 
 	def getupdatecmd(self):
 		if self.env['EGIT_HAS_SUBMODULES']:
-			upcmd = ['%s %s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'])]
+			upcmd = [self.env['EGIT_UPDATE_CMD']]
 			upcmd += ['git submodule %s' % x for x in ('init', 'sync', 'update')]
 			return ' && '.join(upcmd)
 		else:
-			return '%s %s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_OPTIONS'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
+			return '%s origin %s:%s' % (self.env['EGIT_UPDATE_CMD'], self.env['EGIT_BRANCH'], self.env['EGIT_BRANCH'])
 
 	def diffstat(self, oldrev, newrev):
 		subprocess.Popen('%s %s..%s' % ('git diff', oldrev, newrev), stdout=sys.stderr, shell=True).wait()
