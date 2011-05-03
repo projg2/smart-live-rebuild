@@ -65,15 +65,6 @@ class SmartLiveRebuildSet(PackageSet):
 			self._setAtoms(packages)
 			os.environ[cachevar] = ' '.join([pid] + packages)
 
-			if self._options.offline:
-				s = self._settings
-				s.unlock()
-				s['ESCM_OFFLINE'] = 'true'
-				s['EVCS_OFFLINE'] = 'true'
-				s.backup_changes('ESCM_OFFLINE')
-				s.backup_changes('EVCS_OFFLINE')
-				s.lock()
-
 	@classmethod
 	def singleBuilder(cls, options, settings, trees):
 		# Clasically, apply twice. First time to get configfile path
