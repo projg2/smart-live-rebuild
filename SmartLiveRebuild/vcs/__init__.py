@@ -1,8 +1,8 @@
 #	vim:fileencoding=utf-8
-# (c) 2010 Michał Górny <mgorny@gentoo.org>
+# (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import locale, os, subprocess, sys
+import locale, os, subprocess
 
 from SmartLiveRebuild.output import out
 
@@ -36,6 +36,8 @@ class VCSSupport:
 	optenv = []
 
 	callenv = {}
+
+	requires_workdir = False
 
 	def __init__(self, cpv, bash, opts, settings):
 		""" Initialize the VCS class for package `cpv', storing it as
@@ -83,8 +85,7 @@ class VCSSupport:
 		""" Get the absolute path to the checkout directory. The program
 			will enter that particular directory before executing
 			the update command or calling one of the following methods:
-			- getrev(),
-			- diffstat().
+			- getrev().
 		"""
 		raise NotImplementedError('VCS class needs to override getpath()')
 
@@ -96,12 +97,6 @@ class VCSSupport:
 		if not isinstance(vcs, self.__class__):
 			raise ValueError('Unable to append %s to %s' % (vcs.__class__, self.__class__))
 		self.cpv.append(vcs.cpv[0])
-
-	def getremoterev(self):
-		""" Return the revision given by the remote server without
-			touching the working copy.
-		"""
-		return None
 
 	def getsavedrev(self):
 		""" Return the revision saved by the eclass whenever the package
@@ -118,6 +113,10 @@ class VCSSupport:
 	def getrev(self):
 		""" Grab the revision from the work tree. """
 		raise NotImplementedError('VCS class needs to override getrev() or update()')
+
+	def parseoutput(self, out):
+		""" Parse output from updatecmd and return a revision. """
+		return out
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
@@ -159,26 +158,16 @@ class VCSSupport:
 		"""
 		raise NotImplementedError('VCS class needs to override getupdatecmd()')
 
-	def diffstat(self, oldrev, newrev):
-		""" Execute the 'diffstat' command, summarizing the changes
-			between revisions `oldrev' and `newrev'.
-
-			If the VCS doesn't provide a standard diffstat command,
-			don't override this method.
-		"""
-		pass
-
 	def startupdate(self):
 		""" Start the update process. Grabs the current revision from
 			the checkout (or getsavedrev()), grabs the update command
 			(self.getupdatecmd()) and executes it in the background
 			using subprocess.Popen().
 
-			The STDOUT of the new process will be forwarded to STDERR
-			to avoid polluting the package list with `--pretend'.
-			If one of the called processes is braindead and insists on
-			closing one of these descriptors, use `2>&1' to force
-			replicating them on shell level.
+			The spawned command is supposed to return the new revision
+			on STDOUT, and any diagnostic messages on STDERR.
+			If necessary, shell output redirection (`>&2') can be used
+			to clean up STDOUT.
 
 			This function returns the spawned Popen() instance.
 		"""
@@ -188,9 +177,10 @@ class VCSSupport:
 			# If the working copy was removed, we'll try to ping
 			# the remote server for updates. But for that:
 			# 1) user can't use --local-rev,
-			# 2) we have to able to get the saved rev.
+			# 2) we have to able to get the saved rev,
+			# 3) VCS has to support that.
 			# Otherwise, just re-raise the exception.
-			if self._opts.local_rev:
+			if self._opts.local_rev or self.requires_workdir:
 				raise
 			self.oldrev = self.getsavedrev()
 			if not self.oldrev:
@@ -199,13 +189,12 @@ class VCSSupport:
 		else:
 			self.oldrev = (not self._opts.local_rev and self.getsavedrev()) or self.getrev()
 
-			if self._opts.network:
-				cmd = self.getupdatecmd()
-				out.s2(str(self))
-				out.s3(cmd)
-				self.subprocess = subprocess.Popen(cmd, stdout=sys.stderr, env=self.callenv, shell=True)
-			else:
-				self.subprocess = None
+		cmd = self.getupdatecmd()
+		out.s2(str(self))
+		out.s3(cmd)
+		self.subprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+				env=self.callenv, shell=True)
+		self.stdoutbuf = ''
 
 		return self.subprocess
 
@@ -220,51 +209,36 @@ class VCSSupport:
 			one and returns the comparison result as a boolean.
 
 			In other words, if the revision changed (and thus package
-			needs to be rebuilt), this method returns True and calls
-			self.diffstat() if appropriate. Otherwise, it returns False.
+			needs to be rebuilt), this method returns True. Otherwise,
+			it returns False.
 		"""
-		if self.subprocess is None:
-			ret = 0
-		elif blocking:
-			ret = self.subprocess.wait()
-		else:
+
+		while True:
+			(sod, sed) = self.subprocess.communicate()
+			if sod:
+				self.stdoutbuf += sod
 			ret = self.subprocess.poll()
-			if ret is None:
+			if ret is not None:
+				break
+			elif not blocking:
 				return None
 
 		if ret == 0:
-			doingremote = False
-			try:
-				os.chdir(self.getpath())
-			except OSError:
-				# The directory could have been removed during update.
-				if not self.oldrev:
-					raise
-				# If we're running offline, just ignore the repo.
-				# Otherwise, try to get the current rev off the remote
-				# server.
-				if not self._opts.network:
-					newrev = self.oldrev
-				else:
-					newrev = self.getremoterev()
-					if not newrev:
-						raise
-					doingremote = True
-			else:
-				newrev = self.getrev()
+			newrev = self.parseoutput(self.stdoutbuf)
 
-			if self._opts.jobs > 1 or not self._opts.network:
+			if newrev is None:
+				if self.requires_workdir:
+					newrev = self.getrev()
+				else:
+					raise Exception('update command failed to return a rev')
+			if self._opts.jobs > 1:
 				out.s2(str(self))
 
 			if self.revcmp(self.oldrev, newrev):
 				out.s3('at rev %s%s%s (no changes)' % (out.green, self.oldrev, out.reset))
 				return False
 			else:
-				if not doingremote and self._opts.diffstat:
-					self.diffstat(self.oldrev, newrev)
 				out.s3('update from %s%s%s to %s%s%s' % (out.green, self.oldrev, out.reset, out.lime, newrev, out.reset))
-				if doingremote:
-					self._opts.offline = False
 				return True
 		else:
 			raise Exception('update command returned non-zero result')

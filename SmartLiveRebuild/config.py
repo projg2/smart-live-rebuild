@@ -1,5 +1,5 @@
 #	vim:fileencoding=utf-8
-# (c) 2010 Michał Górny <mgorny@gentoo.org>
+# (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 import os, sys
@@ -27,8 +27,6 @@ class Config(ConfigParser):
 			'erraneous_merge': 'True',
 			'jobs': '1',
 			'local_rev': 'False',
-			'network': 'True',
-			'offline': 'True',
 			'pretend': 'False',
 			'profile': 'smart-live-rebuild',
 			'quickpkg': 'False',

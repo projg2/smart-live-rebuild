@@ -1,5 +1,5 @@
 #	vim:fileencoding=utf-8
-# (c) 2010 Michał Górny <mgorny@gentoo.org>
+# (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 import itertools, os
@@ -67,10 +67,6 @@ def parse_options(argv):
 		help='Spawn JOBS parallel processes to perform repository updates.')
 	opt.add_option('-l', '--local-rev', action='store_true', dest='local_rev',
 		help='Force determining the current package revision from the repository instead of using the one saved by portage.')
-	opt.add_option('-N', '--no-network', action='store_false', dest='network',
-		help='Disable network interaction and just aggregate already updated repositories (requires --local-rev not set).')
-	opt.add_option('-O', '--no-offline', action='store_false', dest='offline',
-		help='Disable setting ESCM_OFFLINE & EVCS_OFFLINE for emerge.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend',
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
 	opt.add_option('-P', '--profile', action='store', dest='profile',

@@ -3,8 +3,3 @@
 [smart-live-rebuild]
 class = SmartLiveRebuild.sets.SmartLiveRebuildSet
 world-candidate = False
-
-[smart-live-rebuild-nonetwork]
-class = SmartLiveRebuild.sets.SmartLiveRebuildSet
-world-candidate = False
-profile = nonetwork

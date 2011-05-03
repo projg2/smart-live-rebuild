@@ -1,5 +1,5 @@
 #	vim:fileencoding=utf-8
-# (c) 2010 Michał Górny <mgorny@gentoo.org>
+# (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 import hashlib, locale, tempfile
@@ -10,6 +10,8 @@ class CVSSupport(VCSSupport):
 	reqenv = ['ECVS_AUTH', 'ECVS_CVS_COMMAND', 'ECVS_MODULE', 'ECVS_SERVER', 'ECVS_TOP_DIR', 'ECVS_USER']
 	optenv = ['ECVS_BRANCH', 'ECVS_CLEAN', 'ECVS_LOCAL', 'ECVS_LOCALNAME', 'ECVS_PASS',
 			'ECVS_RUNAS', 'ECVS_UP_OPTS', 'ECVS_VERSION']
+
+	requires_workdir = True
 
 	def __init__(self, *args):
 		VCSSupport.__init__(self, *args)
@@ -23,6 +25,10 @@ class CVSSupport(VCSSupport):
 
 	def __str__(self):
 		return '%s (%s)' % (self.env['ECVS_SERVER'], self.env['ECVS_MODULE']) or VCSSupport.__str__(self)
+
+	def parseoutput(self, out):
+		# require calling getrev()
+		return None
 
 	def getsavedrev(self):
 		return self.env['ECVS_VERSION']
@@ -56,10 +62,7 @@ class CVSSupport(VCSSupport):
 		up_cmd = '%s -f -d "%s" update %s %s' % (self.env['ECVS_CVS_COMMAND'], up_root,
 				self.env['ECVS_UP_OPTS'], ' '.join(opts))
 
-		# CVS is stupid as hell and tries to close STDOUT, which is
-		# redirected... making long story short, we need to do some
-		# random magic to make things work with our Popen()...
-		stdout_cmd = 'exec 2>&1'
+		stdout_cmd = 'exec >&2'
 
 		cvs_passfile = tempfile.NamedTemporaryFile(delete=False)
 		env_cmd = 'export CVS_PASSFILE="%s" HOME=' % cvs_passfile.name

@@ -1,5 +1,5 @@
 #	vim:fileencoding=utf-8
-# (c) 2010 Michał Górny <mgorny@gentoo.org>
+# (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 import bz2, errno, fcntl, os, os.path, pickle, select, shutil, signal, subprocess, sys, tempfile, time
@@ -80,15 +80,9 @@ def SmartLiveRebuild(opts, db = None, portdb = None, settings = None):
 	if not opts.color:
 		out.monochromize()
 
-	if opts.local_rev and not opts.network:
-		out.err('The --local-rev and --no-network options can not be specified together.')
-		raise SLRFailure('')
 	if opts.jobs <= 0:
 		out.err('The argument to --jobs option must be a positive integer.')
 		raise SLRFailure('')
-	elif opts.jobs > 1 and not opts.network:
-		out.s1('Using parallel jobs with --no-network is inefficient, assuming no --jobs.')
-		opts.jobs = 1
 
 	childpid = None
 	commpipe = None
@@ -171,18 +165,18 @@ user account, please pass the --unprivileged-user option.
 									bash.grabenv(env)
 									vcs = vcscl(cpv, bash, opts, settings)
 									env.close()
-									if opts.network or vcs.getsavedrev():
-										dir = vcs.getpath()
-										if dir not in rebuilds:
-											rebuilds[dir] = vcs
-											processes.append(vcs)
-											loop_iter()
-										elif rebuilds[dir] in processes:
-											rebuilds[dir].append(vcs)
-										elif rebuilds[dir].cpv[0] in packages:
-											packages.extend(vcs.cpv)
-										elif rebuilds[dir].cpv[0] in erraneous:
-											erraneous.extend(vcs.cpv)
+
+									dir = vcs.getpath()
+									if dir not in rebuilds:
+										rebuilds[dir] = vcs
+										processes.append(vcs)
+										loop_iter()
+									elif rebuilds[dir] in processes:
+										rebuilds[dir].append(vcs)
+									elif rebuilds[dir].cpv[0] in packages:
+										packages.extend(vcs.cpv)
+									elif rebuilds[dir].cpv[0] in erraneous:
+										erraneous.extend(vcs.cpv)
 						except KeyboardInterrupt:
 							raise
 						except NonLiveEbuild as e:
@@ -236,14 +230,6 @@ user account, please pass the --unprivileged-user option.
 			cmd.extend(['=%s' % x for x in packages])
 			out.s2(' '.join(cmd))
 			subprocess.Popen(cmd, stdout=sys.stderr).wait()
-
-		if opts.offline:
-			if opts.erraneous_merge and len(erraneous) > 0:
-				out.s1('Merging update-failed packages, assuming --no-offline.')
-				opts.offline = False
-			else:
-				os.environ['ESCM_OFFLINE'] = 'true'
-				os.environ['EVCS_OFFLINE'] = 'true'
 
 		if opts.allow_downgrade == 'always':
 			packages = [pkgsplit(x)[0] for x in packages]

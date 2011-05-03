@@ -1,8 +1,8 @@
 #	vim:fileencoding=utf-8
-# (c) 2010 Michał Górny <mgorny@gentoo.org>
+# (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import os.path, subprocess, sys
+import os.path
 
 from SmartLiveRebuild.vcs import VCSSupport
 
@@ -20,7 +20,7 @@ class HgSupport(VCSSupport):
 		return '%s/hg-src/%s/%s' % (dd, self.env['EHG_PROJECT'], bn)
 
 	def __str__(self):
-		return self.env['EHG_REPO_URI'] or VCSSupport.__str__(self)
+		return self.env['EHG_REPO_URI']
 
 	def getsavedrev(self):
 		return self.env['HG_REV_ID']
@@ -29,16 +29,11 @@ class HgSupport(VCSSupport):
 		return self.call(['hg', 'identify', '--id', '--rev', self.env['EHG_REVISION']]
 				+ self.trustopt)
 
-	def getremoterev(self):
-		return self.call(['hg', 'identify', '--id', '--rev', self.env['EHG_REVISION'],
-				self.env['EHG_REPO_URI']] + self.trustopt)
-
 	@staticmethod
 	def revcmp(oldrev, newrev):
 		return newrev.startswith(oldrev)
 
 	def getupdatecmd(self):
-		return ' '.join([self.env['EHG_PULL_CMD']] + self.trustopt)
-
-	def diffstat(self, oldrev, newrev):
-		subprocess.Popen(['hg', 'diff', '--stat', '-r', oldrev, '-r', newrev] + self.trustopt, stdout=sys.stderr).wait()
+		return 'hg identify --id --rev %s %s %s' % (
+				self.env['EHG_REVISION'], self.env['EHG_REPO_URI'],
+				' '.join(self.trustopt))

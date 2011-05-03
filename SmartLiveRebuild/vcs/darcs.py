@@ -1,8 +1,8 @@
 #	vim:fileencoding=utf-8
-# (c) 2010 Michał Górny <mgorny@gentoo.org>
+# (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-import subprocess, sys, re
+import re
 
 from SmartLiveRebuild.vcs import VCSSupport
 
@@ -12,12 +12,17 @@ class DarcsSupport(VCSSupport):
 			'EDARCS_DARCS_CMD']
 	optenv = ['EDARCS_PATCHCOUNT']
 
+	requires_workdir = True
+
 	def getpath(self):
 		return '%s/%s' \
 			% (self.env['EDARCS_TOP_DIR'], self.env['EDARCS_LOCALREPO'])
 
 	def __str__(self):
 		return self.env['EDARCS_REPOSITORY'] or VCSSupport.__str__(self)
+
+	def parseoutput(self, out):
+		return None
 
 	def getrev(self):
 		result = self.call(['darcs', 'show', 'repo'])
@@ -32,14 +37,8 @@ class DarcsSupport(VCSSupport):
 		return oldrev == newrev
 
 	def getupdatecmd(self):
-		# darcs trying to close stderr as cvs does
-		# see SmartLiveRebuild/vcs/cvs.py for comments
-		return '%s %s --all %s %s 2>&1' % \
+		return '%s %s --all %s %s >&2' % \
 			(self.env['EDARCS_DARCS_CMD'],
 			self.env['EDARCS_UPDATE_CMD'],
 			self.env['EDARCS_OPTIONS'],
 			self.env['EDARCS_REPOSITORY'])
-
-	def diffstat(self, oldrev, newrev):
-		subprocess.Popen(['darcs', 'chan', '--last', newrev - oldrev],
-				stdout=sys.stderr).wait()
