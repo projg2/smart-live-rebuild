@@ -213,18 +213,17 @@ class VCSSupport:
 			it returns False.
 		"""
 
-		while True:
-			(sod, sed) = self.subprocess.communicate()
-			if sod:
-				self.stdoutbuf += sod
+		if not blocking:
+			# let's hope we don't get much output
 			ret = self.subprocess.poll()
-			if ret is not None:
-				break
-			elif not blocking:
+			if ret is None:
 				return None
 
+		(sod, sed) = self.subprocess.communicate()
+		ret = self.subprocess.returncode
+
 		if ret == 0:
-			newrev = self.parseoutput(self.stdoutbuf)
+			newrev = self.parseoutput(sod)
 
 			if newrev is None:
 				if self.requires_workdir:
