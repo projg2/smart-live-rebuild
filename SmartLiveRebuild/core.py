@@ -166,16 +166,16 @@ user account, please pass the --unprivileged-user option.
 									vcs = vcscl(cpv, bash, opts, settings)
 									env.close()
 
-									dir = vcs.getpath()
-									if dir not in rebuilds:
-										rebuilds[dir] = vcs
+									uri = str(vcs)
+									if uri not in rebuilds:
+										rebuilds[uri] = vcs
 										processes.append(vcs)
 										loop_iter()
-									elif rebuilds[dir] in processes:
-										rebuilds[dir].append(vcs)
-									elif rebuilds[dir].cpv[0] in packages:
+									elif rebuilds[uri] in processes:
+										rebuilds[uri].append(vcs)
+									elif rebuilds[uri].cpv[0] in packages:
 										packages.extend(vcs.cpv)
-									elif rebuilds[dir].cpv[0] in erraneous:
+									elif rebuilds[uri].cpv[0] in erraneous:
 										erraneous.extend(vcs.cpv)
 						except KeyboardInterrupt:
 							raise
