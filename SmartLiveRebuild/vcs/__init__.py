@@ -171,13 +171,9 @@ class VCSSupport:
 
 			This function returns the spawned Popen() instance.
 		"""
-		try:
+
+		if self.requires_workdir:
 			os.chdir(self.getpath())
-		except OSError:
-			# If VCS requires workdir, re-raise the exception.
-			# Else try to proceed.
-			if self.requires_workdir:
-				raise
 
 		self.oldrev = self.getsavedrev()
 		if not self.getsavedrev(): # TEMPORARY
@@ -221,6 +217,7 @@ class VCSSupport:
 
 			if newrev is None:
 				if self.requires_workdir:
+					os.chdir(self.getpath())
 					newrev = self.getrev()
 				else:
 					raise Exception('update command failed to return a rev')
