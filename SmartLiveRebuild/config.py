@@ -26,7 +26,6 @@ class Config(ConfigParser):
 			'diffstat': 'False',
 			'erraneous_merge': 'True',
 			'jobs': '1',
-			'local_rev': 'False',
 			'pretend': 'False',
 			'profile': 'smart-live-rebuild',
 			'quickpkg': 'False',

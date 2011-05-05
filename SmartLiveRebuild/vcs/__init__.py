@@ -174,20 +174,14 @@ class VCSSupport:
 		try:
 			os.chdir(self.getpath())
 		except OSError:
-			# If the working copy was removed, we'll try to ping
-			# the remote server for updates. But for that:
-			# 1) user can't use --local-rev,
-			# 2) we have to able to get the saved rev,
-			# 3) VCS has to support that.
-			# Otherwise, just re-raise the exception.
-			if self._opts.local_rev or self.requires_workdir:
+			# If VCS requires workdir, re-raise the exception.
+			# Else try to proceed.
+			if self.requires_workdir:
 				raise
-			self.oldrev = self.getsavedrev()
-			if not self.oldrev:
-				raise
-			self.subprocess = None
-		else:
-			self.oldrev = (not self._opts.local_rev and self.getsavedrev()) or self.getrev()
+
+		self.oldrev = self.getsavedrev()
+		if not self.getsavedrev(): # TEMPORARY
+			raise Exception('getsavedrev() failed to return a revision')
 
 		cmd = self.getupdatecmd()
 		out.s2(str(self))

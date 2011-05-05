@@ -65,8 +65,6 @@ def parse_options(argv):
 		help='Disable emerging packages for which the update has failed.')
 	opt.add_option('-j', '--jobs', action='store', type='int', dest='jobs',
 		help='Spawn JOBS parallel processes to perform repository updates.')
-	opt.add_option('-l', '--local-rev', action='store_true', dest='local_rev',
-		help='Force determining the current package revision from the repository instead of using the one saved by portage.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend',
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
 	opt.add_option('-P', '--profile', action='store', dest='profile',
