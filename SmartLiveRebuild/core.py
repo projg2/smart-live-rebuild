@@ -113,6 +113,8 @@ user account, please pass the --unprivileged-user option.
 		if not childpid:
 			if childpid == 0:
 				os.close(commpipe[0])
+				# Make sure CWD will be readable to portage user
+				os.chdir('/')
 				os.setuid(portage_uid)
 			if opts.type:
 				allowed = frozenset(opts.type)
