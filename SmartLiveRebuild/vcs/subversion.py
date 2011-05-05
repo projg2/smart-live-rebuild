@@ -7,8 +7,8 @@ import re
 from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
 
 class SvnSupport(VCSSupport):
-	reqenv = ['ESVN_STORE_DIR', 'ESVN_REPO_URI']
-	optenv = ['ESVN_REVISION', 'ESVN_WC_PATH', 'ESVN_WC_REVISION']
+	reqenv = ['ESVN_REPO_URI', 'ESVN_STORE_DIR', 'ESVN_WC_REVISION']
+	optenv = ['ESVN_REVISION']
 
 	revre = re.compile('(?m)^Last Changed Rev: (\d+)$')
 
@@ -18,12 +18,7 @@ class SvnSupport(VCSSupport):
 			raise NonLiveEbuild('ESVN_REPO_URI specifies revision, package is not really a live one')
 		elif self.env['ESVN_REVISION']:
 			raise NonLiveEbuild('ESVN_REVISION set, package is not really a live one')
-		elif not self.env['ESVN_WC_PATH']:
-			raise KeyError('Environment does not declare ESVN_WC_PATH while the package is a live one')
 		self.callenv['LC_ALL'] = 'C'
-
-	def getpath(self):
-		return self.env['ESVN_WC_PATH']
 
 	def __str__(self):
 		return self.env['ESVN_REPO_URI']
@@ -34,12 +29,6 @@ class SvnSupport(VCSSupport):
 
 	def getsavedrev(self):
 		return int(self.env['ESVN_WC_REVISION'])
-
-	def getrev(self):
-		svninfo = self.call(['svn', '--config-dir', '%s/.subversion' % \
-				self.env['ESVN_STORE_DIR'], 'info'])
-		m = self.revre.search(svninfo)
-		return int(m.group(1)) if m is not None else None
 
 	@staticmethod
 	def revcmp(oldrev, newrev):

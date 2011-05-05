@@ -5,17 +5,14 @@
 from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
 
 class BzrSupport(VCSSupport):
-	reqenv = ['EBZR_REPO_URI', 'EBZR_REVNO_CMD', 'EBZR_UPDATE_CMD', 'EBZR_WC_PATH']
-	optenv = ['EBZR_OPTIONS', 'EBZR_REVISION', 'EBZR_REVNO']
+	reqenv = ['EBZR_REPO_URI', 'EBZR_REVNO', 'EBZR_REVNO_CMD']
+	optenv = ['EBZR_REVISION']
 
 	def __init__(self, *args):
 		VCSSupport.__init__(self, *args)
 		if self.env['EBZR_REVISION']:
 			raise NonLiveEbuild('EBZR_REVISION set, package is not really a live one')
 		self.callenv['BZR_LOG'] = '/dev/null'
-
-	def getpath(self):
-		return self.env['EBZR_WC_PATH']
 
 	def __str__(self):
 		return self.env['EBZR_REPO_URI']

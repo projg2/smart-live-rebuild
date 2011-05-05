@@ -174,10 +174,7 @@ class VCSSupport:
 
 		if self.requires_workdir:
 			os.chdir(self.getpath())
-
 		self.oldrev = self.getsavedrev()
-		if not self.getsavedrev(): # TEMPORARY
-			raise Exception('getsavedrev() failed to return a revision')
 
 		cmd = self.getupdatecmd()
 		out.s2(str(self))
