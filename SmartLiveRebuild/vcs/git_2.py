@@ -27,5 +27,5 @@ class GitSupport(VCSSupport):
 		cmds = []
 		for r in self.repo_uris:
 			cmds.append('git ls-remote --heads %s %s' % (
-				self.env['EGIT_REPO_URI'], self.env['EGIT_BRANCH']))
+				r, self.env['EGIT_BRANCH']))
 		return ' || '.join(cmds)
