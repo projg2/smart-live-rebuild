@@ -12,9 +12,10 @@ class GitSupport(VCSSupport):
 		VCSSupport.__init__(self, *args)
 		if self.env['EGIT_COMMIT'] and self.env['EGIT_COMMIT'] != self.env['EGIT_BRANCH']:
 			raise NonLiveEbuild('EGIT_COMMIT set, package is not really a live one')
+		self.repo_uris = self.env['EGIT_REPO_URI'].split()
 
 	def __str__(self):
-		return self.env['EGIT_REPO_URI']
+		return self.repo_uris[0]
 
 	def parseoutput(self, out):
 		return out.split()[0]
@@ -22,10 +23,9 @@ class GitSupport(VCSSupport):
 	def getsavedrev(self):
 		return self.env['EGIT_VERSION']
 
-	def getremoterev(self):
-		return self.call(['git', 'ls-remote', '--heads', self.env['EGIT_REPO_URI'],
-				self.env['EGIT_BRANCH']]).split()[0]
-
 	def getupdatecmd(self):
-		return 'git ls-remote --heads %s %s' % (self.env['EGIT_REPO_URI'],
-				self.env['EGIT_BRANCH'])
+		cmds = []
+		for r in self.repo_uris:
+			cmds.append('git ls-remote --heads %s %s' % (
+				self.env['EGIT_REPO_URI'], self.env['EGIT_BRANCH']))
+		return ' || '.join(cmds)
