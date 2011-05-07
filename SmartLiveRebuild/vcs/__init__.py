@@ -210,7 +210,7 @@ class VCSSupport:
 		ret = self.subprocess.returncode
 
 		if ret == 0:
-			newrev = self.parseoutput(sod)
+			newrev = self.parseoutput(sod.decode('ASCII'))
 
 			if newrev is None:
 				if self.requires_workdir:
