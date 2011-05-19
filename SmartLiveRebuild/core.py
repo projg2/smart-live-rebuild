@@ -18,7 +18,7 @@ class BashParser(object):
 	def __init__(self):
 		self._tmpf = tempfile.NamedTemporaryFile('w+b')
 		self._bashproc = subprocess.Popen(['bash', '-c',
-				'while read -r SLR_VARS; do source %s; eval set -- ${SLR_VARS}; printf "%%s\\0" "${@}"; done' % self._tmpf.name],
+				'while read -r SLR_VARS; do ( source %s; eval set -- ${SLR_VARS}; printf "%%s\\0" "${@}" ); done' % self._tmpf.name],
 			stdin = subprocess.PIPE, stdout = subprocess.PIPE)
 
 		fd = self._bashproc.stdout
