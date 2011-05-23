@@ -158,14 +158,20 @@ user account, please pass the --unprivileged-user option.
 						cpv = atoms.pop(0)
 
 						try:
-							inherits = db.aux_get(cpv, ['INHERITED'])[0].split()
+							aux = db.aux_get(cpv, ['INHERITED', 'SLOT'])
+							inherits = aux[0].split()
+							slot = aux[1]
+							if slot:
+								slottedcpv = '%s:%s' % (cpv, slot)
+							else:
+								slottedcpv = cpv
 
 							for vcs in inherits:
 								vcscl = GetVCS(vcs, allowed)
 								if vcscl is not None:
 									env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
 									bash.grabenv(env)
-									vcs = vcscl(cpv, bash, opts, settings)
+									vcs = vcscl(slottedcpv, bash, opts, settings)
 									env.close()
 
 									uri = str(vcs)
@@ -233,11 +239,17 @@ user account, please pass the --unprivileged-user option.
 			out.s2(' '.join(cmd))
 			subprocess.Popen(cmd, stdout=sys.stderr).wait()
 
+		def mypkgcut(slottedcpv, n):
+			""" Return n first components of split-joined slottedcpv. """
+			cpv, slot = slottedcpv.rsplit(':', 1)
+			cpv = '-'.join(pkgsplit(cpv)[0:n])
+			return ':'.join([cpv, slot])
+
 		if opts.allow_downgrade == 'always':
-			packages = [pkgsplit(x)[0] for x in packages]
+			packages = [mypkgcut(x, 1) for x in packages]
 		else:
 			if opts.allow_downgrade == 'same-pv':
-				packages = ['-'.join(pkgsplit(x)[0:2]) for x in packages]
+				packages = [mypkgcut(x, 2) for x in packages]
 			packages = ['>=%s' % x for x in packages]
 
 		# Check portdb for matches. Drop unmatched packages.
