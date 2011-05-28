@@ -241,9 +241,9 @@ user account, please pass the --unprivileged-user option.
 
 		def mypkgcut(slottedcpv, n):
 			""" Return n first components of split-joined slottedcpv. """
-			cpv, slot = slottedcpv.rsplit(':', 1)
-			cpv = '-'.join(pkgsplit(cpv)[0:n])
-			return ':'.join([cpv, slot])
+			splitcpv = slottedcpv.rsplit(':', 1)
+			splitcpv[0] = '-'.join(pkgsplit(splitcpv[0])[0:n])
+			return ':'.join(splitcpv)
 
 		if opts.allow_downgrade == 'always':
 			packages = [mypkgcut(x, 1) for x in packages]
