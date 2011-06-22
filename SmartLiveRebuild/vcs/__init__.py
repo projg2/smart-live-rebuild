@@ -3,6 +3,7 @@
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 import locale, os, subprocess
+from abc import ABCMeta, abstractmethod
 
 from SmartLiveRebuild.output import out
 
@@ -32,6 +33,8 @@ class VCSSupport:
 		The subclasses should append to this dictionary instead of
 		overriding it completely.
 	"""
+	__metaclass__ = ABCMeta
+
 	reqenv = []
 	optenv = []
 
@@ -81,13 +84,14 @@ class VCSSupport:
 		else:
 			return self.endupdate()
 
+	@abstractmethod
 	def getpath(self):
 		""" Get the absolute path to the checkout directory. The program
 			will enter that particular directory before executing
 			the update command or calling one of the following methods:
 			- getrev().
 		"""
-		raise NotImplementedError('VCS class needs to override getpath()')
+		pass
 
 	def append(self, vcs):
 		""" Append the additional packages from another VCS class
@@ -110,9 +114,10 @@ class VCSSupport:
 		"""
 		return None
 
+	@abstractmethod
 	def getrev(self):
 		""" Grab the revision from the work tree. """
-		raise NotImplementedError('VCS class needs to override getrev() or update()')
+		pass
 
 	def parseoutput(self, out):
 		""" Parse output from updatecmd and return a revision. """
@@ -151,12 +156,13 @@ class VCSSupport:
 			raise SystemError('Command failed: %s' % cmd)
 		return ret
 
+	@abstractmethod
 	def getupdatecmd(self):
 		""" Return the update command for a particular VCS as a shell
 			command string. It will be executed within the checkout
 			directory, as returned by self.getpath().
 		"""
-		raise NotImplementedError('VCS class needs to override getupdatecmd()')
+		pass
 
 	def startupdate(self):
 		""" Start the update process. Grabs the current revision from
