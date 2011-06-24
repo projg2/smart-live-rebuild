@@ -7,20 +7,20 @@
 import sys
 
 try:
-	from SmartLiveRebuild.cli import main
+	from smartliverebuild.cli import main
 except ImportError:
 	import os.path
 	sys.path.insert(0, os.path.dirname(__file__))
 	# Ensure a clean reload from the new location.
-	if 'SmartLiveRebuild' in sys.modules:
+	if 'smartliverebuild' in sys.modules:
 		try: # py3 compat
 			from imp import reload
 		except ImportError:
 			pass
 
-		reload(sys.modules['SmartLiveRebuild'])
-		del sys.modules['SmartLiveRebuild']
-	from SmartLiveRebuild.cli import main
+		reload(sys.modules['smartliverebuild'])
+		del sys.modules['smartliverebuild']
+	from smartliverebuild.cli import main
 
 if __name__ == '__main__':
 	sys.exit(main(sys.argv))

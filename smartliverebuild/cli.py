@@ -8,11 +8,11 @@ from optparse import OptionParser, Option, OptionValueError
 
 from portage.data import portage_uid, portage_gid
 
-from SmartLiveRebuild import PV
-from SmartLiveRebuild.config import Config
-from SmartLiveRebuild.core import SmartLiveRebuild, SLRFailure
-from SmartLiveRebuild.output import out
-from SmartLiveRebuild.vcs import GetVCS
+from smartliverebuild import PV
+from smartliverebuild.config import Config
+from smartliverebuild.core import SmartLiveRebuild, SLRFailure
+from smartliverebuild.output import out
+from smartliverebuild.vcs import GetVCS
 
 def check_downgrade(opt, optstr, val):
 	if val not in ('always', 'same-pv', 'never'):

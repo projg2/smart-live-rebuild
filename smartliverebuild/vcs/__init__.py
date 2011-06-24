@@ -4,7 +4,7 @@
 
 import locale, os, subprocess
 
-from SmartLiveRebuild.output import out
+from smartliverebuild.output import out
 
 class NonLiveEbuild(Exception):
 	""" A simple exception to be raised whenever the package is tied to
@@ -252,7 +252,7 @@ def GetVCS(eclassname, allowed = []):
 			vcs_cache[eclassname] = None
 		else:
 			try:
-				modname = 'SmartLiveRebuild.vcs.%s' % eclassname.replace('-', '_')
+				modname = 'smartliverebuild.vcs.%s' % eclassname.replace('-', '_')
 				mod = __import__(modname, {}, {}, ['.'], 0)
 				for k in dir(mod):
 					modvar = getattr(mod, k)

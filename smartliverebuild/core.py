@@ -8,8 +8,8 @@ from portage import create_trees
 from portage.data import portage_uid, portage_gid
 from portage.versions import pkgsplit
 
-from SmartLiveRebuild.output import out
-from SmartLiveRebuild.vcs import NonLiveEbuild, GetVCS
+from smartliverebuild.output import out
+from smartliverebuild.vcs import NonLiveEbuild, GetVCS
 
 class SLRFailure(Exception):
 	pass

@@ -110,7 +110,7 @@ user.
 Portage set support
 -------------------
 Apart from being called directly, smart-live-rebuild provides a package
-set for portage-2.2, called SmartLiveRebuild.sets.SmartLiveRebuildSet.
+set for portage-2.2, called `smartliverebuild.sets.SmartLiveRebuildSet`.
 Please take a look at `sets.conf.example` file for a use example.
 
 

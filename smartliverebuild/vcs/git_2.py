@@ -2,7 +2,7 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
+from smartliverebuild.vcs import VCSSupport, NonLiveEbuild
 
 class GitSupport(VCSSupport):
 	reqenv = ['EGIT_BRANCH', 'EGIT_REPO_URI', 'EGIT_VERSION']

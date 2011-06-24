@@ -1,5 +1,5 @@
 # Example /etc/portage/sets.conf adding the @smart-live-rebuild set.
 
 [smart-live-rebuild]
-class = SmartLiveRebuild.sets.SmartLiveRebuildSet
+class = smartliverebuild.sets.SmartLiveRebuildSet
 world-candidate = False

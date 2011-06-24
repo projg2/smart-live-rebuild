@@ -2,7 +2,7 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-from SmartLiveRebuild.vcs import VCSSupport
+from smartliverebuild.vcs import VCSSupport
 
 class HgSupport(VCSSupport):
 	reqenv = ['EHG_REPO_URI', 'EHG_REVISION', 'HG_REV_ID']

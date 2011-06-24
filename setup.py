@@ -9,7 +9,7 @@ import os.path, sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 try:
-	from SmartLiveRebuild import PV
+	from smartliverebuild import PV
 except ImportError:
 	PV = 'unknown'
 
@@ -20,7 +20,7 @@ setup(
 		author_email = 'mgorny@gentoo.org',
 		url = 'http://github.com/mgorny/smart-live-rebuild',
 
-		packages = ['SmartLiveRebuild', 'SmartLiveRebuild.vcs'],
+		packages = ['smartliverebuild', 'smartliverebuild.vcs'],
 		scripts = ['smart-live-rebuild'],
 
 		classifiers = [

@@ -27,8 +27,8 @@ if sets_api == 0:
 elif sets_api == 1:
 	from portage._sets.base import PackageSet
 
-from SmartLiveRebuild.config import Config
-from SmartLiveRebuild.core import SmartLiveRebuild, SLRFailure
+from smartliverebuild.config import Config
+from smartliverebuild.core import SmartLiveRebuild, SLRFailure
 
 class SmartLiveRebuildSet(PackageSet):
 	_operations = ["merge"]

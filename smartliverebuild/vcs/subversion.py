@@ -4,7 +4,7 @@
 
 import re
 
-from SmartLiveRebuild.vcs import VCSSupport, NonLiveEbuild
+from smartliverebuild.vcs import VCSSupport, NonLiveEbuild
 
 class SvnSupport(VCSSupport):
 	reqenv = ['ESVN_REPO_URI', 'ESVN_STORE_DIR', 'ESVN_WC_REVISION']

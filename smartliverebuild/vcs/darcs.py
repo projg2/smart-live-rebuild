@@ -4,7 +4,7 @@
 
 import re
 
-from SmartLiveRebuild.vcs import VCSSupport
+from smartliverebuild.vcs import VCSSupport
 
 class DarcsSupport(VCSSupport):
 	reqenv = ['EDARCS_REPOSITORY', 'EDARCS_GET_CMD', 'EDARCS_UPDATE_CMD',

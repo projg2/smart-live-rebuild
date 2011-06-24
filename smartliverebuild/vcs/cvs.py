@@ -4,7 +4,7 @@
 
 import hashlib, locale, tempfile
 
-from SmartLiveRebuild.vcs import VCSSupport
+from smartliverebuild.vcs import VCSSupport
 
 class CVSSupport(VCSSupport):
 	reqenv = ['ECVS_AUTH', 'ECVS_CVS_COMMAND', 'ECVS_MODULE', 'ECVS_SERVER', 'ECVS_TOP_DIR', 'ECVS_USER']
