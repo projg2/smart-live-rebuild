@@ -87,8 +87,9 @@ class PackageFilter(object):
 				else:
 					self.category = re.compile('.')
 				self.pn = makere(m.group(3))
-			else:
-				sys.stderr.write('Incorrect filter string: %s\n' % wildcard)
+#			XXX: the below test catches cliargs as well
+#			else:
+#				sys.stderr.write('Incorrect filter string: %s\n' % wildcard)
 
 			# .matched is used only on inclusive args
 			self.matched = self.exclusive
@@ -104,6 +105,7 @@ class PackageFilter(object):
 		""" Init filters from pattern list. """
 		if wlist:
 			pmatchers = [self.PackageMatcher(w) for w in wlist]
+			self._broken = filter(lambda f: f.broken, pmatchers)
 			self._pmatchers = filter(lambda f: not f.broken, pmatchers)
 			for f in self._pmatchers:
 				self._default_pass = f.exclusive
@@ -129,6 +131,8 @@ class PackageFilter(object):
 		for m in self._pmatchers:
 			if not m.matched:
 				yield m.wildcard
+		for m in self._broken:
+			yield m.wildcard
 
 def SmartLiveRebuild(opts, db = None, portdb = None, settings = None,
 		cliargs = None):
@@ -220,9 +224,7 @@ user account, please pass the --unprivileged-user option.
 
 			bash = BashParser()
 
-			filters = opts.filter_packages or []
-			if cliargs:
-				filters.extend(filter(lambda arg: not arg.startswith('-'), cliargs))
+			filters = (opts.filter_packages or []) + (cliargs or [])
 			filt = PackageFilter(filters)
 
 			try:
@@ -281,7 +283,7 @@ user account, please pass the --unprivileged-user option.
 			if cliargs:
 				nm = set(filt.nonmatched)
 				for i, el in enumerate(cliargs):
-					if not el.startswith('-') and el not in nm:
+					if el not in nm:
 						del cliargs[i]
 
 			if childpid == 0:
