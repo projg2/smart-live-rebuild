@@ -26,11 +26,16 @@ def check_vcslist(opt, optstr, val):
 			raise OptionValueError("option %s: VCS eclass '%s' is not supported." % (optstr, vcs))
 	return val
 
+def check_cslist(opt, optstr, val):
+	val = val.split(',')
+	return val
+
 class SLROption(Option):
-	TYPES = Option.TYPES + ('downgrade', 'vcslist')
+	TYPES = Option.TYPES + ('downgrade', 'vcslist', 'cslist')
 	TYPE_CHECKER = copy(Option.TYPE_CHECKER)
 	TYPE_CHECKER['downgrade'] = check_downgrade
 	TYPE_CHECKER['vcslist'] = check_vcslist
+	TYPE_CHECKER['cslist'] = check_cslist
 
 class CLIConfig(Config):
 	def apply_optparse(self, values):
@@ -63,6 +68,8 @@ def parse_options(argv):
 		help="When to allow downgrading package (one of 'never', 'same-pv', 'always')")
 	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='erraneous_merge',
 		help='Disable emerging packages for which the update has failed.')
+	opt.add_option('-f', '--filter-packages', action='append', type='cslist', dest='filter_packages',
+		help='Update only named packages (wildcard on package name or cat/pn, prefix with ! for exclusive, can be used multiple times).')
 	opt.add_option('-j', '--jobs', action='store', type='int', dest='jobs',
 		help='Spawn JOBS parallel processes to perform repository updates.')
 	opt.add_option('-p', '--pretend', action='store_true', dest='pretend',

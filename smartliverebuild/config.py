@@ -25,6 +25,7 @@ class Config(ConfigParser):
 			'config_file': '/etc/portage/smart-live-rebuild.conf',
 			'diffstat': 'False',
 			'erraneous_merge': 'True',
+			'filter_packages': '',
 			'jobs': '1',
 			'pretend': 'False',
 			'profile': 'smart-live-rebuild',
@@ -107,6 +108,11 @@ class Config(ConfigParser):
 					val[k] = self._real_defaults[k]
 				else:
 					val[k] = v
+			elif k == 'filter_packages': # list
+				if v != '':
+					val[k] = v.split(',')
+				else:
+					val[k] = None
 			elif k == 'type':
 				if v != '':
 					val[k] = []

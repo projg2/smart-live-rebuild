@@ -3,10 +3,11 @@
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 import bz2, errno, fcntl, os, os.path, pickle, select, shutil, signal, subprocess, sys, tempfile, time
+import fnmatch, re # for PackageFilter
 
 from portage import create_trees
 from portage.data import portage_uid, portage_gid
-from portage.versions import pkgsplit
+from portage.versions import catpkgsplit, pkgsplit
 
 from smartliverebuild.output import out
 from smartliverebuild.vcs import NonLiveEbuild, GetVCS
@@ -63,6 +64,50 @@ class BashParser(object):
 		self._bashproc.terminate()
 		self._bashproc.communicate()
 		self._tmpf.close()
+
+wildcard_re = re.compile(r'^(!)?(?:([A-Za-z0-9+_.?*\[\]-]+)/)?([A-Za-z0-9+_?*\[\]-]+)$')
+class PackageFilter(object):
+	class PackageMatcher(object):
+		def __init__(self, wildcard):
+			m = wildcard_re.match(wildcard)
+			self.broken = not m
+
+			def makere(s):
+				return re.compile(r'^%s$' % fnmatch.translate(s))
+
+			if not self.broken:
+				self.exclusive = bool(m.group(1))
+				if m.group(2):
+					self.category = makere(m.group(2))
+				else:
+					self.category = re.compile('.')
+				self.pn = makere(m.group(3))
+			else:
+				sys.stderr.write('Incorrect filter string: %s\n' % wildcard)
+
+		def __call__(self, cpv):
+			cat, pkg, ver, rev = catpkgsplit(cpv)
+			return bool(self.category.match(cat) and self.pn.match(pkg)) ^ self.exclusive
+
+	def __init__(self, wlist):
+		if wlist:
+			pmatchers = [self.PackageMatcher(w) for w in wlist]
+			self._pmatchers = filter(lambda f: not f.broken, pmatchers)
+			for f in self._pmatchers:
+				self._default_pass = f.exclusive
+				break
+		else:
+			self._pmatchers = ()
+			self._default_pass = True
+
+	def __call__(self, cpv):
+		r = self._default_pass
+		for m in self._pmatchers:
+			if m.exclusive:
+				r &= m(cpv)
+			else:
+				r |= m(cpv)
+		return r
 
 def SmartLiveRebuild(opts, db = None, portdb = None, settings = None):
 	if db is None or portdb is None or settings is None:
@@ -152,10 +197,13 @@ user account, please pass the --unprivileged-user option.
 				return needsleep
 
 			bash = BashParser()
+			filt = PackageFilter(opts.filter_packages)
 			try:
 				try:
 					while atoms:
 						cpv = atoms.pop(0)
+						if not filt(cpv):
+							continue
 
 						try:
 							aux = db.aux_get(cpv, ['INHERITED', 'SLOT'])
