@@ -67,8 +67,13 @@ class BashParser(object):
 
 wildcard_re = re.compile(r'^(!)?(?:([A-Za-z0-9+_.?*\[\]-]+)/)?([A-Za-z0-9+_?*\[\]-]+)$')
 class PackageFilter(object):
+	""" Package filtering framework. """
+
 	class PackageMatcher(object):
+		""" A single package filter. """
+
 		def __init__(self, wildcard):
+			""" Init filter for pattern. """
 			m = wildcard_re.match(wildcard)
 			self.broken = not m
 
@@ -85,11 +90,18 @@ class PackageFilter(object):
 			else:
 				sys.stderr.write('Incorrect filter string: %s\n' % wildcard)
 
+			# .matched is used only on inclusive args
+			self.matched = self.exclusive
+			self.wildcard = wildcard
+
 		def __call__(self, cpv):
 			cat, pkg, ver, rev = catpkgsplit(cpv)
-			return bool(self.category.match(cat) and self.pn.match(pkg)) ^ self.exclusive
+			m = bool(self.category.match(cat) and self.pn.match(pkg))
+			self.matched |= m
+			return m ^ self.exclusive
 
 	def __init__(self, wlist):
+		""" Init filters from pattern list. """
 		if wlist:
 			pmatchers = [self.PackageMatcher(w) for w in wlist]
 			self._pmatchers = filter(lambda f: not f.broken, pmatchers)
@@ -101,6 +113,7 @@ class PackageFilter(object):
 			self._default_pass = True
 
 	def __call__(self, cpv):
+		""" Execute filtering on CPV. """
 		r = self._default_pass
 		for m in self._pmatchers:
 			if m.exclusive:
@@ -109,7 +122,16 @@ class PackageFilter(object):
 				r |= m(cpv)
 		return r
 
-def SmartLiveRebuild(opts, db = None, portdb = None, settings = None):
+	@property
+	def nonmatched(self):
+		""" Iterate over non-matched args. """
+
+		for m in self._pmatchers:
+			if not m.matched:
+				yield m.wildcard
+
+def SmartLiveRebuild(opts, db = None, portdb = None, settings = None,
+		cliargs = None):
 	if db is None or portdb is None or settings is None:
 		trees = create_trees(
 				config_root = os.environ.get('PORTAGE_CONFIGROOT'),
@@ -197,7 +219,12 @@ user account, please pass the --unprivileged-user option.
 				return needsleep
 
 			bash = BashParser()
-			filt = PackageFilter(opts.filter_packages)
+
+			filters = opts.filter_packages or []
+			if cliargs:
+				filters.extend(filter(lambda arg: not arg.startswith('-'), cliargs))
+			filt = PackageFilter(filters)
+
 			try:
 				try:
 					while atoms:
@@ -250,6 +277,12 @@ user account, please pass the --unprivileged-user option.
 				out.err('Updates interrupted, proceeding with already updated repos.')
 				for vcs in processes:
 					vcs.abortupdate()
+
+			if cliargs:
+				nm = set(filt.nonmatched)
+				for i, el in enumerate(cliargs):
+					if not el.startswith('-') and el not in nm:
+						del cliargs[i]
 
 			if childpid == 0:
 				pdata = {'packages': packages, 'erraneous': erraneous}
