@@ -144,7 +144,7 @@ def main(argv):
 	except SLRFailure:
 		return 1
 
-	if not packages:
+	if not packages and not filter(lambda a: not a.startswith('-'), args):
 		return 0
 
 	if opts.pretend:
