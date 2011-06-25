@@ -201,7 +201,7 @@ class BaseVCSSupport(object):
 		else:
 			raise Exception('update command returned non-zero result')
 
-	def abortupdate(self):
+	def __del__(self):
 		""" Terminate the running update subprocess if appropriate. """
 		if self._running and self.subprocess is not None:
 			try:

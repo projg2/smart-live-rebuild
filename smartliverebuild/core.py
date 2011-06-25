@@ -304,7 +304,7 @@ user account, please pass the --unprivileged-user option.
 			except KeyboardInterrupt:
 				out.err('Updates interrupted, proceeding with already updated repos.')
 				for vcs in processes:
-					vcs.abortupdate()
+					del vcs
 
 			if cliargs:
 				nm = set(filt.nonmatched)
