@@ -4,7 +4,7 @@
 
 from smartliverebuild.vcs import VCSSupport
 
-class HgSupport(VCSSupport):
+class MercurialSupport(VCSSupport):
 	reqenv = ['EHG_REPO_URI', 'EHG_REVISION', 'HG_REV_ID']
 
 	trustopt = ['--config', 'trusted.users=portage']

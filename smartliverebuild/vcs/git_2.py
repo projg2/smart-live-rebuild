@@ -4,7 +4,7 @@
 
 from smartliverebuild.vcs import VCSSupport, NonLiveEbuild
 
-class GitSupport(VCSSupport):
+class Git2Support(VCSSupport):
 	reqenv = ['EGIT_BRANCH', 'EGIT_REPO_URI', 'EGIT_VERSION']
 	optenv = ['EGIT_COMMIT']
 
