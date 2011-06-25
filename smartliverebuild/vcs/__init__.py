@@ -251,9 +251,12 @@ def GetVCS(eclassname, allowed = []):
 		if allowed and eclassname not in allowed:
 			vcs_cache[eclassname] = None
 		else:
+			modname = 'smartliverebuild.vcs.%s' % eclassname.replace('-', '_')
 			try:
-				modname = 'smartliverebuild.vcs.%s' % eclassname.replace('-', '_')
 				mod = __import__(modname, {}, {}, ['.'], 0)
+			except ImportError:
+				vcs_cache[eclassname] = None
+			else:
 				for k in dir(mod):
 					modvar = getattr(mod, k)
 					if issubclass(modvar, VCSSupport) and \
@@ -262,7 +265,5 @@ def GetVCS(eclassname, allowed = []):
 						break
 				else:
 					raise ImportError('Unable to find a matching class in %s' % mod)
-			except ImportError:
-				vcs_cache[eclassname] = None
 
 	return vcs_cache[eclassname]
