@@ -10,7 +10,7 @@ from portage.data import portage_uid, portage_gid
 from portage.versions import catpkgsplit, pkgsplit
 
 from smartliverebuild.output import out
-from smartliverebuild.vcs import NonLiveEbuild, VCSSupport
+from smartliverebuild.vcs import NonLiveEbuild
 
 class SLRFailure(Exception):
 	pass
@@ -149,13 +149,12 @@ class VCSLoader(object):
 					self.vcs_cache[eclassname] = None
 				else:
 					for k in dir(mod):
-						modvar = getattr(mod, k)
-						if issubclass(modvar, VCSSupport) and \
-								not issubclass(VCSSupport, modvar):
-							self.vcs_cache[eclassname] = modvar
+						if k.endswith('Support') and \
+								k[:-7].lower() == eclassname.replace('-', ''):
+							self.vcs_cache[eclassname] = getattr(mod, k)
 							break
 					else:
-						raise ImportError('Unable to find a matching class in %s' % mod)
+						raise ImportError('Unable to find a matching class in %s' % modname)
 
 		return self.vcs_cache[eclassname]
 
