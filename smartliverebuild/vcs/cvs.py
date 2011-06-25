@@ -4,37 +4,34 @@
 
 import hashlib, locale, tempfile
 
-from smartliverebuild.vcs import VCSSupport
+from smartliverebuild.vcs import CheckoutVCSSupport
 
-class CVSSupport(VCSSupport):
+class CVSSupport(CheckoutVCSSupport):
 	reqenv = ['ECVS_AUTH', 'ECVS_CVS_COMMAND', 'ECVS_MODULE', 'ECVS_SERVER', 'ECVS_TOP_DIR', 'ECVS_USER']
 	optenv = ['ECVS_BRANCH', 'ECVS_CLEAN', 'ECVS_LOCAL', 'ECVS_LOCALNAME', 'ECVS_PASS',
 			'ECVS_RUNAS', 'ECVS_UP_OPTS', 'ECVS_VERSION']
 
-	requires_workdir = True
-
-	def __init__(self, *args):
-		VCSSupport.__init__(self, *args)
+	def __init__(self, *args, **kwargs):
+		CheckoutVCSSupport.__init__(self, *args, **kwargs)
 		if self.env['ECVS_RUNAS']:
 			raise NotImplementedError('ECVS_RUNAS is not implemented (yet).')
 		elif self.env['ECVS_AUTH'] != 'pserver':
 			raise NotImplementedError('ECVS_AUTH=%s while only pserver is supported.' % self.env['ECVS_AUTH'])
 
-	def getpath(self):
+	@property
+	def workdir(self):
 		return '%s/%s' % (self.env['ECVS_TOP_DIR'], self.env['ECVS_LOCALNAME'] or self.env['ECVS_MODULE'])
 
 	def __str__(self):
-		return '%s (%s)' % (self.env['ECVS_SERVER'], self.env['ECVS_MODULE']) or VCSSupport.__str__(self)
+		return '%s (%s)' % (self.env['ECVS_SERVER'], self.env['ECVS_MODULE'])
 
-	def parseoutput(self, out):
-		# require calling getrev()
-		return None
-
-	def getsavedrev(self):
+	@property
+	def savedrev(self):
 		return self.env['ECVS_VERSION']
 
-	def getrev(self):
-		inp = self.call(['find', self.getpath()] + '-ipath */CVS/Entries -exec cat {} +'.split()).split('\n')
+	@property
+	def currentrev(self):
+		inp = self.call(['find', self.workdir] + '-ipath */CVS/Entries -exec cat {} +'.split()).split('\n')
 		del inp[-1] # drop the trailing newline for sorting
 		inp.sort()
 		inp.append('') # and readd it
@@ -43,7 +40,8 @@ class CVSSupport(VCSSupport):
 
 		return hasher.hexdigest()
 
-	def getupdatecmd(self):
+	@property
+	def updatecmd(self):
 		opts = []
 		if self.env['ECVS_LOCAL']:
 			opts.append('-l')
