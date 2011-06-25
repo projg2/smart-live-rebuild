@@ -134,29 +134,32 @@ class PackageFilter(object):
 		for m in self._broken:
 			yield m.wildcard
 
-vcs_cache = {}
+class VCSLoader(object):
+	vcs_cache = {}
 
-def GetVCS(eclassname, allowed = []):
-	if eclassname not in vcs_cache:
-		if allowed and eclassname not in allowed:
-			vcs_cache[eclassname] = None
-		else:
-			modname = 'smartliverebuild.vcs.%s' % eclassname.replace('-', '_')
-			try:
-				mod = __import__(modname, {}, {}, ['.'], 0)
-			except ImportError:
-				vcs_cache[eclassname] = None
+	def __call__(self, eclassname, allowed = []):
+		if eclassname not in self.vcs_cache:
+			if allowed and eclassname not in allowed:
+				self.vcs_cache[eclassname] = None
 			else:
-				for k in dir(mod):
-					modvar = getattr(mod, k)
-					if issubclass(modvar, VCSSupport) and \
-							not issubclass(VCSSupport, modvar):
-						vcs_cache[eclassname] = modvar
-						break
+				modname = 'smartliverebuild.vcs.%s' % eclassname.replace('-', '_')
+				try:
+					mod = __import__(modname, {}, {}, ['.'], 0)
+				except ImportError:
+					self.vcs_cache[eclassname] = None
 				else:
-					raise ImportError('Unable to find a matching class in %s' % mod)
+					for k in dir(mod):
+						modvar = getattr(mod, k)
+						if issubclass(modvar, VCSSupport) and \
+								not issubclass(VCSSupport, modvar):
+							self.vcs_cache[eclassname] = modvar
+							break
+					else:
+						raise ImportError('Unable to find a matching class in %s' % mod)
 
-	return vcs_cache[eclassname]
+		return self.vcs_cache[eclassname]
+
+GetVCS = VCSLoader()
 
 def SmartLiveRebuild(opts, db = None, portdb = None, settings = None,
 		cliargs = None):
