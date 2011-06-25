@@ -77,6 +77,15 @@ class BaseVCSSupport(object):
 		if len(missingvars) > 0:
 			raise KeyError('Environment does not declare: %s' % missingvars)
 
+	def __iadd__(self, vcs):
+		""" Append the additional packages from another VCS class
+			instance `vcs'. This will be done whenever two packages
+			share the same checkout directory (as returned by getpath()).
+		"""
+		if not isinstance(vcs, self.__class__):
+			raise ValueError('Unable to append %s to %s' % (vcs.__class__, self.__class__))
+		self.cpv.append(vcs.cpv[0])
+
 	def __str__(self):
 		""" Return the string used to identify the update process within
 			the program output.

@@ -283,7 +283,7 @@ user account, please pass the --unprivileged-user option.
 										processes.append(vcs)
 										loop_iter()
 									elif rebuilds[uri] in processes:
-										rebuilds[uri].append(vcs)
+										rebuilds[uri] += vcs
 									elif rebuilds[uri].cpv[0] in packages:
 										packages.extend(vcs.cpv)
 									elif rebuilds[uri].cpv[0] in erraneous:
