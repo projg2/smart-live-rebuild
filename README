@@ -114,6 +114,30 @@ set for portage-2.2, called `smartliverebuild.sets.SmartLiveRebuildSet`.
 Please take a look at `sets.conf.example` file for a use example.
 
 
+Filtering
+---------
+The list of packages to be updated can be filtered using `--filter-packages`
+(`-f`) option. This options takes a _single_ argument being a wildcard either
+to the package name alone, or category/pn. Multiple filters can be passed as
+additional `-f` options or `,` separated. A filter can be prefixed with `!`
+to make it exclusive. Otherwise, the filter is inclusive.
+
+The filters are applied left-to-right. Exclusive filters remove packages from
+currently matched set, inclusive (re-)add them. If the first filter
+is inclusive, the set is initially empty; otherwise, it contains all packages
+by default.
+
+Example filter sets:
+
+1. `-f app-portage/*` -- update only packages in `app-portage` category,
+2. `-f !python` -- update everything except for `python`,
+3. `-f app-portage/* -f !app-portage/smart-live-rebuild` -- update packages in
+	`app-portage` category, except for `smart-live-rebuild`,
+4. `-f f* -f !app-portage/* -f app-portage/flaggie` -- update all packages whose
+	names start with `f`, except for those in `app-portage` category but still
+	update `app-portage/flaggie`.
+
+
 Configuration file
 ------------------
 Various options to smart-live-rebuild may be set in a configuration file
