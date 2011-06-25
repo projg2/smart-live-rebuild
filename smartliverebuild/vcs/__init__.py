@@ -13,11 +13,8 @@ class NonLiveEbuild(Exception):
 		and will not cause rebuild of the package. """
 	pass
 
-class RemoteVCSSupport(object):
-	""" A base class for remote-capable VCS implementations. In other
-		words, those VCS-es which can handle checking for updates using
-		network and ebuild environment variables only, without the need
-		for a checkout. """
+class BaseVCSSupport(object):
+	""" Common VCS support class details. """
 	__metaclass__ = ABCMeta
 
 	@abstractproperty
@@ -103,11 +100,6 @@ class RemoteVCSSupport(object):
 			If you fail to grab the required information, return None.
 		"""
 		pass
-
-	def parseoutput(self, out):
-		""" Parse output from updatecmd and return a revision.
-			By default, simply passes the output on. """
-		return out
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
@@ -205,6 +197,67 @@ class RemoteVCSSupport(object):
 				self.subprocess.terminate()
 			except OSError:
 				pass
+
+class RemoteVCSSupport(BaseVCSSupport):
+	""" A base class for remote-capable VCS implementations. In other
+		words, those VCS-es which can handle checking for updates using
+		network and ebuild environment variables only, without the need
+		for a checkout. """
+
+	def parseoutput(self, out):
+		""" Parse output from updatecmd and return a revision.
+			By default, simply passes the output on. """
+		return out
+
+class CheckoutVCSSupport(BaseVCSSupport):
+	""" A base class for VCS implementations requiring a checkout. """
+
+	@abstractproperty
+	def workdir(self):
+		""" The absolute path to the checkout directory. The program
+			will enter that particular directory before executing
+			the update command or getting the checked out revision.
+		"""
+		pass
+
+	@abstractproperty
+	def currentrev(self):
+		""" The current revision work tree revision. """
+		pass
+
+	def startupdate(self):
+		""" Start the update command in the checkout directory. """
+		os.chdir(self.workdir)
+		BaseVCSSupport.startupdate(self)
+
+	def parseoutput(self, output):
+		""" Fake parsing the output by grabbing revision from the work
+			tree.
+		"""
+		os.chdir(self.workdir)
+		return self.currentrev
+
+	def call(self, cmd, **kwargs):
+		""" A helper method for VCS classes. It executes the process
+			passed as `cmd' (in the form of a list), grabs it output
+			and returns it.
+
+			By default, STDERR is not captured (and thus is output to
+			screen), and the process is called with environment updated
+			from self.callenv. Additional keyword arguments will be
+			passed to subprocess.Popen().
+		"""
+		env = self.callenv.copy()
+		if 'env' in kwargs:
+			env.update(kwargs['env'])
+		newkwargs = kwargs.copy()
+		newkwargs['env'] = env
+
+		p = subprocess.Popen(cmd, stdout=subprocess.PIPE, **newkwargs)
+		ret = p.communicate()[0].decode(locale.getpreferredencoding(), 'replace')
+		if p.wait() != 0:
+			raise SystemError('Command failed: %s' % cmd)
+		return ret
 
 class VCSSupport:
 	""" A base class for all VCS implementations, and which all VCS
