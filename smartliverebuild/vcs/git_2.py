@@ -2,14 +2,14 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
-from smartliverebuild.vcs import VCSSupport, NonLiveEbuild
+from smartliverebuild.vcs import RemoteVCSSupport, NonLiveEbuild
 
-class Git2Support(VCSSupport):
+class Git2Support(RemoteVCSSupport):
 	reqenv = ['EGIT_BRANCH', 'EGIT_REPO_URI', 'EGIT_VERSION']
 	optenv = ['EGIT_COMMIT']
 
-	def __init__(self, *args):
-		VCSSupport.__init__(self, *args)
+	def __init__(self, *args, **kwargs):
+		RemoteVCSSupport.__init__(self, *args, **kwargs)
 		if self.env['EGIT_COMMIT'] and self.env['EGIT_COMMIT'] != self.env['EGIT_BRANCH']:
 			raise NonLiveEbuild('EGIT_COMMIT set, package is not really a live one')
 		self.repo_uris = self.env['EGIT_REPO_URI'].split()
@@ -20,10 +20,12 @@ class Git2Support(VCSSupport):
 	def parseoutput(self, out):
 		return out.split()[0]
 
-	def getsavedrev(self):
+	@property
+	def savedrev(self):
 		return self.env['EGIT_VERSION']
 
-	def getupdatecmd(self):
+	@property
+	def updatecmd(self):
 		cmds = []
 		for r in self.repo_uris:
 			cmds.append('git ls-remote --heads %s %s' % (
