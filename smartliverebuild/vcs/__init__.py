@@ -243,27 +243,3 @@ class VCSSupport:
 			the program output.
 		"""
 		return ', '.join(self.cpv)
-
-vcs_cache = {}
-
-def GetVCS(eclassname, allowed = []):
-	if eclassname not in vcs_cache:
-		if allowed and eclassname not in allowed:
-			vcs_cache[eclassname] = None
-		else:
-			modname = 'smartliverebuild.vcs.%s' % eclassname.replace('-', '_')
-			try:
-				mod = __import__(modname, {}, {}, ['.'], 0)
-			except ImportError:
-				vcs_cache[eclassname] = None
-			else:
-				for k in dir(mod):
-					modvar = getattr(mod, k)
-					if issubclass(modvar, VCSSupport) and \
-							not issubclass(VCSSupport, modvar):
-						vcs_cache[eclassname] = modvar
-						break
-				else:
-					raise ImportError('Unable to find a matching class in %s' % mod)
-
-	return vcs_cache[eclassname]

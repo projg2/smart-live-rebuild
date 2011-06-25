@@ -10,7 +10,7 @@ from portage.data import portage_uid, portage_gid
 from portage.versions import catpkgsplit, pkgsplit
 
 from smartliverebuild.output import out
-from smartliverebuild.vcs import NonLiveEbuild, GetVCS
+from smartliverebuild.vcs import NonLiveEbuild, VCSSupport
 
 class SLRFailure(Exception):
 	pass
@@ -133,6 +133,30 @@ class PackageFilter(object):
 				yield m.wildcard
 		for m in self._broken:
 			yield m.wildcard
+
+vcs_cache = {}
+
+def GetVCS(eclassname, allowed = []):
+	if eclassname not in vcs_cache:
+		if allowed and eclassname not in allowed:
+			vcs_cache[eclassname] = None
+		else:
+			modname = 'smartliverebuild.vcs.%s' % eclassname.replace('-', '_')
+			try:
+				mod = __import__(modname, {}, {}, ['.'], 0)
+			except ImportError:
+				vcs_cache[eclassname] = None
+			else:
+				for k in dir(mod):
+					modvar = getattr(mod, k)
+					if issubclass(modvar, VCSSupport) and \
+							not issubclass(VCSSupport, modvar):
+						vcs_cache[eclassname] = modvar
+						break
+				else:
+					raise ImportError('Unable to find a matching class in %s' % mod)
+
+	return vcs_cache[eclassname]
 
 def SmartLiveRebuild(opts, db = None, portdb = None, settings = None,
 		cliargs = None):
