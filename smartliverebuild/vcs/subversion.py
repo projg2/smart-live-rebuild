@@ -4,21 +4,21 @@
 
 import re
 
-from smartliverebuild.vcs import VCSSupport, NonLiveEbuild
+from smartliverebuild.vcs import RemoteVCSSupport, NonLiveEbuild
 
-class SubversionSupport(VCSSupport):
+class SubversionSupport(RemoteVCSSupport):
 	reqenv = ['ESVN_REPO_URI', 'ESVN_STORE_DIR', 'ESVN_WC_REVISION']
 	optenv = ['ESVN_REVISION']
 
+	callenv = {'LC_ALL': 'C'}
 	revre = re.compile('(?m)^Last Changed Rev: (\d+)$')
 
-	def __init__(self, *args):
-		VCSSupport.__init__(self, *args)
+	def __init__(self, *args, **kwargs):
+		RemoteVCSSupport.__init__(self, *args, **kwargs)
 		if self.env['ESVN_REPO_URI'] and self.env['ESVN_REPO_URI'].find('@') != -1:
 			raise NonLiveEbuild('ESVN_REPO_URI specifies revision, package is not really a live one')
 		elif self.env['ESVN_REVISION']:
 			raise NonLiveEbuild('ESVN_REVISION set, package is not really a live one')
-		self.callenv['LC_ALL'] = 'C'
 
 	def __str__(self):
 		return self.env['ESVN_REPO_URI']
@@ -27,14 +27,16 @@ class SubversionSupport(VCSSupport):
 		m = self.revre.search(out)
 		return int(m.group(1)) if m is not None else None
 
-	def getsavedrev(self):
+	@property
+	def savedrev(self):
 		return int(self.env['ESVN_WC_REVISION'])
 
 	@staticmethod
 	def revcmp(oldrev, newrev):
 		return oldrev >= newrev
 
-	def getupdatecmd(self):
+	@property
+	def updatecmd(self):
 		# XXX: branch?
 		return 'svn --config-dir %s/.subversion info %s' % (
 			self.env['ESVN_STORE_DIR'], self.env['ESVN_REPO_URI'])
