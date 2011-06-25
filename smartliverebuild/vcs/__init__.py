@@ -134,7 +134,7 @@ class BaseVCSSupport(object):
 		else:
 			return self.endupdate()
 
-	def startupdate(self):
+	def startupdate(self, popenargs = {}):
 		""" Start the update process. Grabs the current revision
 			via .savedrev, grabs the update command (.updatecmd)
 			and executes it in the background using subprocess.Popen().
@@ -152,8 +152,10 @@ class BaseVCSSupport(object):
 		cmd = self.updatecmd
 		out.s2(str(self))
 		out.s3(cmd)
-		self.subprocess = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-				env=self.callenv, shell=True)
+
+		popenargs['env'] = self.callenv
+		popenargs['shell'] = True
+		self.subprocess = subprocess.Popen(cmd, **popenargs)
 
 		return self.subprocess
 
@@ -183,7 +185,7 @@ class BaseVCSSupport(object):
 		self._running = False
 
 		if ret == 0:
-			newrev = self.parseoutput(sod.decode('ASCII'))
+			newrev = self.parseoutput(sod.decode('ASCII') if sod else '')
 
 			if newrev is None:
 				raise Exception('update command failed to return a rev')
@@ -217,6 +219,10 @@ class RemoteVCSSupport(BaseVCSSupport):
 		""" Parse output from updatecmd and return a revision.
 			By default, simply passes the output on. """
 		return out
+
+	def startupdate(self):
+		BaseVCSSupport.startupdate(self, \
+				popenargs = {'stdout': subprocess.PIPE})
 
 class CheckoutVCSSupport(BaseVCSSupport):
 	""" A base class for VCS implementations requiring a checkout. """
