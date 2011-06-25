@@ -126,15 +126,15 @@ class BaseVCSSupport(object):
 	def __call__(self, blocking = False):
 		""" Perform a single main loop iteration. """
 		if not self._running:
-			self.startupdate()
+			self._startupdate()
 			self._running = True
 			if blocking:
-				return self.endupdate(True)
+				return self._endupdate(True)
 			return None
 		else:
-			return self.endupdate()
+			return self._endupdate()
 
-	def startupdate(self, popenargs = {}):
+	def _startupdate(self, popenargs = {}):
 		""" Start the update process. Grabs the current revision
 			via .savedrev, grabs the update command (.updatecmd)
 			and executes it in the background using subprocess.Popen().
@@ -159,7 +159,7 @@ class BaseVCSSupport(object):
 
 		return self.subprocess
 
-	def endupdate(self, blocking = False):
+	def _endupdate(self, blocking = False):
 		""" Depending on whether `blocking' is True, either wait
 			for update process termination or check whether it is done.
 			In the latter case, return None if the process is still
@@ -220,8 +220,8 @@ class RemoteVCSSupport(BaseVCSSupport):
 			By default, simply passes the output on. """
 		return out
 
-	def startupdate(self):
-		BaseVCSSupport.startupdate(self, \
+	def _startupdate(self):
+		BaseVCSSupport._startupdate(self, \
 				popenargs = {'stdout': subprocess.PIPE})
 
 class CheckoutVCSSupport(BaseVCSSupport):
@@ -240,10 +240,10 @@ class CheckoutVCSSupport(BaseVCSSupport):
 		""" The current revision work tree revision. """
 		pass
 
-	def startupdate(self):
+	def _startupdate(self):
 		""" Start the update command in the checkout directory. """
 		os.chdir(self.workdir)
-		BaseVCSSupport.startupdate(self)
+		BaseVCSSupport._startupdate(self)
 
 	def parseoutput(self, output):
 		""" Fake parsing the output by grabbing revision from the work
