@@ -62,12 +62,13 @@ class PackageFilter(object):
 				else:
 					self.category = re.compile('.')
 				self.pn = makere(m.group(3))
+				# .matched is used only on inclusive args
+				self.matched = self.exclusive
+
 #			XXX: the below test catches cliargs as well
 #			else:
 #				sys.stderr.write('Incorrect filter string: %s\n' % wildcard)
 
-			# .matched is used only on inclusive args
-			self.matched = self.exclusive
 			self.wildcard = wildcard
 
 		def __call__(self, cpv):
