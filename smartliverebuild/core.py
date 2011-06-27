@@ -3,87 +3,18 @@
 # Released under the terms of the 3-clause BSD license or the GPL-2 license.
 
 import bz2, os, os.path, pickle, signal, subprocess, sys, time
-import fnmatch, re # for PackageFilter
 
 from portage import create_trees
 from portage.data import portage_uid, portage_gid
-from portage.versions import catpkgsplit, pkgsplit
+from portage.versions import pkgsplit
 
 from smartliverebuild.bashparse import BashParser
+from smartliverebuild.filtering import PackageFilter
 from smartliverebuild.output import out
 from smartliverebuild.vcs import NonLiveEbuild
 
 class SLRFailure(Exception):
 	pass
-
-wildcard_re = re.compile(r'^(!)?(?:([A-Za-z0-9+_.?*\[\]-]+)/)?([A-Za-z0-9+_?*\[\]-]+)$')
-class PackageFilter(object):
-	""" Package filtering framework. """
-
-	class PackageMatcher(object):
-		""" A single package filter. """
-
-		def __init__(self, wildcard):
-			""" Init filter for pattern. """
-			m = wildcard_re.match(wildcard)
-			self.broken = not m
-
-			def makere(s):
-				return re.compile(r'^%s$' % fnmatch.translate(s))
-
-			if not self.broken:
-				self.exclusive = bool(m.group(1))
-				if m.group(2):
-					self.category = makere(m.group(2))
-				else:
-					self.category = re.compile('.')
-				self.pn = makere(m.group(3))
-#			XXX: the below test catches cliargs as well
-#			else:
-#				sys.stderr.write('Incorrect filter string: %s\n' % wildcard)
-
-			# .matched is used only on inclusive args
-			self.matched = self.exclusive
-			self.wildcard = wildcard
-
-		def __call__(self, cpv):
-			cat, pkg, ver, rev = catpkgsplit(cpv)
-			m = bool(self.category.match(cat) and self.pn.match(pkg))
-			self.matched |= m
-			return m ^ self.exclusive
-
-	def __init__(self, wlist):
-		""" Init filters from pattern list. """
-		if wlist:
-			pmatchers = [self.PackageMatcher(w) for w in wlist]
-			self._broken = filter(lambda f: f.broken, pmatchers)
-			self._pmatchers = filter(lambda f: not f.broken, pmatchers)
-			for f in self._pmatchers:
-				self._default_pass = f.exclusive
-				break
-		else:
-			self._pmatchers = ()
-			self._default_pass = True
-
-	def __call__(self, cpv):
-		""" Execute filtering on CPV. """
-		r = self._default_pass
-		for m in self._pmatchers:
-			if m.exclusive:
-				r &= m(cpv)
-			else:
-				r |= m(cpv)
-		return r
-
-	@property
-	def nonmatched(self):
-		""" Iterate over non-matched args. """
-
-		for m in self._pmatchers:
-			if not m.matched:
-				yield m.wildcard
-		for m in self._broken:
-			yield m.wildcard
 
 class VCSLoader(object):
 	vcs_cache = {}
