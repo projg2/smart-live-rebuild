@@ -10,8 +10,9 @@ from portage.data import portage_uid, portage_gid
 
 from smartliverebuild import PV
 from smartliverebuild.config import Config
-from smartliverebuild.core import GetVCS, SmartLiveRebuild, SLRFailure
+from smartliverebuild.core import SmartLiveRebuild, SLRFailure
 from smartliverebuild.output import out
+from smartliverebuild.vcsload import GetVCS
 
 def check_downgrade(opt, optstr, val):
 	if val not in ('always', 'same-pv', 'never'):

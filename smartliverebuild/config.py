@@ -11,8 +11,8 @@ except ImportError: # py2
 
 import portage
 
-from smartliverebuild.core import GetVCS
 from smartliverebuild.output import out
+from smartliverebuild.vcsload import GetVCS
 
 class Config(ConfigParser):
 	def __init__(self, settings = None):
