@@ -12,7 +12,7 @@ from smartliverebuild.bashparse import BashParser
 from smartliverebuild.filtering import PackageFilter
 from smartliverebuild.output import out
 from smartliverebuild.vcs import NonLiveEbuild
-from smartliverebuild.vcsload import GetVCS
+from smartliverebuild.vcsload import VCSLoader
 
 class SLRFailure(Exception):
 	pass
@@ -109,6 +109,7 @@ user account, please pass the --unprivileged-user option.
 
 			filters = (opts.filter_packages or []) + (cliargs or [])
 			filt = PackageFilter(filters)
+			getvcs = VCSLoader()
 
 			try:
 				try:
@@ -127,7 +128,7 @@ user account, please pass the --unprivileged-user option.
 								slottedcpv = cpv
 
 							for vcs in inherits:
-								vcscl = GetVCS(vcs, allowed, remote_only = opts.remote_only)
+								vcscl = getvcs(vcs, allowed, remote_only = opts.remote_only)
 								if vcscl is not None:
 									env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
 									bash.grabenv(env)
