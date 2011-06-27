@@ -29,5 +29,3 @@ class VCSLoader(object):
 						raise ImportError('Unable to find a matching class in %s' % modname)
 
 		return self.vcs_cache[eclassname]
-
-GetVCS = VCSLoader()

@@ -9,10 +9,9 @@ from optparse import OptionParser, Option, OptionValueError
 from portage.data import portage_uid, portage_gid
 
 from smartliverebuild import PV
-from smartliverebuild.config import Config
+from smartliverebuild.config import Config, conf_getvcs
 from smartliverebuild.core import SmartLiveRebuild, SLRFailure
 from smartliverebuild.output import out
-from smartliverebuild.vcsload import GetVCS
 
 def check_downgrade(opt, optstr, val):
 	if val not in ('always', 'same-pv', 'never'):
@@ -22,7 +21,7 @@ def check_downgrade(opt, optstr, val):
 def check_vcslist(opt, optstr, val):
 	val = val.split(',')
 	for vcs in val:
-		if GetVCS(vcs) is None:
+		if conf_getvcs(vcs) is None:
 			raise OptionValueError("option %s: VCS eclass '%s' is not supported." % (optstr, vcs))
 	return val
 

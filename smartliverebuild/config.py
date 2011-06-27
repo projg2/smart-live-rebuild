@@ -12,7 +12,9 @@ except ImportError: # py2
 import portage
 
 from smartliverebuild.output import out
-from smartliverebuild.vcsload import GetVCS
+from smartliverebuild.vcsload import VCSLoader
+
+conf_getvcs = VCSLoader()
 
 class Config(ConfigParser):
 	def __init__(self, settings = None):
@@ -118,7 +120,7 @@ class Config(ConfigParser):
 				if v != '':
 					val[k] = []
 					for vcs in v.split(','):
-						if GetVCS(vcs):
+						if conf_getvcs(vcs):
 							val[k].append(vcs)
 						else:
 							out.err('VCS type not supported: %s' % vcs)
@@ -132,5 +134,3 @@ class Config(ConfigParser):
 				val[k] = v
 
 		return val
-
-
