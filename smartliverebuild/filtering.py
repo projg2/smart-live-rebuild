@@ -80,21 +80,22 @@ class PackageFilter(object):
 	def __init__(self, wlist):
 		""" Init filters from pattern list. """
 		if wlist:
-			pmatchers = [self.PackageMatcher(w) for w in wlist]
-			self._broken = filter(lambda f: f.broken, pmatchers)
-			self._pmatchers = filter(lambda f: not f.broken, pmatchers)
+			self._pmatchers = [self.PackageMatcher(w) for w in wlist]
 			for f in self._pmatchers:
-				self._default_pass = f.exclusive
-				break
+				if not f.broken:
+					self._default_pass = f.exclusive
+					return
 		else:
 			self._pmatchers = ()
-			self._default_pass = True
+		self._default_pass = True
 
 	def __call__(self, cpv):
 		""" Execute filtering on CPV. """
 		r = self._default_pass
 		for m in self._pmatchers:
-			if m.exclusive:
+			if m.broken:
+				pass
+			elif m.exclusive:
 				r &= m(cpv)
 			else:
 				r |= m(cpv)
@@ -105,7 +106,5 @@ class PackageFilter(object):
 		""" Iterate over non-matched args. """
 
 		for m in self._pmatchers:
-			if not m.matched:
+			if m.broken or not m.matched:
 				yield m.wildcard
-		for m in self._broken:
-			yield m.wildcard
