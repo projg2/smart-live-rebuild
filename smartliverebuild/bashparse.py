@@ -49,7 +49,7 @@ class BashParser(object):
 
 		return dict(zip(vars, spl))
 
-	def terminate(self):
+	def __del__(self):
 		self._bashproc.terminate()
 		self._bashproc.communicate()
 		self._tmpf.close()

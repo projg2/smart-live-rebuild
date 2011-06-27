@@ -153,7 +153,7 @@ user account, please pass the --unprivileged-user option.
 							out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
 							erraneous.append(cpv)
 				finally:
-					bash.terminate()
+					del bash
 
 				while processes:
 					if loop_iter((opts.jobs == 1)):
