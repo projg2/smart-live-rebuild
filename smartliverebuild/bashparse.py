@@ -2,6 +2,27 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
+"""
+>>> envs = "foo=bar\\nbar=yay\\nexport nonbar=fooanyway\\ndeclare -- nonfoo=baranyway\\nfunction abc() {\\nfoo=cheater\\n}\\ndeclare -x bar=foo\\n"
+>>> try:
+...		from StringIO import StringIO
+...		f = StringIO(unicode(envs))
+... except ImportError:
+...		from io import StringIO
+...		f = StringIO(envs)
+>>> bp = BashParser()
+>>> bp.grabenv(f)
+>>> r = bp(['foo', 'bar', 'nonfoo', 'nonbar'])
+>>> str(r['foo'])
+'bar'
+>>> str(r['bar'])
+'foo'
+>>> str(r['nonfoo'])
+'baranyway'
+>>> str(r['nonbar'])
+'fooanyway'
+"""
+
 import errno, fcntl, os, select, shutil, subprocess, tempfile
 
 class BashParser(object):
