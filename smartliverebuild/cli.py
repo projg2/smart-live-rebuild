@@ -78,6 +78,8 @@ def parse_options(argv):
 		help='Configuration profile (config file section) to use (default: smart-live-rebuild)')
 	opt.add_option('-Q', '--quickpkg', action='store_true', dest='quickpkg',
 		help='Call quickpkg to create binary backups of packages which are going to be updated.')
+	opt.add_option('-r', '--remote-only', action='store_true', dest='remote_only',
+		help='Update remote-capable VCSes only (useful with --unprivileged-user).')
 	opt.add_option('-S', '--no-setuid', action='store_false', dest='setuid',
 		help='Do not switch UID to portage when FEATURES=userpriv is set.')
 	opt.add_option('-t', '--type', action='append', type='vcslist', dest='type',

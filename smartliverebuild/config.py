@@ -30,6 +30,7 @@ class Config(ConfigParser):
 			'pretend': 'False',
 			'profile': 'smart-live-rebuild',
 			'quickpkg': 'False',
+			'remote_only': 'False',
 			'setuid': str('userpriv' in settings.features),
 			'type': '',
 			'unprivileged_user': 'False'

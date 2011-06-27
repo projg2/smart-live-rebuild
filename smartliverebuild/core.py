@@ -127,7 +127,7 @@ user account, please pass the --unprivileged-user option.
 								slottedcpv = cpv
 
 							for vcs in inherits:
-								vcscl = GetVCS(vcs, allowed)
+								vcscl = GetVCS(vcs, allowed, remote_only = opts.remote_only)
 								if vcscl is not None:
 									env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
 									bash.grabenv(env)
