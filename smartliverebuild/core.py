@@ -1,6 +1,6 @@
 #	vim:fileencoding=utf-8
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
-# Released under the terms of the 3-clause BSD license or the GPL-2 license.
+# Released under the terms of the 2-clause BSD license.
 
 import bz2, os, os.path, pickle, signal, subprocess, sys, time
 

@@ -1,2 +1,2 @@
 include *.example
-include COPYING.*
+include COPYING

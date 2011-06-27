@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #	vim:fileencoding=utf-8
-# (c) 2010 Michał Górny <mgorny@gentoo.org>
-# Released under the terms of the 3-clause BSD license or the GPL-2 license.
+# (c) 2011 Michał Górny <mgorny@gentoo.org>
+# Released under the terms of the 2-clause BSD license.
 
 from distutils.core import setup
 
@@ -29,7 +29,6 @@ setup(
 			'Environment :: Plugins',
 			'Intended Audience :: System Administrators',
 			'License :: OSI Approved :: BSD License',
-			'License :: OSI Approved :: GNU General Public License (GPL)',
 			'Operating System :: POSIX',
 			'Programming Language :: Python',
 			'Topic :: System :: Installation/Setup'
