@@ -2,15 +2,33 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
+"""
+>>> wildcard_re.match('--pretend')
+>>> wildcard_re.match('-avD')
+>>> wildcard_re.match('a-package') # doctest: +ELLIPSIS
+<...>
+>>> wildcard_re.match('-not-a-package')
+>>> wildcard_re.match('another/-broken')
+>>> wildcard_re.match('but-this/one-s-fine++') # doctest: +ELLIPSIS
+<...>
+>>> wildcard_re.match('[a-z]pp-*/*bar??') # doctest: +ELLIPSIS
+<...>
+>>> wildcard_re.match('a/b') # doctest: +ELLIPSIS
+<...>
+>>> wildcard_re.match('a') # doctest: +ELLIPSIS
+<...>
+"""
+
 import fnmatch, re
 
 from portage.versions import catpkgsplit
 
-wildcard_re = re.compile(r'^(!)?(?:([A-Za-z0-9+_.?*\[\]-]+)/)?([A-Za-z0-9+_?*\[\]-]+)$')
+wildcard_re = re.compile(r'^(!)?(?:([A-Za-z0-9_?*\[\]][A-Za-z0-9+_.?*\[\]-]*)/)?([A-Za-z0-9_?*\[\]][A-Za-z0-9+_?*\[\]-]*)$')
+
 class PackageFilter(object):
 	"""
 	Package filtering framework.
-	
+
 	>>> pf = PackageFilter(['--pretend', '!*', 'app-foo/f*', 'smart-live-rebuild', '-avD'])
 	>>> [f for f in pf.nonmatched] # bang always matches
 	['--pretend', 'app-foo/f*', 'smart-live-rebuild', '-avD']
