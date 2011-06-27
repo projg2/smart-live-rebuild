@@ -3,7 +3,7 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
-from distutils.core import setup
+from distutils.core import setup, Command
 
 import os.path, sys
 
@@ -12,6 +12,24 @@ try:
 	from smartliverebuild import PV
 except ImportError:
 	PV = 'unknown'
+
+class TestCommand(Command):
+	user_options = []
+
+	def initialize_options(self):
+		pass
+
+	def finalize_options(self):
+		pass
+
+	def run(self):
+		import unittest, doctest
+
+		tests = unittest.TestSuite()
+
+		r = unittest.TextTestRunner()
+		res = r.run(tests)
+		sys.exit(0 if res.wasSuccessful() else 1)
 
 setup(
 		name = 'smart-live-rebuild',
@@ -32,5 +50,9 @@ setup(
 			'Operating System :: POSIX',
 			'Programming Language :: Python',
 			'Topic :: System :: Installation/Setup'
-		]
+		],
+
+		cmdclass = {
+			'test': TestCommand
+		}
 )
