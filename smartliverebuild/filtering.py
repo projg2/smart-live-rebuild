@@ -8,7 +8,23 @@ from portage.versions import catpkgsplit
 
 wildcard_re = re.compile(r'^(!)?(?:([A-Za-z0-9+_.?*\[\]-]+)/)?([A-Za-z0-9+_?*\[\]-]+)$')
 class PackageFilter(object):
-	""" Package filtering framework. """
+	"""
+	Package filtering framework.
+	
+	>>> pf = PackageFilter(['--pretend', '!*', 'app-foo/f*', 'smart-live-rebuild', '-avD'])
+	>>> [f for f in pf.nonmatched] # bang always matches
+	['--pretend', 'app-foo/f*', 'smart-live-rebuild', '-avD']
+	>>> pf('app-foo/foo-123')
+	True
+	>>> pf('app-foo/bar-123')
+	False
+	>>> pf('app-bar/foo-321')
+	False
+	>>> pf('app-portage/smart-live-rebuild-9999')
+	True
+	>>> [f for f in pf.nonmatched]
+	['--pretend', '-avD']
+	"""
 
 	class PackageMatcher(object):
 		""" A single package filter. """

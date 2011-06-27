@@ -26,6 +26,7 @@ class TestCommand(Command):
 		import unittest, doctest
 
 		tests = unittest.TestSuite()
+		tests.addTests(doctest.DocTestSuite('smartliverebuild.filtering'))
 
 		r = unittest.TextTestRunner()
 		res = r.run(tests)
