@@ -4,12 +4,8 @@
 
 """
 >>> envs = "foo=bar\\nbar=yay\\nexport nonbar=fooanyway\\ndeclare -- nonfoo=baranyway\\nfunction abc() {\\nfoo=cheater\\n}\\ndeclare -x bar=foo\\n"
->>> try:
-...		from StringIO import StringIO
-...		f = StringIO(unicode(envs))
-... except ImportError:
-...		from io import StringIO
-...		f = StringIO(envs)
+>>> from io import BytesIO
+>>> f = BytesIO(envs.encode('ASCII'))
 >>> bp = BashParser()
 >>> bp.grabenv(f)
 >>> r = bp(['foo', 'bar', 'nonfoo', 'nonbar'])
