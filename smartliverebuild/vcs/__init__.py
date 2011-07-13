@@ -85,6 +85,7 @@ class BaseVCSSupport(object):
 		if not isinstance(vcs, self.__class__):
 			raise ValueError('Unable to append %s to %s' % (vcs.__class__, self.__class__))
 		self.cpv.append(vcs.cpv[0])
+		return self
 
 	def __str__(self):
 		""" Return the string used to identify the update process within
