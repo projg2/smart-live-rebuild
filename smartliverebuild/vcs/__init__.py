@@ -16,6 +16,7 @@ class NonLiveEbuild(Exception):
 class BaseVCSSupport(object):
 	""" Common VCS support class details. """
 	__metaclass__ = ABCMeta
+	_running = False
 
 	@abstractproperty
 	def reqenv(self):
@@ -69,7 +70,6 @@ class BaseVCSSupport(object):
 		self._cpv = [cpv]
 		self.env = bash(self.reqenv + self.optenv)
 		self._opts = opts
-		self._running = False
 
 		missingvars = [v for v in self.reqenv if self.env[v] == '']
 		if len(missingvars) > 0:
