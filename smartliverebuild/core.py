@@ -206,7 +206,7 @@ user account, please pass the --unprivileged-user option.
 
 		# Check portdb for matches. Drop unmatched packages.
 		for p in list(packages):
-			if pm.Atom(p) not in pm.stack:
+			if pm.Atom(str(p)) not in pm.stack:
 				out.err('No packages matching %s in portdb, skipping.' % p)
 				packages.remove(p)
 
