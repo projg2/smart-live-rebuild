@@ -17,20 +17,7 @@ from smartliverebuild.vcsload import VCSLoader
 class SLRFailure(Exception):
 	pass
 
-def SmartLiveRebuild(opts, db = None, portdb = None, settings = None,
-		cliargs = None):
-	if db is None or portdb is None or settings is None:
-		trees = create_trees(
-				config_root = os.environ.get('PORTAGE_CONFIGROOT'),
-				target_root = os.environ.get('ROOT'))
-		tree = trees[max(trees)]
-		if db is None:
-			db = tree['vartree'].dbapi
-		if portdb is None:
-			portdb = tree['porttree'].dbapi
-		if settings is None:
-			settings = db.settings
-
+def SmartLiveRebuild(opts, pm, cliargs = None):
 	if not opts.color:
 		out.monochromize()
 
@@ -42,6 +29,9 @@ def SmartLiveRebuild(opts, db = None, portdb = None, settings = None,
 	commpipe = None
 	userok = (os.geteuid() == 0)
 	if opts.setuid:
+		pm_conf = pm.config
+		portage_uid = pm_conf.userpriv_uid
+		portage_gid = pm_conf.userpriv_gid
 		if portage_uid and portage_gid:
 			if not userok:
 				if os.getuid() == portage_uid:
@@ -80,7 +70,7 @@ user account, please pass the --unprivileged-user option.
 			else:
 				out.s1('Updating the repositories using %s%d%s parallel jobs...' % (out.white, opts.jobs, out.s1reset))
 
-			atoms = db.cpv_all()
+			it = iter(pm.installed)
 			processes = []
 
 			packages = []
@@ -105,58 +95,51 @@ user account, please pass the --unprivileged-user option.
 						del processes[i]
 				return needsleep
 
-			bash = BashParser()
-
 			filters = (opts.filter_packages or []) + (cliargs or [])
 			filt = PackageFilter(filters)
 			getvcs = VCSLoader()
 
 			try:
-				try:
-					while atoms:
-						cpv = atoms.pop(0)
-						if not filt(cpv):
-							continue
+				while True:
+					try:
+						pkg = next(it)
+					except StopIteration:
+						break
+					if not filt(pkg.key):
+						continue
 
-						try:
-							aux = db.aux_get(cpv, ['INHERITED', 'SLOT'])
-							inherits = aux[0].split()
-							slot = aux[1]
-							if slot:
-								slottedcpv = '%s:%s' % (cpv, slot)
-							else:
-								slottedcpv = cpv
+					try:
+						inherits = pkg.metadata['INHERITED'].split()
+						slot = pkg.metadata['SLOT']
+						slottedcpv = pkg.id
+						if slot: # XXX: atom manip.
+							slottedcpv = slottedcpv.replace('::', ':%s::' % slot)
 
-							for vcs in inherits:
-								vcscl = getvcs(vcs, allowed, remote_only = opts.remote_only)
-								if vcscl is not None:
-									env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
-									bash.grabenv(env)
-									vcs = vcscl(slottedcpv, bash, opts)
-									env.close()
+						for vcs in inherits:
+							vcscl = getvcs(vcs, allowed, remote_only = opts.remote_only)
+							if vcscl is not None:
+								vcs = vcscl(slottedcpv, pkg.environ, opts)
 
-									uri = str(vcs)
-									if uri not in rebuilds:
-										rebuilds[uri] = vcs
-										processes.append(vcs)
-										loop_iter()
-									elif rebuilds[uri] in processes:
-										rebuilds[uri] += vcs
-									elif rebuilds[uri].cpv[0] in packages:
-										packages.extend(vcs.cpv)
-									elif rebuilds[uri].cpv[0] in erraneous:
-										erraneous.extend(vcs.cpv)
-						except KeyboardInterrupt:
+								uri = str(vcs)
+								if uri not in rebuilds:
+									rebuilds[uri] = vcs
+									processes.append(vcs)
+									loop_iter()
+								elif rebuilds[uri] in processes:
+									rebuilds[uri] += vcs
+								elif rebuilds[uri].cpv[0] in packages:
+									packages.extend(vcs.cpv)
+								elif rebuilds[uri].cpv[0] in erraneous:
+									erraneous.extend(vcs.cpv)
+					except KeyboardInterrupt:
+						raise
+					except NonLiveEbuild as e:
+						out.err('%s: %s' % (pkg.id, e))
+					except Exception as e:
+						if opts.debug:
 							raise
-						except NonLiveEbuild as e:
-							out.err('%s: %s' % (cpv, e))
-						except Exception as e:
-							if opts.debug:
-								raise
-							out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
-							erraneous.append(cpv)
-				finally:
-					del bash
+						out.err('Error enumerating %s: [%s] %s' % (pkg.id, e.__class__.__name__, e))
+						erraneous.append(pkg.id)
 
 				while processes:
 					if loop_iter((opts.jobs == 1)):
@@ -210,7 +193,7 @@ user account, please pass the --unprivileged-user option.
 
 		def mypkgcut(slottedcpv, n):
 			""" Return n first components of split-joined slottedcpv. """
-			splitcpv = slottedcpv.rsplit(':', 1)
+			splitcpv = slottedcpv.split(':', 1)
 			splitcpv[0] = '-'.join(pkgsplit(splitcpv[0])[0:n])
 			return ':'.join(splitcpv)
 
@@ -223,7 +206,7 @@ user account, please pass the --unprivileged-user option.
 
 		# Check portdb for matches. Drop unmatched packages.
 		for p in list(packages):
-			if not portdb.match(p):
+			if pm.Atom(p) not in pm.stack:
 				out.err('No packages matching %s in portdb, skipping.' % p)
 				packages.remove(p)
 

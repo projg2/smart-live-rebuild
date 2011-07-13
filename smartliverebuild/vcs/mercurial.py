@@ -7,7 +7,7 @@ from smartliverebuild.vcs import RemoteVCSSupport
 class MercurialSupport(RemoteVCSSupport):
 	reqenv = ['EHG_REPO_URI', 'EHG_REVISION', 'HG_REV_ID']
 
-	trustopt = ['--config', 'trusted.users=portage']
+	trustopt = ['--config', 'trusted.users=portage'] # XXX: pm.config.userpriv_uid
 
 	def __str__(self):
 		return self.env['EHG_REPO_URI']

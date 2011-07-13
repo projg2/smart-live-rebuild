@@ -5,6 +5,8 @@
 import os, re
 from portage import VERSION as portage_ver
 
+from gentoopm import get_package_manager
+
 # live git tree generates 'vX.Y_rcZ-N-...'
 # ebuilds use 'X.Y_rcZ_pN'
 vmatch = re.match(r'^v?((?:\d+\.)*\d+)(?:_rc(\d+))?(?:(?:_p|-)(\d+))?', str(portage_ver))
@@ -34,11 +36,9 @@ class SmartLiveRebuildSet(PackageSet):
 	_operations = ["merge"]
 	description = "Package set containing live packages awaiting update"
 
-	def __init__(self, opts, vardbapi, portdbapi, settings):
+	def __init__(self, opts, pm):
 		self._options = opts
-		self._dbapi = vardbapi
-		self._portdb = portdbapi
-		self._settings = settings
+		self._pm = pm
 		PackageSet.__init__(self)
 
 	def load(self):
@@ -56,9 +56,7 @@ class SmartLiveRebuildSet(PackageSet):
 
 		try:
 			if packages is None:
-				packages = SmartLiveRebuild(self._options,
-						db = self._dbapi, portdb = self._portdb,
-						settings = self._settings)
+				packages = SmartLiveRebuild(self._options, self._pm)
 		except SLRFailure:
 			pass
 		else:
@@ -69,12 +67,10 @@ class SmartLiveRebuildSet(PackageSet):
 	def singleBuilder(cls, options, settings, trees):
 		# Clasically, apply twice. First time to get configfile path
 		# and profile; second time to override them.
-		c = Config(settings)
+		pm = get_package_manager()
+		c = Config(pm.config)
 		c.apply_dict(options)
 		c.parse_configfiles()
 		c.apply_dict(options)
 
-		vardb = trees['vartree'].dbapi
-		portdb = trees['porttree'].dbapi
-
-		return cls(c.get_options(), vardb, portdb, settings)
+		return cls(c.get_options, pm)

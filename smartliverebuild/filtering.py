@@ -21,7 +21,7 @@
 
 import fnmatch, re
 
-from portage.versions import catpkgsplit
+from portage.versions import catsplit
 
 wildcard_re = re.compile(r'^(!)?(?:([A-Za-z0-9_?*\[\]][A-Za-z0-9+_.?*\[\]-]*)/)?([A-Za-z0-9_?*\[\]][A-Za-z0-9+_?*\[\]-]*)$')
 
@@ -71,8 +71,8 @@ class PackageFilter(object):
 
 			self.wildcard = wildcard
 
-		def __call__(self, cpv):
-			cat, pkg, ver, rev = catpkgsplit(cpv)
+		def __call__(self, cp):
+			cat, pkg = catsplit(cp)
 			m = bool(self.category.match(cat) and self.pn.match(pkg))
 			self.matched |= m
 			return m ^ self.exclusive
@@ -89,16 +89,16 @@ class PackageFilter(object):
 			self._pmatchers = ()
 		self._default_pass = True
 
-	def __call__(self, cpv):
-		""" Execute filtering on CPV. """
+	def __call__(self, cp):
+		""" Execute filtering on CP. """
 		r = self._default_pass
 		for m in self._pmatchers:
 			if m.broken:
 				pass
 			elif m.exclusive:
-				r &= m(cpv)
+				r &= m(cp)
 			else:
-				r |= m(cpv)
+				r |= m(cp)
 		return r
 
 	@property

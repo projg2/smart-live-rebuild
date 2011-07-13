@@ -6,7 +6,7 @@ import itertools, os
 from copy import copy
 from optparse import OptionParser, Option, OptionValueError
 
-from portage.data import portage_uid, portage_gid
+from gentoopm import get_package_manager
 
 from smartliverebuild import PV
 from smartliverebuild.config import Config, conf_getvcs
@@ -89,8 +89,11 @@ def parse_options(argv):
 	return opt.parse_args(argv[1:])
 
 def main(argv):
+	pm = get_package_manager()
+	pm_conf = pm.config
+
 	# initialize config with defaults
-	c = CLIConfig()
+	c = CLIConfig(pm_conf)
 
 	# parse opts to get the config file
 	(opts, args) = parse_options(argv)
@@ -133,6 +136,8 @@ def main(argv):
 			pass
 
 	if opts.setuid:
+		portage_uid = pm_conf.userpriv_uid
+		portage_gid = pm_conf.userpriv_gid
 		if portage_uid and portage_gid and os.geteuid() != 0 and os.getuid() == portage_uid:
 			if not opts.pretend:
 				out.s1('Running as the portage user, assuming --pretend.')
@@ -141,7 +146,7 @@ def main(argv):
 				out.err("Running as the portage user, --quickpkg probably won't work")
 
 	try:
-		packages = SmartLiveRebuild(opts, cliargs = args)
+		packages = SmartLiveRebuild(opts, pm, cliargs = args)
 	except SLRFailure:
 		return 1
 

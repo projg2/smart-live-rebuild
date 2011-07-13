@@ -9,18 +9,13 @@ try:
 except ImportError: # py2
 	from ConfigParser import ConfigParser, NoOptionError
 
-import portage
-
 from smartliverebuild.output import out
 from smartliverebuild.vcsload import VCSLoader
 
 conf_getvcs = VCSLoader()
 
 class Config(ConfigParser):
-	def __init__(self, settings = None):
-		if settings is None:
-			settings = portage.settings
-
+	def __init__(self, pm_conf):
 		self._real_defaults = {
 			'allow_downgrade': 'same-pv',
 			'color': 'True',
@@ -33,7 +28,7 @@ class Config(ConfigParser):
 			'profile': 'smart-live-rebuild',
 			'quickpkg': 'False',
 			'remote_only': 'False',
-			'setuid': str('userpriv' in settings.features),
+			'setuid': str(pm_conf.userpriv_enabled),
 			'type': '',
 			'unprivileged_user': 'False'
 		}
