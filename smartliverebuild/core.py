@@ -132,7 +132,7 @@ user account, please pass the --unprivileged-user option.
 								if vcscl is not None:
 									env = bz2.BZ2File('%s/environment.bz2' % db.getpath(cpv), 'r')
 									bash.grabenv(env)
-									vcs = vcscl(slottedcpv, bash, opts, settings)
+									vcs = vcscl(slottedcpv, bash, opts)
 									env.close()
 
 									uri = str(vcs)

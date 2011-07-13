@@ -46,13 +46,12 @@ class BaseVCSSupport(object):
 		""" A list of CPVs which use this particular repository. """
 		return self._cpv
 
-	def __init__(self, cpv, bash, opts, settings):
+	def __init__(self, cpv, bash, opts):
 		""" Initialize the VCS class for package `cpv', storing it as
 			self.cpv. Call `bash' BashParser instance to get the values
 			for environment variables (self.reqenv + self.optenv).
 
-			`opts' should point to an ConfigValues instance, while
-			`settings' to the portage settings instance.
+			`opts' should point to an ConfigValues instance.
 			
 			When subclassing, the __init__() function is a good place
 			to perform misc checks, like checking whether the package
@@ -70,7 +69,6 @@ class BaseVCSSupport(object):
 		self._cpv = [cpv]
 		self.env = bash(self.reqenv + self.optenv)
 		self._opts = opts
-		self._settings = settings
 		self._running = False
 
 		missingvars = [v for v in self.reqenv if self.env[v] == '']
