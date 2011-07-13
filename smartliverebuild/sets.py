@@ -73,4 +73,4 @@ class SmartLiveRebuildSet(PackageSet):
 		c.parse_configfiles()
 		c.apply_dict(options)
 
-		return cls(c.get_options, pm)
+		return cls(c.get_options(), pm)
