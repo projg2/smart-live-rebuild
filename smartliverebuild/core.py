@@ -151,6 +151,8 @@ user account, please pass the --unprivileged-user option.
 						except NonLiveEbuild as e:
 							out.err('%s: %s' % (cpv, e))
 						except Exception as e:
+							if opts.debug:
+								raise
 							out.err('Error enumerating %s: [%s] %s' % (cpv, e.__class__.__name__, e))
 							erraneous.append(cpv)
 				finally:

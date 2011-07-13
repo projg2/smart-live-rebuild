@@ -25,7 +25,7 @@ class Config(ConfigParser):
 			'allow_downgrade': 'same-pv',
 			'color': 'True',
 			'config_file': '/etc/portage/smart-live-rebuild.conf',
-			'diffstat': 'False',
+			'debug': 'False',
 			'erraneous_merge': 'True',
 			'filter_packages': '',
 			'jobs': '1',
