@@ -17,7 +17,6 @@ conf_getvcs = VCSLoader()
 class Config(ConfigParser):
 	def __init__(self, pm_conf):
 		self._real_defaults = {
-			'allow_downgrade': 'same-pv',
 			'color': 'True',
 			'config_file': '/etc/portage/smart-live-rebuild.conf',
 			'debug': 'False',
@@ -100,12 +99,6 @@ class Config(ConfigParser):
 				except ValueError:
 					out.err('Incorrect int value: %s=%s' % (k, v))
 					val[k] = int(self._real_defaults[k])
-			elif k == 'allow_downgrade':
-				if v not in ('always', 'same-pv', 'never'):
-					out.err('Incorrect value: %s=%s' % (k, v))
-					val[k] = self._real_defaults[k]
-				else:
-					val[k] = v
 			elif k == 'filter_packages': # list
 				if v != '':
 					val[k] = v.split(',')

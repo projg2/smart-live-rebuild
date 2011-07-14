@@ -197,12 +197,7 @@ user account, please pass the --unprivileged-user option.
 			splitcpv[0] = '-'.join(pkgsplit(splitcpv[0])[0:n])
 			return ':'.join(splitcpv)
 
-		if opts.allow_downgrade == 'always':
-			packages = [mypkgcut(x, 1) for x in packages]
-		else:
-			if opts.allow_downgrade == 'same-pv':
-				packages = [mypkgcut(x, 2) for x in packages]
-			packages = ['>=%s' % x for x in packages]
+		packages = [mypkgcut(x, 1) for x in packages]
 
 		# Check portdb for matches. Drop unmatched packages.
 		for p in list(packages):

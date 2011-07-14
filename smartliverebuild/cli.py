@@ -13,11 +13,6 @@ from smartliverebuild.config import Config, conf_getvcs
 from smartliverebuild.core import SmartLiveRebuild, SLRFailure
 from smartliverebuild.output import out
 
-def check_downgrade(opt, optstr, val):
-	if val not in ('always', 'same-pv', 'never'):
-		raise OptionValueError("option %s: incorrect value %s." % (optstr, val))
-	return val
-
 def check_vcslist(opt, optstr, val):
 	val = val.split(',')
 	for vcs in val:
@@ -30,9 +25,8 @@ def check_cslist(opt, optstr, val):
 	return val
 
 class SLROption(Option):
-	TYPES = Option.TYPES + ('downgrade', 'vcslist', 'cslist')
+	TYPES = Option.TYPES + ('vcslist', 'cslist')
 	TYPE_CHECKER = copy(Option.TYPE_CHECKER)
-	TYPE_CHECKER['downgrade'] = check_downgrade
 	TYPE_CHECKER['vcslist'] = check_vcslist
 	TYPE_CHECKER['cslist'] = check_cslist
 
@@ -63,8 +57,6 @@ def parse_options(argv):
 		help='Disable colorful output.')
 	opt.add_option('-d', '--debug', action='store_true', dest='debug',
 		help='Enable debugging measures.')
-	opt.add_option('-D', '--allow-downgrade', action='store', type='downgrade', dest='allow_downgrade',
-		help="When to allow downgrading package (one of 'never', 'same-pv', 'always')")
 	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='erraneous_merge',
 		help='Disable emerging packages for which the update has failed.')
 	opt.add_option('-f', '--filter-packages', action='append', type='cslist', dest='filter_packages',
