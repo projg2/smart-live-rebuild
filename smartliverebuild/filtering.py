@@ -21,8 +21,6 @@
 
 import fnmatch, re
 
-from portage.versions import catsplit
-
 wildcard_re = re.compile(r'^(!)?(?:([A-Za-z0-9_?*\[\]][A-Za-z0-9+_.?*\[\]-]*)/)?([A-Za-z0-9_?*\[\]][A-Za-z0-9+_?*\[\]-]*)$')
 
 class PackageFilter(object):
@@ -32,13 +30,13 @@ class PackageFilter(object):
 	>>> pf = PackageFilter(['--pretend', '!*', 'app-foo/f*', 'smart-live-rebuild', '-avD'])
 	>>> [f for f in pf.nonmatched] # bang always matches
 	['--pretend', 'app-foo/f*', 'smart-live-rebuild', '-avD']
-	>>> pf('app-foo/foo-123')
+	>>> pf('app-foo/foo')
 	True
-	>>> pf('app-foo/bar-123')
+	>>> pf('app-foo/bar')
 	False
-	>>> pf('app-bar/foo-321')
+	>>> pf('app-bar/foo')
 	False
-	>>> pf('app-portage/smart-live-rebuild-9999')
+	>>> pf('app-portage/smart-live-rebuild')
 	True
 	>>> [f for f in pf.nonmatched]
 	['--pretend', '-avD']
@@ -57,11 +55,8 @@ class PackageFilter(object):
 
 			if not self.broken:
 				self.exclusive = bool(m.group(1))
-				if m.group(2):
-					self.category = makere(m.group(2))
-				else:
-					self.category = re.compile('.')
-				self.pn = makere(m.group(3))
+				self.regexp = re.compile(r'^%s$' % fnmatch.translate(
+					'%s/%s' % (m.group(2) or '*', m.group(3))))
 				# .matched is used only on inclusive args
 				self.matched = self.exclusive
 
@@ -72,8 +67,7 @@ class PackageFilter(object):
 			self.wildcard = wildcard
 
 		def __call__(self, cp):
-			cat, pkg = catsplit(cp)
-			m = bool(self.category.match(cat) and self.pn.match(pkg))
+			m = bool(self.regexp.match(cp))
 			self.matched |= m
 			return m ^ self.exclusive
 
