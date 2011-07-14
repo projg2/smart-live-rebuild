@@ -70,7 +70,6 @@ user account, please pass the --unprivileged-user option.
 			else:
 				out.s1('Updating the repositories using %s%d%s parallel jobs...' % (out.white, opts.jobs, out.s1reset))
 
-			it = iter(pm.installed)
 			processes = []
 
 			packages = []
@@ -100,11 +99,7 @@ user account, please pass the --unprivileged-user option.
 			getvcs = VCSLoader()
 
 			try:
-				while True:
-					try:
-						pkg = next(it)
-					except StopIteration:
-						break
+				for pkg in pm.installed:
 					if not filt(pkg.key):
 						continue
 
