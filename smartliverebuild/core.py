@@ -110,15 +110,11 @@ user account, please pass the --unprivileged-user option.
 
 					try:
 						inherits = pkg.metadata['INHERITED'].split()
-						slot = pkg.metadata['SLOT']
-						slottedcpv = pkg.id
-						if slot: # XXX: atom manip.
-							slottedcpv = slottedcpv.replace('::', ':%s::' % slot)
 
 						for vcs in inherits:
 							vcscl = getvcs(vcs, allowed, remote_only = opts.remote_only)
 							if vcscl is not None:
-								vcs = vcscl(slottedcpv, pkg.environ, opts)
+								vcs = vcscl(pkg.atom, pkg.environ, opts)
 
 								uri = str(vcs)
 								if uri not in rebuilds:
@@ -191,17 +187,11 @@ user account, please pass the --unprivileged-user option.
 			out.s2(' '.join(cmd))
 			subprocess.Popen(cmd, stdout=sys.stderr).wait()
 
-		def mypkgcut(slottedcpv, n):
-			""" Return n first components of split-joined slottedcpv. """
-			splitcpv = slottedcpv.split(':', 1)
-			splitcpv[0] = '-'.join(pkgsplit(splitcpv[0])[0:n])
-			return ':'.join(splitcpv)
-
-		packages = [mypkgcut(x, 1) for x in packages]
+		packages = [x.slotted for x in packages]
 
 		# Check portdb for matches. Drop unmatched packages.
 		for p in list(packages):
-			if pm.Atom(str(p)) not in pm.stack:
+			if p not in pm.stack:
 				out.err('No packages matching %s in portdb, skipping.' % p)
 				packages.remove(p)
 
@@ -213,4 +203,4 @@ user account, please pass the --unprivileged-user option.
 		if childpid: # make sure that we leave no orphans
 			os.kill(childpid, signal.SIGTERM)
 
-	return packages
+	return [str(x) for x in packages]
