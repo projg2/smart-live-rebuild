@@ -109,7 +109,7 @@ user account, please pass the --unprivileged-user option.
 						for vcs in inherits:
 							vcscl = getvcs(vcs, allowed, remote_only = opts.remote_only)
 							if vcscl is not None:
-								vcs = vcscl(pkg.atom.slotted, pkg.environ, opts)
+								vcs = vcscl(str(pkg.atom.slotted), pkg.environ, opts)
 
 								uri = str(vcs)
 								if uri not in rebuilds:
@@ -130,7 +130,7 @@ user account, please pass the --unprivileged-user option.
 						if opts.debug:
 							raise
 						out.err('Error enumerating %s: [%s] %s' % (pkg.id, e.__class__.__name__, e))
-						erraneous.append(pkg.id)
+						erraneous.append(str(pkg.atom.slotted))
 
 				while processes:
 					if loop_iter((opts.jobs == 1)):
@@ -139,12 +139,6 @@ user account, please pass the --unprivileged-user option.
 				out.err('Updates interrupted, proceeding with already updated repos.')
 				for vcs in processes:
 					del vcs
-
-			# Check portdb for matches. Drop unmatched packages.
-			for p in list(packages):
-				if p not in pm.stack:
-					out.err('No packages matching %s in portdb, skipping.' % p)
-					packages.remove(p)
 
 			if cliargs:
 				nm = set(filt.nonmatched)
@@ -175,6 +169,12 @@ user account, please pass the --unprivileged-user option.
 
 		if opts.erraneous_merge and len(erraneous) > 0:
 			packages.extend(erraneous)
+
+		# Check portdb for matches. Drop unmatched packages.
+		for p in list(packages):
+			if pm.Atom(p) not in pm.stack:
+				out.err('No packages matching %s in portdb, skipping.' % p)
+				packages.remove(p)
 
 		if opts.quickpkg and len(packages) >= 1:
 			out.s1('Calling quickpkg to create %s%d%s binary packages ...' % (out.white, len(packages), out.s1reset))
