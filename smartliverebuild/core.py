@@ -109,7 +109,7 @@ user account, please pass the --unprivileged-user option.
 						for vcs in inherits:
 							vcscl = getvcs(vcs, allowed, remote_only = opts.remote_only)
 							if vcscl is not None:
-								vcs = vcscl(pkg.atom, pkg.environ, opts)
+								vcs = vcscl(pkg.atom.slotted, pkg.environ, opts)
 
 								uri = str(vcs)
 								if uri not in rebuilds:
@@ -140,12 +140,19 @@ user account, please pass the --unprivileged-user option.
 				for vcs in processes:
 					del vcs
 
+			# Check portdb for matches. Drop unmatched packages.
+			for p in list(packages):
+				if p not in pm.stack:
+					out.err('No packages matching %s in portdb, skipping.' % p)
+					packages.remove(p)
+
 			if cliargs:
 				nm = set(filt.nonmatched)
 				for i, el in enumerate(cliargs):
 					if el not in nm:
 						del cliargs[i]
 
+			packages = [str(p) for p in packages]
 			if childpid == 0:
 				pdata = {'packages': packages, 'erraneous': erraneous}
 				pipe = os.fdopen(commpipe[1], 'wb')
@@ -182,14 +189,6 @@ user account, please pass the --unprivileged-user option.
 			out.s2(' '.join(cmd))
 			subprocess.Popen(cmd, stdout=sys.stderr).wait()
 
-		packages = [x.slotted for x in packages]
-
-		# Check portdb for matches. Drop unmatched packages.
-		for p in list(packages):
-			if p not in pm.stack:
-				out.err('No packages matching %s in portdb, skipping.' % p)
-				packages.remove(p)
-
 		if len(packages) < 1:
 			out.s1('No updates found')
 		else:
@@ -198,4 +197,4 @@ user account, please pass the --unprivileged-user option.
 		if childpid: # make sure that we leave no orphans
 			os.kill(childpid, signal.SIGTERM)
 
-	return [str(x) for x in packages]
+	return packages
