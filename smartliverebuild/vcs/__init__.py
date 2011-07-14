@@ -3,7 +3,8 @@
 # Released under the terms of the 2-clause BSD license.
 
 import locale, os, subprocess
-from abc import ABCMeta, abstractproperty
+from gentoopm.util import ABCObject
+from abc import abstractproperty
 
 from smartliverebuild.output import out
 
@@ -13,9 +14,8 @@ class NonLiveEbuild(Exception):
 		and will not cause rebuild of the package. """
 	pass
 
-class BaseVCSSupport(object):
+class BaseVCSSupport(ABCObject):
 	""" Common VCS support class details. """
-	__metaclass__ = ABCMeta
 	_running = False
 
 	@abstractproperty
