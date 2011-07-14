@@ -36,12 +36,20 @@ class SmartLiveRebuildSet(PackageSet):
 	_operations = ["merge"]
 	description = "Package set containing live packages awaiting update"
 
-	def __init__(self, opts, pm):
+	def __init__(self, opts):
 		self._options = opts
-		self._pm = pm
 		PackageSet.__init__(self)
 
 	def load(self):
+		# Clasically, apply twice. First time to get configfile path
+		# and profile; second time to override them.
+
+		pm = get_package_manager()
+		c = Config(pm.config)
+		c.apply_dict(self._options)
+		c.parse_configfiles()
+		c.apply_dict(self._options)
+
 		# We're caching the resulting package in an environment
 		# variable, using the pid as a safety measure to avoid random
 		# data catching. This allows us to avoid updating all
@@ -56,7 +64,7 @@ class SmartLiveRebuildSet(PackageSet):
 
 		try:
 			if packages is None:
-				packages = SmartLiveRebuild(self._options, self._pm)
+				packages = SmartLiveRebuild(c.get_options(), self._pm)
 		except SLRFailure:
 			pass
 		else:
@@ -65,12 +73,4 @@ class SmartLiveRebuildSet(PackageSet):
 
 	@classmethod
 	def singleBuilder(cls, options, settings, trees):
-		# Clasically, apply twice. First time to get configfile path
-		# and profile; second time to override them.
-		pm = get_package_manager()
-		c = Config(pm.config)
-		c.apply_dict(options)
-		c.parse_configfiles()
-		c.apply_dict(options)
-
-		return cls(c.get_options(), pm)
+		return cls(options)
