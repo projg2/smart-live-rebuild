@@ -64,7 +64,7 @@ class SmartLiveRebuildSet(PackageSet):
 
 		try:
 			if packages is None:
-				packages = SmartLiveRebuild(c.get_options(), self._pm)
+				packages = SmartLiveRebuild(c.get_options(), pm)
 		except SLRFailure:
 			pass
 		else:
