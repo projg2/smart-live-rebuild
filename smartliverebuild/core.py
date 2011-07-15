@@ -27,16 +27,13 @@ def SmartLiveRebuild(opts, pm, cliargs = None):
 
 	childpid = None
 	commpipe = None
-	userok = (os.geteuid() == 0)
+	superuser = (os.geteuid() == 0)
 	if opts.setuid:
 		pm_conf = pm.config
 		portage_uid = pm_conf.userpriv_uid
 		portage_gid = pm_conf.userpriv_gid
 		if portage_uid and portage_gid:
-			if not userok:
-				if os.getuid() == portage_uid:
-					userok = True
-			else:
+			if superuser:
 				out.s1('Forking to drop superuser privileges ...')
 				commpipe = os.pipe()
 				childpid = os.fork()
@@ -44,12 +41,12 @@ def SmartLiveRebuild(opts, pm, cliargs = None):
 			out.err("setuid requested but there's no 'portage' user in the system")
 			return 1
 
-	if not opts.unprivileged_user and not userok:
-		out.err('Either superuser or portage privileges are required!')
+	if not superuser and not opts.unprivileged_user:
+		out.err('Superuser privileges are required!')
 		out.out('''
-This tool requires either superuser or portage (if FEATURES=userpriv is set)
-privileges. If you would like to force running the update using your current
-user account, please pass the --unprivileged-user option.
+This tool requires superuser privileges. If you would like to force running
+the update using your current user account, please pass the --unprivileged-user
+option.
 ''')
 		raise SLRFailure('')
 

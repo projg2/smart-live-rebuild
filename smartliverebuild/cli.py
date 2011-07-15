@@ -127,15 +127,12 @@ def main(argv):
 		except Exception:
 			pass
 
-	if opts.setuid:
-		portage_uid = pm_conf.userpriv_uid
-		portage_gid = pm_conf.userpriv_gid
-		if portage_uid and portage_gid and os.geteuid() != 0 and os.getuid() == portage_uid:
-			if not opts.pretend:
-				out.s1('Running as the portage user, assuming --pretend.')
-				opts.pretend = True
-			if opts.quickpkg:
-				out.err("Running as the portage user, --quickpkg probably won't work")
+	if os.geteuid() != 0 and opts.unprivileged_user:
+		if not opts.pretend:
+			out.s1('Running as an unprivileged user, assuming --pretend.')
+			opts.pretend = True
+		if opts.quickpkg:
+			out.err("Running as an unprivileged user, --quickpkg probably won't work")
 
 	try:
 		packages = SmartLiveRebuild(opts, pm, cliargs = args)
