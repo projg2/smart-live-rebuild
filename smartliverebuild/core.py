@@ -96,10 +96,7 @@ option.
 			getvcs = VCSLoader()
 
 			try:
-				for pkg in pm.installed:
-					if not filt(pkg.key):
-						continue
-
+				for pkg in pm.installed.filter(filt):
 					try:
 						inherits = pkg.metadata['INHERITED'].split()
 

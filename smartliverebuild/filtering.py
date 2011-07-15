@@ -83,8 +83,9 @@ class PackageFilter(object):
 			self._pmatchers = ()
 		self._default_pass = True
 
-	def __call__(self, cp):
-		""" Execute filtering on CP. """
+	def __call__(self, pkg):
+		""" Execute filtering on a package. """
+		cp = pkg.key
 		r = self._default_pass
 		for m in self._pmatchers:
 			if m.broken:
