@@ -30,13 +30,14 @@ class PackageFilter(object):
 	>>> pf = PackageFilter(['--pretend', '!*', 'app-foo/f*', 'smart-live-rebuild', '-avD'])
 	>>> [f for f in pf.nonmatched] # bang always matches
 	['--pretend', 'app-foo/f*', 'smart-live-rebuild', '-avD']
-	>>> pf('app-foo/foo')
+	>>> import gentoopm; pm = gentoopm.get_package_manager()
+	>>> pf(pm.Atom('app-foo/foo'))
 	True
-	>>> pf('app-foo/bar')
+	>>> pf(pm.Atom('app-foo/bar'))
 	False
-	>>> pf('app-bar/foo')
+	>>> pf(pm.Atom('app-bar/foo'))
 	False
-	>>> pf('app-portage/smart-live-rebuild')
+	>>> pf(pm.Atom('app-portage/smart-live-rebuild'))
 	True
 	>>> [f for f in pf.nonmatched]
 	['--pretend', '-avD']
