@@ -52,7 +52,7 @@ class BaseVCSSupport(ABCObject):
 			self.cpv. Get envvars from `environ' (self.reqenv + self.optenv).
 
 			`opts' should point to an ConfigValues instance.
-			
+
 			When subclassing, the __init__() function is a good place
 			to perform misc checks, like checking whether the package
 			is actually a live ebuild and thus not tied to a specific
@@ -67,10 +67,11 @@ class BaseVCSSupport(ABCObject):
 		"""
 
 		self._cpv = [cpv]
-		self.env = environ.copy(*(self.reqenv + self.optenv))
 		self._opts = opts
+		self.env = dict([(k, str(v)) for k, v
+			in environ.copy(*(self.reqenv + self.optenv)).items()])
 
-		missingvars = [v for v in self.reqenv if self.env[v] == '']
+		missingvars = [v for v in self.reqenv if not self.env[v]]
 		if len(missingvars) > 0:
 			raise KeyError('Environment does not declare: %s' % missingvars)
 
