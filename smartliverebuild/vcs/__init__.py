@@ -68,8 +68,7 @@ class BaseVCSSupport(ABCObject):
 
 		self._cpv = [cpv]
 		self._opts = opts
-		self.env = dict([(k, str(v)) for k, v
-			in environ.copy(*(self.reqenv + self.optenv)).items()])
+		self.env = environ.copy(*(self.reqenv + self.optenv))
 
 		missingvars = [v for v in self.reqenv if not self.env[v]]
 		if len(missingvars) > 0:

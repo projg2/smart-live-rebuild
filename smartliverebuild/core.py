@@ -99,7 +99,7 @@ option.
 				for pkg in pm.installed.filter(filt):
 					try:
 						for vcs in pkg.inherits:
-							vcscl = getvcs(str(vcs), allowed, remote_only = opts.remote_only)
+							vcscl = getvcs(vcs, allowed, remote_only = opts.remote_only)
 							if vcscl is not None:
 								vcs = vcscl(str(pkg.atom.slotted), pkg.environ, opts)
 
@@ -138,7 +138,6 @@ option.
 					if el not in nm:
 						del cliargs[i]
 
-			packages = [str(p) for p in packages]
 			if childpid == 0:
 				pdata = {'packages': packages, 'erraneous': erraneous}
 				pipe = os.fdopen(commpipe[1], 'wb')
