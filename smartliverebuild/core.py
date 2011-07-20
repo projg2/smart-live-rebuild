@@ -98,10 +98,8 @@ option.
 			try:
 				for pkg in pm.installed.filter(filt):
 					try:
-						inherits = pkg.metadata['INHERITED'].split()
-
-						for vcs in inherits:
-							vcscl = getvcs(vcs, allowed, remote_only = opts.remote_only)
+						for vcs in pkg.inherits:
+							vcscl = getvcs(str(vcs), allowed, remote_only = opts.remote_only)
 							if vcscl is not None:
 								vcs = vcscl(str(pkg.atom.slotted), pkg.environ, opts)
 
