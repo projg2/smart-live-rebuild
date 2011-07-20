@@ -2,13 +2,8 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
-import bz2, os, os.path, pickle, signal, subprocess, sys, time
+import os, os.path, pickle, signal, subprocess, sys, time
 
-from portage import create_trees
-from portage.data import portage_uid, portage_gid
-from portage.versions import pkgsplit
-
-from smartliverebuild.bashparse import BashParser
 from smartliverebuild.filtering import PackageFilter
 from smartliverebuild.output import out
 from smartliverebuild.vcs import NonLiveEbuild
