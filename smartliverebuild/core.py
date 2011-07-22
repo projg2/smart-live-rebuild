@@ -171,7 +171,7 @@ option.
 			else:
 				cmd = ['quickpkg']
 			cmd.append('--include-config=y')
-			cmd.extend(['=%s' % x for x in packages])
+			cmd.extend(packages)
 			out.s2(' '.join(cmd))
 			subprocess.Popen(cmd, stdout=sys.stderr).wait()
 
