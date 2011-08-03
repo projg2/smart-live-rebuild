@@ -96,7 +96,7 @@ option.
 						for vcs in pkg.inherits:
 							vcscl = getvcs(vcs, allowed, remote_only = opts.remote_only)
 							if vcscl is not None:
-								vcs = vcscl(str(pkg.atom.slotted), pkg.environ, opts)
+								vcs = vcscl(str(pkg.slotted_atom), pkg.environ, opts)
 
 								uri = str(vcs)
 								if uri not in rebuilds:
@@ -117,7 +117,7 @@ option.
 						if opts.debug:
 							raise
 						out.err('Error enumerating %s: [%s] %s' % (pkg.id, e.__class__.__name__, e))
-						erraneous.append(str(pkg.atom.slotted))
+						erraneous.append(str(pkg.slotted_atom))
 
 				while processes:
 					if loop_iter((opts.jobs == 1)):
