@@ -2,7 +2,7 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
-from smartliverebuild.vcs import RemoteVCSSupport, NonLiveEbuild
+from . import RemoteVCSSupport, NonLiveEbuild
 
 class BzrSupport(RemoteVCSSupport):
 	reqenv = ['EBZR_REPO_URI', 'EBZR_REVNO', 'EBZR_REVNO_CMD']

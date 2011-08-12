@@ -2,7 +2,7 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
-from smartliverebuild.vcs import RemoteVCSSupport
+from .vcs import RemoteVCSSupport
 
 class VCSLoader(object):
 	vcs_cache = {}
@@ -11,9 +11,9 @@ class VCSLoader(object):
 		if eclassname not in self.vcs_cache:
 			self.vcs_cache[eclassname] = None
 			if not allowed or eclassname in allowed:
-				modname = 'smartliverebuild.vcs.%s' % eclassname.replace('-', '_')
+				modname = 'vcs.%s' % eclassname.replace('-', '_')
 				try:
-					mod = __import__(modname, {}, {}, ['.'], 0)
+					mod = __import__(modname, fromlist=['.'], globals=globals(), level=1)
 				except ImportError:
 					pass
 				else:

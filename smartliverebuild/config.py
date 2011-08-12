@@ -9,8 +9,8 @@ try:
 except ImportError: # py2
 	from ConfigParser import ConfigParser, NoOptionError
 
-from smartliverebuild.output import out
-from smartliverebuild.vcsload import VCSLoader
+from .output import out
+from .vcsload import VCSLoader
 
 conf_getvcs = VCSLoader()
 

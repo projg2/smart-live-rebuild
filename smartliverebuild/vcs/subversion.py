@@ -4,7 +4,7 @@
 
 import re
 
-from smartliverebuild.vcs import RemoteVCSSupport, NonLiveEbuild
+from . import RemoteVCSSupport, NonLiveEbuild
 
 class SubversionSupport(RemoteVCSSupport):
 	reqenv = ['ESVN_REPO_URI', 'ESVN_STORE_DIR', 'ESVN_WC_REVISION']

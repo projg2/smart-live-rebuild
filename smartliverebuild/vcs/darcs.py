@@ -4,7 +4,7 @@
 
 import re
 
-from smartliverebuild.vcs import CheckoutVCSSupport
+from . import CheckoutVCSSupport
 
 class DarcsSupport(CheckoutVCSSupport):
 	reqenv = ['EDARCS_REPOSITORY', 'EDARCS_GET_CMD', 'EDARCS_UPDATE_CMD',

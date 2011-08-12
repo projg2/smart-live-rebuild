@@ -2,7 +2,7 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
-from smartliverebuild.vcs import RemoteVCSSupport
+from . import RemoteVCSSupport
 
 class MercurialSupport(RemoteVCSSupport):
 	reqenv = ['EHG_REPO_URI', 'EHG_REVISION', 'HG_REV_ID']

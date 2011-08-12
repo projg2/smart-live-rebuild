@@ -2,7 +2,7 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
-from smartliverebuild.vcs.git_2 import Git2Support
+from .git_2 import Git2Support
 
 class GitSupport(Git2Support):
 	def __init__(self, *args, **kwargs):

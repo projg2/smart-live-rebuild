@@ -4,7 +4,7 @@
 
 import hashlib, locale, tempfile
 
-from smartliverebuild.vcs import CheckoutVCSSupport
+from . import CheckoutVCSSupport
 
 class CVSSupport(CheckoutVCSSupport):
 	reqenv = ['ECVS_AUTH', 'ECVS_CVS_COMMAND', 'ECVS_MODULE', 'ECVS_SERVER', 'ECVS_TOP_DIR', 'ECVS_USER']

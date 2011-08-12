@@ -4,10 +4,10 @@
 
 import os, os.path, pickle, signal, subprocess, sys, time
 
-from smartliverebuild.filtering import PackageFilter
-from smartliverebuild.output import out
-from smartliverebuild.vcs import NonLiveEbuild
-from smartliverebuild.vcsload import VCSLoader
+from .filtering import PackageFilter
+from .output import out
+from .vcs import NonLiveEbuild
+from .vcsload import VCSLoader
 
 class SLRFailure(Exception):
 	pass

@@ -6,7 +6,7 @@ import locale, os, subprocess
 from gentoopm.util import ABCObject
 from abc import abstractproperty
 
-from smartliverebuild.output import out
+from ..output import out
 
 class NonLiveEbuild(Exception):
 	""" A simple exception to be raised whenever the package is tied to

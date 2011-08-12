@@ -8,10 +8,10 @@ from optparse import OptionParser, Option, OptionValueError
 
 from gentoopm import get_package_manager
 
-from smartliverebuild import PV
-from smartliverebuild.config import Config, conf_getvcs
-from smartliverebuild.core import SmartLiveRebuild, SLRFailure
-from smartliverebuild.output import out
+from . import PV
+from .config import Config, conf_getvcs
+from .core import SmartLiveRebuild, SLRFailure
+from .output import out
 
 def check_vcslist(opt, optstr, val):
 	val = val.split(',')
