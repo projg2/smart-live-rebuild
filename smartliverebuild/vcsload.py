@@ -7,7 +7,10 @@ from .vcs import RemoteVCSSupport
 class VCSLoader(object):
 	vcs_cache = {}
 
-	def __call__(self, eclassname, allowed = [], remote_only = False):
+	def __init__(self, remote_only = False):
+		self._remote_only = remote_only
+
+	def __call__(self, eclassname, allowed = []):
 		if eclassname not in self.vcs_cache:
 			self.vcs_cache[eclassname] = None
 			if not allowed or eclassname in allowed:
@@ -21,7 +24,7 @@ class VCSLoader(object):
 						if k.endswith('Support') and \
 								k[:-7].lower() == eclassname.replace('-', ''):
 							vcscl = getattr(mod, k)
-							if remote_only and not issubclass(vcscl, RemoteVCSSupport):
+							if self._remote_only and not issubclass(vcscl, RemoteVCSSupport):
 								break
 							self.vcs_cache[eclassname] = vcscl
 							break

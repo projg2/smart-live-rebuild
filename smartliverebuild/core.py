@@ -88,13 +88,13 @@ option.
 
 			filters = (opts.filter_packages or []) + (cliargs or [])
 			filt = PackageFilter(filters)
-			getvcs = VCSLoader()
+			getvcs = VCSLoader(remote_only = opts.remote_only)
 
 			try:
 				for pkg in pm.installed.filter(filt):
 					try:
 						for vcs in pkg.inherits:
-							vcscl = getvcs(vcs, allowed, remote_only = opts.remote_only)
+							vcscl = getvcs(vcs, allowed)
 							if vcscl is not None:
 								vcs = vcscl(str(pkg.slotted_atom), pkg.environ, opts)
 
