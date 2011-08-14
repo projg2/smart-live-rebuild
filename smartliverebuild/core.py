@@ -112,11 +112,11 @@ option.
 					except KeyboardInterrupt:
 						raise
 					except NonLiveEbuild as e:
-						out.err('%s: %s' % (pkg.id, e))
+						out.err('%s: %s' % (pkg, e))
 					except Exception as e:
 						if opts.debug:
 							raise
-						out.err('Error enumerating %s: [%s] %s' % (pkg.id, e.__class__.__name__, e))
+						out.err('Error enumerating %s: [%s] %s' % (pkg, e.__class__.__name__, e))
 						erraneous.append(str(pkg.slotted_atom))
 
 				while processes:
