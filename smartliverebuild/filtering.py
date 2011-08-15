@@ -86,7 +86,7 @@ class PackageFilter(object):
 
 	def __call__(self, pkg):
 		""" Execute filtering on a package. """
-		cp = str(pkg.key)
+		cp = pkg.key
 		r = self._default_pass
 		for m in self._pmatchers:
 			if m.broken:
