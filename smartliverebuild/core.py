@@ -66,7 +66,6 @@ option.
 
 			packages = []
 			erraneous = []
-			rebuilds = {}
 
 			def loop_iter(blocking = False):
 				needsleep = True
@@ -97,18 +96,8 @@ option.
 							vcscl = getvcs(vcs, allowed)
 							if vcscl is not None:
 								vcs = vcscl(str(pkg.slotted_atom), pkg.environ, opts)
-
-								uri = str(vcs)
-								if uri not in rebuilds:
-									rebuilds[uri] = vcs
-									processes.append(vcs)
-									loop_iter()
-								elif rebuilds[uri] in processes:
-									rebuilds[uri] += vcs
-								elif rebuilds[uri].cpv[0] in packages:
-									packages.extend(vcs.cpv)
-								elif rebuilds[uri].cpv[0] in erraneous:
-									erraneous.extend(vcs.cpv)
+								processes.append(vcs)
+								loop_iter()
 					except KeyboardInterrupt:
 						raise
 					except NonLiveEbuild as e:
