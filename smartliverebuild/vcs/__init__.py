@@ -133,8 +133,6 @@ class BaseVCSSupport(ABCObject):
 			This function returns the spawned Popen() instance.
 		"""
 
-		self.oldrev = self.savedrev
-
 		cmd = self.updatecmd
 		if self._opts.jobs > 1:
 			out.s2(str(self))
@@ -186,11 +184,12 @@ class BaseVCSSupport(ABCObject):
 		if self._opts.jobs > 1:
 			out.s2('[%s] %s' % (self.cpv, str(self)))
 
-		if self.revcmp(self.oldrev, newrev):
-			out.s3('at rev %s%s%s (no changes)' % (out.green, self.oldrev, out.reset))
+		oldrev = self.savedrev
+		if self.revcmp(oldrev, newrev):
+			out.s3('at rev %s%s%s (no changes)' % (out.green, oldrev, out.reset))
 			return False
 		else:
-			out.s3('update from %s%s%s to %s%s%s' % (out.green, self.oldrev, out.reset, out.lime, newrev, out.reset))
+			out.s3('update from %s%s%s to %s%s%s' % (out.green, oldrev, out.reset, out.lime, newrev, out.reset))
 			return True
 
 	def __del__(self):
