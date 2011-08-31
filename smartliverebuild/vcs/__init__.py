@@ -175,20 +175,23 @@ class BaseVCSSupport(ABCObject):
 
 		if ret == 0:
 			newrev = self.parseoutput(sod.decode('ASCII') if sod else '')
-
 			if newrev is None:
 				raise Exception('update command failed to return a rev')
-			if self._opts.jobs > 1:
-				out.s2('[%s] %s' % (self.cpv, str(self)))
 
-			if self.revcmp(self.oldrev, newrev):
-				out.s3('at rev %s%s%s (no changes)' % (out.green, self.oldrev, out.reset))
-				return False
-			else:
-				out.s3('update from %s%s%s to %s%s%s' % (out.green, self.oldrev, out.reset, out.lime, newrev, out.reset))
-				return True
+			return self._finishupdate(newrev)
 		else:
 			raise Exception('update command returned non-zero result')
+
+	def _finishupdate(self, newrev):
+		if self._opts.jobs > 1:
+			out.s2('[%s] %s' % (self.cpv, str(self)))
+
+		if self.revcmp(self.oldrev, newrev):
+			out.s3('at rev %s%s%s (no changes)' % (out.green, self.oldrev, out.reset))
+			return False
+		else:
+			out.s3('update from %s%s%s to %s%s%s' % (out.green, self.oldrev, out.reset, out.lime, newrev, out.reset))
+			return True
 
 	def __del__(self):
 		""" Terminate the running update subprocess if appropriate. """
