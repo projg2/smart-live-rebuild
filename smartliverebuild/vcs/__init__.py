@@ -136,7 +136,10 @@ class BaseVCSSupport(ABCObject):
 		self.oldrev = self.savedrev
 
 		cmd = self.updatecmd
-		out.s2(str(self))
+		if self._opts.jobs > 1:
+			out.s2(str(self))
+		else:
+			out.s2('[%s] %s' % (self.cpv, str(self)))
 		out.s3(cmd)
 
 		popenargs['env'] = self.callenv
@@ -176,7 +179,7 @@ class BaseVCSSupport(ABCObject):
 			if newrev is None:
 				raise Exception('update command failed to return a rev')
 			if self._opts.jobs > 1:
-				out.s2(str(self))
+				out.s2('[%s] %s' % (self.cpv, str(self)))
 
 			if self.revcmp(self.oldrev, newrev):
 				out.s3('at rev %s%s%s (no changes)' % (out.green, self.oldrev, out.reset))
