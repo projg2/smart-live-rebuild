@@ -66,6 +66,7 @@ option.
 
 			packages = []
 			erraneous = []
+			cache = {}
 
 			def loop_iter(blocking = False):
 				needsleep = True
@@ -85,12 +86,12 @@ option.
 						out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
 						erraneous.append(vcs.cpv)
 						del processes[i]
+						cache[str(vcs)] = e
 				return needsleep
 
 			filters = (opts.filter_packages or []) + (cliargs or [])
 			filt = PackageFilter(filters)
 			getvcs = VCSLoader(remote_only = opts.remote_only)
-			cache = {}
 
 			try:
 				for pkg in pm.installed.filter(filt):

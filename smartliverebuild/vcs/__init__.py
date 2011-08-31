@@ -133,6 +133,8 @@ class BaseVCSSupport(ABCObject):
 				if blocking:
 					return self._endupdate(True)
 				return None
+			elif isinstance(rev, Exception):
+				raise rev
 			else:
 				return self._finishupdate(rev)
 		else:
