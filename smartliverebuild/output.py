@@ -19,6 +19,9 @@ class SLROutput(object):
 	s3reset = cyan
 	errreset = yellow
 
+	def __init__(self):
+		self._cur_header = None
+
 	def monochromize(self):
 		for k in dir(self):
 			if not k.startswith('_'):
@@ -28,13 +31,21 @@ class SLROutput(object):
 
 	def s1(self, msg):
 		self.out('%s*** %s%s\n' % (self.s1reset, msg, self.reset))
+		self._cur_header = None
 	def s2(self, msg):
 		self.out('%s->%s  %s\n' % (self.s2reset, self.reset, msg))
 	def s3(self, msg):
 		self.out('%s-->%s %s\n' % (self.s3reset, self.reset, msg))
 
+	def pkgs(self, header, msg):
+		if self._cur_header != header:
+			self.s2(header)
+			self._cur_header = header
+		self.s3(msg)
+
 	def err(self, msg):
 		self.out('%s!!!%s %s%s%s\n' % (self.red, self.reset, self.errreset, msg, self.reset))
+		self._cur_header = None
 
 	def out(self, msg):
 		sys.stderr.write(msg)

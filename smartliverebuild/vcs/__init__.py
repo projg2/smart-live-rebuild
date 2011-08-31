@@ -75,6 +75,18 @@ class BaseVCSSupport(ABCObject):
 		if len(missingvars) > 0:
 			raise KeyError('Environment does not declare: %s' % missingvars)
 
+		class LazyHeader(object):
+			def __init__(self, vcs):
+				self._s = None
+				self._vcs = vcs
+
+			def __str__(self):
+				if self._s is None:
+					self._s = '[%s] %s' % (self._vcs.cpv, str(self._vcs))
+				return self._s
+
+		self._header = LazyHeader(self)
+
 	@abstractmethod
 	def __str__(self):
 		pass
@@ -145,10 +157,9 @@ class BaseVCSSupport(ABCObject):
 
 		cmd = self.updatecmd
 		if self._opts.jobs > 1:
-			out.s2(str(self))
+			out.pkgs(str(self), cmd)
 		else:
-			out.s2('[%s] %s' % (self.cpv, str(self)))
-		out.s3(cmd)
+			out.pkgs(self._header, cmd)
 
 		popenargs['env'] = self.callenv
 		popenargs['shell'] = True
@@ -193,15 +204,14 @@ class BaseVCSSupport(ABCObject):
 			raise Exception('update command returned non-zero result')
 
 	def _finishupdate(self, newrev):
-		if self._opts.jobs > 1:
-			out.s2('[%s] %s' % (self.cpv, str(self)))
-
 		oldrev = self.savedrev
 		if self.revcmp(oldrev, newrev):
-			out.s3('at rev %s%s%s (no changes)' % (out.green, oldrev, out.reset))
+			out.pkgs(self._header, 'at rev %s%s%s (no changes)' % \
+					(out.green, oldrev, out.reset))
 			return False
 		else:
-			out.s3('update from %s%s%s to %s%s%s' % (out.green, oldrev, out.reset, out.lime, newrev, out.reset))
+			out.pkgs(self._header, 'update from %s%s%s to %s%s%s' % \
+					(out.green, oldrev, out.reset, out.lime, newrev, out.reset))
 			return True
 
 	def __del__(self):
