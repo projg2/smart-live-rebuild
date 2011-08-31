@@ -4,7 +4,7 @@
 
 import sys
 
-class out:
+class SLROutput(object):
 	red = '\033[1;31m'
 	green = '\033[32m'
 	lime = '\033[1;32m'
@@ -19,7 +19,6 @@ class out:
 	s3reset = cyan
 	errreset = yellow
 
-	@classmethod
 	def monochromize(self):
 		for k in dir(self):
 			if not k.startswith('_'):
@@ -27,22 +26,17 @@ class out:
 				if isinstance(v, str) and v.startswith('\033'):
 					setattr(self, k, '')
 
-	@classmethod
 	def s1(self, msg):
 		self.out('%s*** %s%s\n' % (self.s1reset, msg, self.reset))
-	@classmethod
 	def s2(self, msg):
 		self.out('%s->%s  %s\n' % (self.s2reset, self.reset, msg))
-	@classmethod
 	def s3(self, msg):
 		self.out('%s-->%s %s\n' % (self.s3reset, self.reset, msg))
 
-	@classmethod
 	def err(self, msg):
 		self.out('%s!!!%s %s%s%s\n' % (self.red, self.reset, self.errreset, msg, self.reset))
 
-	@staticmethod
-	def out(msg):
+	def out(self, msg):
 		sys.stderr.write(msg)
 
-
+out = SLROutput()
