@@ -80,6 +80,8 @@ option.
 					except KeyboardInterrupt:
 						raise
 					except Exception as e:
+						if opts.debug:
+							raise
 						out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
 						erraneous.append(vcs.cpv)
 						del processes[i]
