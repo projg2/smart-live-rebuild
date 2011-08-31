@@ -95,7 +95,9 @@ option.
 						for vcs in pkg.inherits:
 							vcscl = getvcs(vcs, allowed)
 							if vcscl is not None:
-								vcs = vcscl(str(pkg.slotted_atom), pkg.environ, opts)
+								vcs = vcscl(str(pkg.slotted_atom),
+										environ = pkg.environ,
+										opts = opts)
 								processes.append(vcs)
 								loop_iter()
 					except KeyboardInterrupt:
