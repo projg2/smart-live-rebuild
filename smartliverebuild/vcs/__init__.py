@@ -4,7 +4,7 @@
 
 import locale, os, subprocess
 from gentoopm.util import ABCObject
-from abc import abstractproperty
+from abc import abstractmethod, abstractproperty
 
 from ..output import out
 
@@ -74,11 +74,9 @@ class BaseVCSSupport(ABCObject):
 		if len(missingvars) > 0:
 			raise KeyError('Environment does not declare: %s' % missingvars)
 
+	@abstractmethod
 	def __str__(self):
-		""" Return the string used to identify the update process within
-			the program output.
-		"""
-		return self.cpv
+		pass
 
 	@abstractproperty
 	def updatecmd(self):
