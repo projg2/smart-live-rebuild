@@ -135,6 +135,9 @@ class BaseVCSSupport(ABCObject):
 				return None
 			elif isinstance(rev, Exception):
 				raise rev
+			elif isinstance(rev, BaseVCSSupport):
+				# wait for it to complete, and cache its result
+				return None
 			else:
 				return self._finishupdate(rev)
 		else:
@@ -152,6 +155,9 @@ class BaseVCSSupport(ABCObject):
 
 			This function returns the spawned Popen() instance.
 		"""
+
+		if self._cache is not None:
+			self._cache[str(self)] = self
 
 		cmd = self.updatecmd
 		if self._opts.jobs > 1:
