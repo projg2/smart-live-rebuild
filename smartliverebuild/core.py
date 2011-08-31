@@ -75,13 +75,13 @@ option.
 						if ret is not None:
 							needsleep = False
 							if ret:
-								packages.extend(vcs.cpv)
+								packages.append(vcs.cpv)
 							del processes[i]
 					except KeyboardInterrupt:
 						raise
 					except Exception as e:
 						out.err('Error updating %s: [%s] %s' % (vcs.cpv, e.__class__.__name__, e))
-						erraneous.extend(vcs.cpv)
+						erraneous.append(vcs.cpv)
 						del processes[i]
 				return needsleep
 

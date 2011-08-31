@@ -44,7 +44,7 @@ class BaseVCSSupport(ABCObject):
 
 	@property
 	def cpv(self):
-		""" A list of CPVs which use this particular repository. """
+		""" A package ID for update requestor. """
 		return self._cpv
 
 	def __init__(self, cpv, environ, opts):
@@ -66,7 +66,7 @@ class BaseVCSSupport(ABCObject):
 					raise NonLiveEbuild('SOME_REVISION specifies revision, package is not really a live one')
 		"""
 
-		self._cpv = [cpv]
+		self._cpv = cpv
 		self._opts = opts
 		self.env = environ.copy(*(self.reqenv + self.optenv))
 
@@ -78,7 +78,7 @@ class BaseVCSSupport(ABCObject):
 		""" Return the string used to identify the update process within
 			the program output.
 		"""
-		return ', '.join(self.cpv)
+		return self.cpv
 
 	@abstractproperty
 	def updatecmd(self):
