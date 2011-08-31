@@ -125,20 +125,16 @@ class BaseVCSSupport(ABCObject):
 	def __call__(self, blocking = False):
 		""" Perform a single main loop iteration. """
 		if not self._running:
-			# try the cache
-			if self._cache is not None:
-				try:
-					rev = self._cache[str(self)]
-				except KeyError:
-					pass
-				else:
-					return self._finishupdate(rev)
+			rev = self._cache.get(str(self)) if self._cache is not None else None
 
-			self._startupdate()
-			self._running = True
-			if blocking:
-				return self._endupdate(True)
-			return None
+			if rev is None:
+				self._startupdate()
+				self._running = True
+				if blocking:
+					return self._endupdate(True)
+				return None
+			else:
+				return self._finishupdate(rev)
 		else:
 			return self._endupdate()
 
