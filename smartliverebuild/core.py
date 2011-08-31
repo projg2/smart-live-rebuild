@@ -90,6 +90,7 @@ option.
 			filters = (opts.filter_packages or []) + (cliargs or [])
 			filt = PackageFilter(filters)
 			getvcs = VCSLoader(remote_only = opts.remote_only)
+			cache = {}
 
 			try:
 				for pkg in pm.installed.filter(filt):
@@ -99,7 +100,8 @@ option.
 							if vcscl is not None:
 								vcs = vcscl(str(pkg.slotted_atom),
 										environ = pkg.environ,
-										opts = opts)
+										opts = opts,
+										cache = cache)
 								processes.append(vcs)
 								loop_iter()
 					except KeyboardInterrupt:

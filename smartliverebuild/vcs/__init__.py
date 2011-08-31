@@ -47,7 +47,7 @@ class BaseVCSSupport(ABCObject):
 		""" A package ID for update requestor. """
 		return self._cpv
 
-	def __init__(self, cpv, environ, opts):
+	def __init__(self, cpv, environ, opts, cache = None):
 		""" Initialize the VCS class for package `cpv', storing it as
 			self.cpv. Get envvars from `environ' (self.reqenv + self.optenv).
 
@@ -68,6 +68,7 @@ class BaseVCSSupport(ABCObject):
 
 		self._cpv = cpv
 		self._opts = opts
+		self._cache = cache
 		self.env = environ.copy(*(self.reqenv + self.optenv))
 
 		missingvars = [v for v in self.reqenv if not self.env[v]]
@@ -112,6 +113,15 @@ class BaseVCSSupport(ABCObject):
 	def __call__(self, blocking = False):
 		""" Perform a single main loop iteration. """
 		if not self._running:
+			# try the cache
+			if self._cache is not None:
+				try:
+					rev = self._cache[str(self)]
+				except KeyError:
+					pass
+				else:
+					return self._finishupdate(rev)
+
 			self._startupdate()
 			self._running = True
 			if blocking:
@@ -176,6 +186,8 @@ class BaseVCSSupport(ABCObject):
 			if newrev is None:
 				raise Exception('update command failed to return a rev')
 
+			if self._cache is not None:
+				self._cache[str(self)] = newrev
 			return self._finishupdate(newrev)
 		else:
 			raise Exception('update command returned non-zero result')
