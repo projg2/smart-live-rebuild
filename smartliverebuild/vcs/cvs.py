@@ -23,7 +23,8 @@ class CVSSupport(CheckoutVCSSupport):
 		return '%s/%s' % (self.env['ECVS_TOP_DIR'], self.env['ECVS_LOCALNAME'] or self.env['ECVS_MODULE'])
 
 	def __str__(self):
-		return '%s (%s)' % (self.env['ECVS_SERVER'], self.env['ECVS_MODULE'])
+		return '%s %s [%s]' % (self.env['ECVS_SERVER'], self.env['ECVS_MODULE'],
+				self.env['ECVS_BRANCH'])
 
 	@property
 	def savedrev(self):

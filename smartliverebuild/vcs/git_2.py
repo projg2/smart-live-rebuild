@@ -15,7 +15,7 @@ class Git2Support(RemoteVCSSupport):
 		self.repo_uris = self.env['EGIT_REPO_URI'].split()
 
 	def __str__(self):
-		return self.repo_uris[0]
+		return '%s [%s]' % (self.repo_uris[0], self.env['EGIT_BRANCH'])
 
 	def parseoutput(self, out):
 		return out.split()[0]
