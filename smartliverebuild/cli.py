@@ -75,6 +75,8 @@ def parse_options(argv):
 		help='Do not switch UID to portage when FEATURES=userpriv is set.')
 	opt.add_option('-t', '--type', action='append', type='vcslist', dest='type',
 		help='Limit rebuild to packages using specific VCS (eclass name). If used multiple times, all specified VCS-es will be used.')
+	opt.add_option('-T', '--timeout', type='int', dest='timeout',
+		help='Update timeout (0 to disable)')
 	opt.add_option('-U', '--unprivileged-user', action='store_true', dest='unprivileged_user',
 		help='Allow running as an unprivileged user.')
 

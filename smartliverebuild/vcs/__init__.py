@@ -191,6 +191,9 @@ class BaseVCSSupport(ABCObject):
 			# let's hope we don't get much output
 			ret = self.subprocess.poll()
 			if ret is None:
+				if self._opts.timeout \
+						and time.time() - self.starttime > float(self._opts.timeout):
+							raise Exception('timeout occured')
 				return None
 
 		(sod, sed) = self.subprocess.communicate()
