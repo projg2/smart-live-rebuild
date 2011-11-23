@@ -2,7 +2,7 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
-import locale, os, subprocess
+import locale, os, subprocess, time
 from gentoopm.util import ABCObject
 from abc import abstractmethod, abstractproperty
 
@@ -168,6 +168,7 @@ class BaseVCSSupport(ABCObject):
 		popenargs['env'] = self.callenv
 		popenargs['shell'] = True
 		self.subprocess = subprocess.Popen(cmd, **popenargs)
+		self.starttime = time.time()
 
 		return self.subprocess
 
