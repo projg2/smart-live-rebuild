@@ -56,7 +56,7 @@ def parse_options(argv):
 	opt.add_option('-C', '--no-color', action='store_false', dest='color',
 		help='Disable colorful output.')
 	opt.add_option('-d', '--debug', action='store_true', dest='debug',
-		help='Enable debugging measures.')
+		help='Die on first failure (useful to debug VCS errors, otherwise missed).')
 	opt.add_option('-E', '--no-erraneous-merge', action='store_false', dest='erraneous_merge',
 		help='Disable emerging packages for which the update has failed.')
 	opt.add_option('-f', '--filter-packages', action='append', type='cslist', dest='filter_packages',
