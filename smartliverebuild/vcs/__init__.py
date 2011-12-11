@@ -187,7 +187,7 @@ class BaseVCSSupport(ABCObject):
 			it returns False.
 		"""
 
-		if not blocking:
+		if not blocking or self._opts.timeout:
 			# let's hope we don't get much output
 			ret = self.subprocess.poll()
 			if ret is None:
