@@ -94,7 +94,7 @@ class Config(ConfigParser):
 				except ValueError:
 					out.err('Incorrect boolean value: %s=%s' % (k, v))
 					val[k] = (self._real_defaults[k] == 'True')
-			elif k == 'jobs': # int
+			elif self._real_defaults[k] in ('0', '1'): # int
 				try:
 					val[k] = int(v)
 				except ValueError:
