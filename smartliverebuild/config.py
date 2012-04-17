@@ -28,7 +28,7 @@ class Config(ConfigParser):
 			'quickpkg': 'False',
 			'remote_only': 'False',
 			'setuid': str(pm_conf.userpriv_enabled),
-			'timeout': 0,
+			'timeout': '0',
 			'type': '',
 			'unprivileged_user': 'False'
 		}
