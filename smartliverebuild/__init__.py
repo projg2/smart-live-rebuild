@@ -1,5 +1,5 @@
 #	vim:fileencoding=utf-8
-# (c) 2010 Michał Górny <mgorny@gentoo.org>
+# (c) 2010-2012 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
-PV = '1.2.1'
+PV = '1.2.2'
