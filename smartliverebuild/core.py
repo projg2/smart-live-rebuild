@@ -161,7 +161,7 @@ option.
 				out.err('No packages matching %s in portdb, skipping.' % p)
 				packages.remove(p)
 
-		if opts.quickpkg and len(packages) >= 1:
+		if not opts.pretend and opts.quickpkg and len(packages) >= 1:
 			out.s1('Calling quickpkg to create %s%d%s binary packages ...' % (out.white, len(packages), out.s1reset))
 
 			# backwards compat, nowadays quickpkg is in ${PATH}
