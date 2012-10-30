@@ -180,6 +180,9 @@ option.
 			out.result('Found %s%d%s packages to rebuild.' % (out.white, len(packages), out.s1reset))
 	finally:
 		if childpid: # make sure that we leave no orphans
-			os.kill(childpid, signal.SIGTERM)
+			try:
+				os.kill(childpid, signal.SIGTERM)
+			except OSError:
+				pass
 
 	return packages
