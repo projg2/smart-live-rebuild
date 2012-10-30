@@ -67,6 +67,8 @@ def parse_options(argv):
 		help='Only print a list of the packages which were updated; do not call emerge to rebuild them.')
 	opt.add_option('-P', '--profile', action='store', dest='profile',
 		help='Configuration profile (config file section) to use (default: smart-live-rebuild)')
+	opt.add_option('-q', '--quiet', action='store_true', dest='quiet',
+		help='Do not output progress messages, just errors.')
 	opt.add_option('-Q', '--quickpkg', action='store_true', dest='quickpkg',
 		help='Call quickpkg to create binary backups of packages which are going to be updated.')
 	opt.add_option('-r', '--remote-only', action='store_true', dest='remote_only',

@@ -15,6 +15,8 @@ class SLRFailure(Exception):
 def SmartLiveRebuild(opts, pm, cliargs = None):
 	if not opts.color:
 		out.monochromize()
+	if opts.quiet:
+		out.silence()
 
 	if opts.jobs <= 0:
 		out.err('The argument to --jobs option must be a positive integer.')

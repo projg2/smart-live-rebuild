@@ -29,6 +29,11 @@ class SLROutput(object):
 				if isinstance(v, str) and v.startswith('\033'):
 					setattr(self, k, '')
 
+	def silence(self):
+		self.s1 = lambda x: None
+		self.s2 = lambda x: None
+		self.s3 = lambda x: None
+
 	def s1(self, msg):
 		self.out('%s*** %s%s\n' % (self.s1reset, msg, self.reset))
 		self._cur_header = None

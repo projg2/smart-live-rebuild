@@ -26,6 +26,7 @@ class Config(ConfigParser):
 			'pretend': 'False',
 			'profile': 'smart-live-rebuild',
 			'quickpkg': 'False',
+			'quiet': 'False',
 			'remote_only': 'False',
 			'setuid': str(pm_conf.userpriv_enabled),
 			'timeout': '0',
