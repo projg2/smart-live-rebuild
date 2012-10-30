@@ -10,6 +10,7 @@ class SLROutput(object):
 	lime = '\033[1;32m'
 	brown = '\033[33m'
 	yellow = '\033[1;33m'
+	violet = '\033[35m'
 	cyan = '\033[36m'
 	turq = '\033[1;36m'
 	white = '\033[1;37m'

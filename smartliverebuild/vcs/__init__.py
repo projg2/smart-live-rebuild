@@ -161,9 +161,9 @@ class BaseVCSSupport(ABCObject):
 
 		cmd = self.updatecmd
 		if self._opts.jobs > 1:
-			out.pkgs(str(self), cmd)
+			out.pkgs(str(self), '%s%s%s' % (out.violet, cmd, out.reset))
 		else:
-			out.pkgs(self._header, cmd)
+			out.pkgs(self._header, '%s%s%s' % (out.violet, cmd, out.reset))
 
 		popenargs['env'] = self.callenv
 		popenargs['shell'] = True
