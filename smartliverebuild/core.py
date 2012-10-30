@@ -175,9 +175,9 @@ option.
 			subprocess.Popen(cmd, stdout=sys.stderr).wait()
 
 		if len(packages) < 1:
-			out.s1('No updates found')
+			out.result('No updates found')
 		else:
-			out.s1('Found %s%d%s packages to rebuild.' % (out.white, len(packages), out.s1reset))
+			out.result('Found %s%d%s packages to rebuild.' % (out.white, len(packages), out.s1reset))
 	finally:
 		if childpid: # make sure that we leave no orphans
 			os.kill(childpid, signal.SIGTERM)

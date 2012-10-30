@@ -36,6 +36,9 @@ class SLROutput(object):
 		self.s2 = lambda x: None
 		self.s3 = lambda x: None
 
+	def result(self, msg):
+		""" Basically a s1 which doesn't respect --quiet. """
+		self.out('%s*** %s%s\n' % (self.s1reset, msg, self.reset))
 	def s1(self, msg):
 		self.out('%s*** %s%s\n' % (self.s1reset, msg, self.reset))
 		self._cur_header = None
