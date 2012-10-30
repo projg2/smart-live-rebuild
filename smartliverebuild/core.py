@@ -110,7 +110,8 @@ option.
 					except KeyboardInterrupt:
 						raise
 					except NonLiveEbuild as e:
-						out.err('%s: %s' % (pkg, e))
+						out.s2('[%s]' % pkg.slotted_atom)
+						out.s3('%s%s%s' % (out.brown, e, out.reset))
 					except Exception as e:
 						if opts.debug:
 							raise
