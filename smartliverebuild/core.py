@@ -22,7 +22,6 @@ def SmartLiveRebuild(opts, pm, cliargs = None):
 		out.err('The argument to --jobs option must be a positive integer.')
 		raise SLRFailure('')
 
-	global childpid
 	childpid = None
 	commpipe = None
 	superuser = (os.geteuid() == 0)
@@ -32,10 +31,11 @@ def SmartLiveRebuild(opts, pm, cliargs = None):
 		portage_gid = pm_conf.userpriv_gid
 		if portage_uid and portage_gid:
 			if superuser:
+				global dead_children
+				dead_children = ()
 				def chld_handler(sig, frame):
-					global childpid
-					if os.wait()[0] == childpid:
-						childpid = None
+					global dead_children
+					dead_children += (os.wait()[0],)
 
 				out.s1('Forking to drop superuser privileges ...')
 				old_chld = signal.signal(signal.SIGCHLD, chld_handler)
@@ -190,6 +190,8 @@ option.
 			out.result('Found %s%d%s packages to rebuild.' % (out.white, len(packages), out.s1reset))
 	finally:
 		if childpid: # make sure that we leave no orphans
-			os.kill(childpid, signal.SIGTERM)
+			if childpid not in dead_children:
+				os.kill(childpid, signal.SIGTERM)
+			signal.signal(signal.SIGCHLD, old_chld)
 
 	return packages
