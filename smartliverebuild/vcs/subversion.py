@@ -10,8 +10,13 @@ class SubversionSupport(RemoteVCSSupport):
 	reqenv = ['ESVN_REPO_URI', 'ESVN_STORE_DIR', 'ESVN_WC_REVISION']
 	optenv = ['ESVN_REVISION']
 
-	callenv = {'LC_ALL': 'C'}
 	revre = re.compile('(?m)^Last Changed Rev: (\d+)$')
+
+	@property
+	def callenv(self):
+		env = RemoteVCSSupport.callenv.fget(self).copy()
+		env.update({'LC_ALL': 'C'})
+		return env
 
 	def __init__(self, *args, **kwargs):
 		RemoteVCSSupport.__init__(self, *args, **kwargs)

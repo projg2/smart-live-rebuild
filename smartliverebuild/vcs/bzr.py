@@ -8,7 +8,11 @@ class BzrSupport(RemoteVCSSupport):
 	reqenv = ['EBZR_REPO_URI', 'EBZR_REVNO', 'EBZR_REVNO_CMD']
 	optenv = ['EBZR_REVISION']
 
-	callenv = {'BZR_LOG': '/dev/null'}
+	@property
+	def callenv(self):
+		env = RemoteVCSSupport.callenv.fget(self).copy()
+		env.update({'BZR_LOG': '/dev/null'})
+		return env
 
 	def __init__(self, *args, **kwargs):
 		RemoteVCSSupport.__init__(self, *args, **kwargs)
