@@ -38,9 +38,21 @@ class BaseVCSSupport(ABCObject):
 	@property
 	def callenv(self):
 		""" A dict of environment keys to set up when executing update
-			command. By default, empty (meaning to wipe the env).
+			command. By default, preserves proxy settings.
 		"""
-		return {}
+		preserve_vars = (
+			# curl proxy vars
+			'http_proxy',
+			'https_proxy', 'HTTPS_PROXY',
+			'all_proxy', 'ALL_PROXY',
+			'no_proxy', 'NO_PROXY'
+		)
+
+		env = {}
+		for v in preserve_vars:
+			if v in os.environ:
+				env[v] = os.environ[v]
+		return env
 
 	@property
 	def cpv(self):
