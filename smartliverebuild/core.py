@@ -162,36 +162,37 @@ option.
 			packages = pdata['packages']
 			erraneous = pdata['erraneous']
 
-		if opts.erraneous_merge and len(erraneous) > 0:
-			packages.extend(erraneous)
-
-		# Check portdb for matches. Drop unmatched packages.
-		for p in list(packages):
-			if pm.Atom(p) not in pm.stack:
-				out.err('No packages matching %s in portdb, skipping.' % p)
-				packages.remove(p)
-
-		if not opts.pretend and opts.quickpkg and len(packages) >= 1:
-			out.s1('Calling quickpkg to create %s%d%s binary packages ...' % (out.white, len(packages), out.s1reset))
-
-			# backwards compat, nowadays quickpkg is in ${PATH}
-			if os.path.exists('/usr/sbin/quickpkg'):
-				cmd = ['/usr/sbin/quickpkg']
-			else:
-				cmd = ['quickpkg']
-			cmd.append('--include-config=y')
-			cmd.extend(packages)
-			out.s2(' '.join(cmd))
-			subprocess.Popen(cmd, stdout=sys.stderr).wait()
-
-		if len(packages) < 1:
-			out.result('No updates found')
-		else:
-			out.result('Found %s%d%s packages to rebuild.' % (out.white, len(packages), out.s1reset))
 	finally:
 		if childpid: # make sure that we leave no orphans
 			if childpid not in dead_children:
 				os.kill(childpid, signal.SIGTERM)
 			signal.signal(signal.SIGCHLD, old_chld)
+
+	if opts.erraneous_merge and len(erraneous) > 0:
+		packages.extend(erraneous)
+
+	# Check portdb for matches. Drop unmatched packages.
+	for p in list(packages):
+		if pm.Atom(p) not in pm.stack:
+			out.err('No packages matching %s in portdb, skipping.' % p)
+			packages.remove(p)
+
+	if not opts.pretend and opts.quickpkg and len(packages) >= 1:
+		out.s1('Calling quickpkg to create %s%d%s binary packages ...' % (out.white, len(packages), out.s1reset))
+
+		# backwards compat, nowadays quickpkg is in ${PATH}
+		if os.path.exists('/usr/sbin/quickpkg'):
+			cmd = ['/usr/sbin/quickpkg']
+		else:
+			cmd = ['quickpkg']
+		cmd.append('--include-config=y')
+		cmd.extend(packages)
+		out.s2(' '.join(cmd))
+		subprocess.Popen(cmd, stdout=sys.stderr).wait()
+
+	if len(packages) < 1:
+		out.result('No updates found')
+	else:
+		out.result('Found %s%d%s packages to rebuild.' % (out.white, len(packages), out.s1reset))
 
 	return packages
