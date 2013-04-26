@@ -45,7 +45,10 @@ class BaseVCSSupport(ABCObject):
 			'http_proxy',
 			'https_proxy', 'HTTPS_PROXY',
 			'all_proxy', 'ALL_PROXY',
-			'no_proxy', 'NO_PROXY'
+			'no_proxy', 'NO_PROXY',
+
+			# ssh agent
+			'SSH_AUTH_SOCK'
 		)
 
 		env = {}
