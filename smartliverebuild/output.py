@@ -19,7 +19,7 @@ class SLROutput(object):
 	s1reset = lime
 	s2reset = green
 	s3reset = cyan
-	errreset = yellow
+	errreset = red
 
 	def __init__(self):
 		self._cur_header = None
@@ -54,7 +54,7 @@ class SLROutput(object):
 		self.s3(msg)
 
 	def err(self, msg):
-		self.out('%s!!!%s %s%s%s\n' % (self.red, self.reset, self.errreset, msg, self.reset))
+		self.out('%s!!!%s %s%s%s\n' % (self.yellow, self.reset, self.errreset, msg, self.reset))
 		self._cur_header = None
 
 	def out(self, msg):
