@@ -6,7 +6,7 @@ import os, os.path, pickle, signal, subprocess, sys, time
 
 from .filtering import PackageFilter
 from .output import out
-from .vcs import NonLiveEbuild
+from .vcs import NonLiveEbuild, OtherEclass
 from .vcsload import VCSLoader
 
 class SLRFailure(Exception):
@@ -122,6 +122,8 @@ option.
 					except NonLiveEbuild as e:
 						out.s2('[%s]' % pkg.slotted_atom)
 						out.s3('%s%s%s' % (out.brown, e, out.reset))
+					except OtherEclass:
+						pass
 					except Exception as e:
 						if opts.debug:
 							raise

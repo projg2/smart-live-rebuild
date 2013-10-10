@@ -14,6 +14,11 @@ class NonLiveEbuild(Exception):
 		and will not cause rebuild of the package. """
 	pass
 
+class OtherEclass(Exception):
+	""" Exception to be raised whenever the package will use another
+		eclass and the current needs to be silently terminated. """
+	pass
+
 class BaseVCSSupport(ABCObject):
 	""" Common VCS support class details. """
 	_running = False

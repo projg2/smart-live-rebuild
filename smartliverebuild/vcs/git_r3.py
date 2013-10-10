@@ -2,18 +2,21 @@
 # (c) 2011 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
-from . import RemoteVCSSupport, NonLiveEbuild
+from . import RemoteVCSSupport, NonLiveEbuild, OtherEclass
 
 class GitR3Support(RemoteVCSSupport):
 	reqenv = ['EGIT_REPO_URI', 'EGIT_VERSION']
-	optenv = ['EGIT_BRANCH', 'EGIT_COMMIT']
+	optenv = ['EGIT_BRANCH', 'EGIT_COMMIT', 'EGIT_MASTER']
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, want_r3=True, **kwargs):
 		RemoteVCSSupport.__init__(self, *args, **kwargs)
 		if (self.env['EGIT_COMMIT']
 				and self.env['EGIT_COMMIT'] != (self.env.get('EGIT_BRANCH') or HEAD)):
 			raise NonLiveEbuild('EGIT_COMMIT set, package is not really a live one')
 		self.repo_uris = self.env['EGIT_REPO_URI'].split()
+
+		if want_r3 != bool(self.env['EGIT_MASTER']):
+			raise OtherEclass()
 
 	def __str__(self):
 		return '%s [%s]' % (self.repo_uris[0],
