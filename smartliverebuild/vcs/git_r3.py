@@ -9,9 +9,9 @@ class GitR3Support(RemoteVCSSupport):
 	optenv = ['EGIT_BRANCH', 'EGIT_COMMIT', 'EGIT_MASTER']
 
 	def __init__(self, *args, **kwargs):
-		want_r3 = 'want_r3' in kwargs
-		if want_r3:
-			del kwargs['want_r3']
+		want_r2 = 'want_r2' in kwargs
+		if want_r2:
+			del kwargs['want_r2']
 
 		RemoteVCSSupport.__init__(self, *args, **kwargs)
 		if (self.env['EGIT_COMMIT']
@@ -19,7 +19,7 @@ class GitR3Support(RemoteVCSSupport):
 			raise NonLiveEbuild('EGIT_COMMIT set, package is not really a live one')
 		self.repo_uris = self.env['EGIT_REPO_URI'].split()
 
-		if want_r3 != bool(self.env['EGIT_MASTER']):
+		if want_r2 == bool(self.env['EGIT_MASTER']):
 			raise OtherEclass()
 
 	def __str__(self):

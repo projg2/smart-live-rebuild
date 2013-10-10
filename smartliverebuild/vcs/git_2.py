@@ -6,5 +6,5 @@ from .git_r3 import GitR3Support
 
 class Git2Support(GitR3Support):
 	def __init__(self, *args, **kwargs):
-		kwargs['want_r3'] = False
+		kwargs['want_r2'] = True
 		GitR3Support.__init__(self, *args, **kwargs)
