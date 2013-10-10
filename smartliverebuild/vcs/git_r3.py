@@ -8,7 +8,11 @@ class GitR3Support(RemoteVCSSupport):
 	reqenv = ['EGIT_REPO_URI', 'EGIT_VERSION']
 	optenv = ['EGIT_BRANCH', 'EGIT_COMMIT', 'EGIT_MASTER']
 
-	def __init__(self, *args, want_r3=True, **kwargs):
+	def __init__(self, *args, **kwargs):
+		want_r3 = 'want_r3' in kwargs
+		if want_r3:
+			del kwargs['want_r3']
+
 		RemoteVCSSupport.__init__(self, *args, **kwargs)
 		if (self.env['EGIT_COMMIT']
 				and self.env['EGIT_COMMIT'] != (self.env.get('EGIT_BRANCH') or HEAD)):
