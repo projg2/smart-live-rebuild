@@ -111,19 +111,21 @@ option.
 						for vcs in pkg.inherits:
 							vcscl = getvcs(vcs, allowed)
 							if vcscl is not None:
-								vcs = vcscl(str(pkg.slotted_atom),
-										environ = pkg.environ,
-										opts = opts,
-										cache = cache)
-								processes.append(vcs)
-								loop_iter()
+								try:
+									vcs = vcscl(str(pkg.slotted_atom),
+											environ = pkg.environ,
+											opts = opts,
+											cache = cache)
+								except OtherEclass:
+									pass
+								else:
+									processes.append(vcs)
+									loop_iter()
 					except KeyboardInterrupt:
 						raise
 					except NonLiveEbuild as e:
 						out.s2('[%s]' % pkg.slotted_atom)
 						out.s3('%s%s%s' % (out.brown, e, out.reset))
-					except OtherEclass:
-						pass
 					except Exception as e:
 						if opts.debug:
 							raise
