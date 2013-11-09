@@ -149,7 +149,11 @@ option.
 						del cliargs[i]
 
 			if childpid == 0:
-				pdata = {'packages': packages, 'erraneous': erraneous}
+				pdata = {
+					'packages': packages,
+					'erraneous': erraneous,
+					'all_count': all_count,
+				}
 				pipe = os.fdopen(commpipe[1], 'wb')
 				pickle.dump(pdata, pipe, pickle.HIGHEST_PROTOCOL)
 				pipe.flush()
@@ -167,6 +171,7 @@ option.
 			signal.signal(signal.SIGINT, sigint)
 			packages = pdata['packages']
 			erraneous = pdata['erraneous']
+			all_count = pdata['all_count']
 
 	finally:
 		if childpid: # make sure that we leave no orphans
