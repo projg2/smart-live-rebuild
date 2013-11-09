@@ -76,6 +76,7 @@ option.
 
 			processes = []
 
+			all_count = [0]
 			packages = []
 			erraneous = []
 			cache = {}
@@ -89,6 +90,7 @@ option.
 							needsleep = False
 							if ret:
 								packages.append(vcs.cpv)
+							all_count[0] += 1
 							del processes[i]
 					except KeyboardInterrupt:
 						raise
@@ -195,8 +197,11 @@ option.
 		subprocess.Popen(cmd, stdout=sys.stderr).wait()
 
 	if len(packages) < 1:
-		out.result('No updates found')
+		out.result('No updates found (in %s%d%s live packages)'
+				% (out.white, all_count[0], out.s1reset))
 	else:
-		out.result('Found %s%d%s packages to rebuild.' % (out.white, len(packages), out.s1reset))
+		out.result('Found %s%d%s packages to rebuild (out of %s%d%s live packages).'
+				% (out.white, len(packages), out.s1reset,
+					out.white, all_count[0], out.s1reset))
 
 	return packages
