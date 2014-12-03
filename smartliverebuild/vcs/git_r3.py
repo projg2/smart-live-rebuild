@@ -1,5 +1,5 @@
 #	vim:fileencoding=utf-8
-# (c) 2011 Michał Górny <mgorny@gentoo.org>
+# (c) 2011-2014 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
 from . import RemoteVCSSupport, NonLiveEbuild, OtherEclass
@@ -15,7 +15,7 @@ class GitR3Support(RemoteVCSSupport):
 
 		RemoteVCSSupport.__init__(self, *args, **kwargs)
 		if (self.env['EGIT_COMMIT']
-				and self.env['EGIT_COMMIT'] != (self.env.get('EGIT_BRANCH') or HEAD)):
+				and self.env['EGIT_COMMIT'] != (self.env.get('EGIT_BRANCH') or 'HEAD')):
 			raise NonLiveEbuild('EGIT_COMMIT set, package is not really a live one')
 		self.repo_uris = self.env['EGIT_REPO_URI'].split()
 
