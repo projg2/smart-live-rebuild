@@ -38,7 +38,7 @@ class NeedRebuildPhaseSupport(BaseVCSSupport):
 		return BaseVCSSupport.__init__(self, *args, **kwargs)
 
 	def __str__(self):
-		return self._cpv
+		return 'pkg_needrebuild'
 
 	@property
 	def updatecmd(self):
