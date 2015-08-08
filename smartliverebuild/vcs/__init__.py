@@ -67,7 +67,7 @@ class BaseVCSSupport(ABCObject):
 		""" A package ID for update requestor. """
 		return self._cpv
 
-	def __init__(self, cpv, environ, opts, cache = None):
+	def __init__(self, cpv, environ, opts, cache = None, pkg = None):
 		""" Initialize the VCS class for package `cpv', storing it as
 			self.cpv. Get envvars from `environ' (self.reqenv + self.optenv).
 
@@ -89,7 +89,9 @@ class BaseVCSSupport(ABCObject):
 		self._cpv = cpv
 		self._opts = opts
 		self._cache = cache
-		self.env = environ.copy(*(self.reqenv + self.optenv))
+		self.env = {}
+		if (self.reqenv + self.optenv):
+			self.env.update(environ.copy(*(self.reqenv + self.optenv)))
 
 		missingvars = [v for v in self.reqenv if not self.env[v]]
 		if len(missingvars) > 0:
@@ -219,6 +221,11 @@ class BaseVCSSupport(ABCObject):
 		(sod, sed) = self.subprocess.communicate()
 		ret = self.subprocess.returncode
 		self._running = False
+
+		if sed:
+			for l in sed.decode().splitlines():
+				out.pkgs(self._header, '%s%s%s' %
+						(out.cyan, l, out.reset))
 
 		if ret == 0:
 			newrev = self.parseoutput(sod.decode('ASCII') if sod else '')
