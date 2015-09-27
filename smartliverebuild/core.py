@@ -110,12 +110,11 @@ option.
 			try:
 				for pkg in pm.installed.filter(filt):
 					try:
-						for vcs in ('-need-rebuild-phase',) + tuple(pkg.inherits):
+						for vcs in pkg.inherits:
 							vcscl = getvcs(vcs, allowed)
 							if vcscl is not None:
 								try:
 									vcs = vcscl(str(pkg.slotted_atom),
-											pkg = pkg,
 											environ = pkg.environ,
 											opts = opts,
 											cache = cache)
@@ -124,7 +123,6 @@ option.
 								else:
 									processes.append(vcs)
 									loop_iter()
-									break
 					except KeyboardInterrupt:
 						raise
 					except NonLiveEbuild as e:
