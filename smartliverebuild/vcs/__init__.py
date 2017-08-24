@@ -1,5 +1,5 @@
 #	vim:fileencoding=utf-8:noet
-# (c) 2011 Michał Górny <mgorny@gentoo.org>
+# (c) 2011-2017 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
 import locale, os, subprocess, time
@@ -51,6 +51,9 @@ class BaseVCSSupport(ABCObject):
 			'https_proxy', 'HTTPS_PROXY',
 			'all_proxy', 'ALL_PROXY',
 			'no_proxy', 'NO_PROXY',
+
+			# git
+			'GIT_PROXY_COMMAND',
 
 			# ssh agent
 			'SSH_AUTH_SOCK'
