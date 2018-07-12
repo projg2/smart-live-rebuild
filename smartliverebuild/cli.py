@@ -151,7 +151,7 @@ def main(argv):
 			print(p)
 		return 0
 	else:
-		cmd = ['emerge', '--oneshot']
+		cmd = ['emerge', '--oneshot', '--usepkg=n']
 		cmd.extend(args)
 		cmd.extend(packages)
 		out.s2(' '.join(cmd))
