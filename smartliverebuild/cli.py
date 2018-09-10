@@ -154,6 +154,12 @@ def main(argv):
 		cmd = ['emerge', '--oneshot', '--usepkg=n', '--getbinpkg=n']
 		cmd.extend(args)
 		cmd.extend(packages)
+		env = os.environ.copy()
+		feats = env.get('FEATURES', '').split()
+		while 'getbinpkg' in feats:
+			feats.remove('getbinpkg')
+		feats.append('-getbinpkg')
+		env['FEATURES'] = ' '.join(feats)
 		out.s2(' '.join(cmd))
-		os.execv('/usr/bin/emerge', cmd)
+		os.execve('/usr/bin/emerge', cmd, env)
 		return 126
