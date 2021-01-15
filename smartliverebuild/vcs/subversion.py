@@ -8,7 +8,7 @@ from . import RemoteVCSSupport, NonLiveEbuild
 
 class SubversionSupport(RemoteVCSSupport):
 	reqenv = ['ESVN_REPO_URI', 'ESVN_STORE_DIR', 'ESVN_WC_REVISION']
-	optenv = ['ESVN_REVISION']
+	optenv = ['ESVN_REVISION', 'ESVN_USER', 'ESVN_PASSWORD']
 
 	revre = re.compile('(?m)^Last Changed Rev: (\d+)$')
 
@@ -43,5 +43,9 @@ class SubversionSupport(RemoteVCSSupport):
 	@property
 	def updatecmd(self):
 		# XXX: branch?
-		return 'svn --config-dir %s/.subversion info %s' % (
-			self.env['ESVN_STORE_DIR'], self.env['ESVN_REPO_URI'])
+		user_pass = ''
+		if self.env['ESVN_USER'] and self.env['ESVN_PASSWORD']:
+			user_pass = ' --username="%s" --password="%s" --no-auth-cache' % (
+				self.env['ESVN_USER'], self.env['ESVN_PASSWORD'])
+		return 'svn --config-dir %s/.subversion info %s%s' % (
+			self.env['ESVN_STORE_DIR'], self.env['ESVN_REPO_URI'], user_pass)
