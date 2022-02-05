@@ -27,7 +27,7 @@ class GitR3Support(RemoteVCSSupport):
 				self.env.get('EGIT_BRANCH') or 'HEAD')
 
 	def parseoutput(self, out):
-		return out.split()[0]
+		return None if out == '' else out.split()[0]
 
 	@property
 	def savedrev(self):
