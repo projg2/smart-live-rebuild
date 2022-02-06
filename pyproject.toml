@@ -27,3 +27,6 @@ Homepage = "https://github.com/mgorny/smart-live-rebuild/"
 
 [tool.flit.sdist]
 include = ["*.example", "COPYING"]
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules"
