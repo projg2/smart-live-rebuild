@@ -8,7 +8,7 @@ from optparse import OptionParser, Option, OptionValueError
 
 from gentoopm import get_package_manager
 
-from . import PV
+from . import __version__
 from .config import Config, conf_getvcs
 from .core import SmartLiveRebuild, SLRFailure
 from .output import out
@@ -47,7 +47,7 @@ class CLIConfig(Config):
 def parse_options(argv):
 	opt = OptionParser(
 			usage='%prog [options] -- [emerge options]',
-			version='%%prog %s' % PV,
+			version='%%prog %s' % __version__,
 			description='Enumerate all live packages in system, check their repositories for updates and remerge the updated ones.',
 			option_class=SLROption
 	)

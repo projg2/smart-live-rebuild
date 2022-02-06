@@ -1,0 +1,29 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "smartliverebuild"
+authors = [{name = "Michał Górny", email = "mgorny@gentoo.org"}]
+dynamic = ["version", "description"]
+readme = {file = "README", "content-type" = "text/x-rst" }
+license = {file = "COPYING" }
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Environment :: Console',
+    'Environment :: Plugins',
+    'Intended Audience :: System Administrators',
+    'License :: OSI Approved :: BSD License',
+    'Operating System :: POSIX',
+    'Programming Language :: Python',
+    'Topic :: System :: Installation/Setup',
+]
+
+[project.scripts]
+"smart-live-rebuild" = "smartliverebuild.cli:setuptools_main"
+
+[project.urls]
+Homepage = "https://github.com/mgorny/smart-live-rebuild/"
+
+[tool.flit.sdist]
+include = ["*.example", "COPYING"]
