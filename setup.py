@@ -1,9 +1,9 @@
 #!/usr/bin/python
 #	vim:fileencoding=utf-8:noet
-# (c) 2011 Michał Górny <mgorny@gentoo.org>
+# (c) 2011-2022 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
-from distutils.core import setup, Command
+from setuptools import setup, Command
 
 import os.path, sys
 
@@ -40,7 +40,11 @@ setup(
 		url = 'http://github.com/mgorny/smart-live-rebuild',
 
 		packages = ['smartliverebuild', 'smartliverebuild.vcs'],
-		scripts = ['smart-live-rebuild'],
+		entry_points={
+			'console_scripts': [
+				'smart-live-rebuild=smartliverebuild.cli:setuptools_main',
+			],
+		},
 
 		classifiers = [
 			'Development Status :: 5 - Production/Stable',

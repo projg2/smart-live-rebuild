@@ -1,8 +1,8 @@
 #	vim:fileencoding=utf-8:noet
-# (c) 2011 Michał Górny <mgorny@gentoo.org>
+# (c) 2011-2022 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
-import itertools, os
+import itertools, os, sys
 from copy import copy
 from optparse import OptionParser, Option, OptionValueError
 
@@ -157,3 +157,7 @@ def main(argv):
 		out.s2(' '.join(cmd))
 		os.execv('/usr/bin/emerge', cmd)
 		return 126
+
+
+def setuptools_main():
+	sys.exit(main(sys.argv))
