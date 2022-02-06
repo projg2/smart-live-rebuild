@@ -13,24 +13,6 @@ try:
 except ImportError:
 	PV = 'unknown'
 
-class TestCommand(Command):
-	user_options = []
-
-	def initialize_options(self):
-		pass
-
-	def finalize_options(self):
-		pass
-
-	def run(self):
-		import unittest, doctest
-
-		tests = unittest.TestSuite()
-		tests.addTests(doctest.DocTestSuite('smartliverebuild.filtering'))
-
-		r = unittest.TextTestRunner()
-		res = r.run(tests)
-		sys.exit(0 if res.wasSuccessful() else 1)
 
 setup(
 		name = 'smart-live-rebuild',
@@ -56,8 +38,4 @@ setup(
 			'Programming Language :: Python',
 			'Topic :: System :: Installation/Setup'
 		],
-
-		cmdclass = {
-			'test': TestCommand
-		}
 )
