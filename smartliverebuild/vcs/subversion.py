@@ -11,7 +11,7 @@ class SubversionSupport(RemoteVCSSupport):
     reqenv = ["ESVN_REPO_URI", "ESVN_STORE_DIR", "ESVN_WC_REVISION"]
     optenv = ["ESVN_REVISION", "ESVN_USER", "ESVN_PASSWORD"]
 
-    revre = re.compile("(?m)^Last Changed Rev: (\d+)$")
+    revre = re.compile(r"(?m)^Last Changed Rev: (\d+)$")
 
     @property
     def callenv(self):

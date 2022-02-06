@@ -29,7 +29,7 @@ class DarcsSupport(CheckoutVCSSupport):
     @property
     def currentrev(self):
         result = self.call(["darcs", "show", "repo"])
-        return int(re.search("Num Patches: ([0-9]+)", result).group(1))
+        return int(re.search(r"Num Patches: ([0-9]+)", result).group(1))
 
     @property
     def savedrev(self):
