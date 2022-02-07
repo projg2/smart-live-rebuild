@@ -18,6 +18,13 @@ classifiers = [
     'Programming Language :: Python',
     'Topic :: System :: Installation/Setup',
 ]
+dependencies = [
+    "gentoopm",
+]
+
+[project.optional-dependencies]
+pkgcore = ["gentoopm[pkgcore]"]
+portage = ["gentoopm[portage]"]
 
 [project.scripts]
 "smart-live-rebuild" = "smartliverebuild.cli:setuptools_main"
