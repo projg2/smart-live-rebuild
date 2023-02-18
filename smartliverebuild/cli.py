@@ -2,7 +2,7 @@
 # (c) 2011-2022 Michał Górny <mgorny@gentoo.org>
 # Released under the terms of the 2-clause BSD license.
 
-import itertools, os, sys
+import itertools, os, sys, shlex
 from copy import copy
 from optparse import OptionParser, Option, OptionValueError
 
@@ -246,7 +246,7 @@ def main(argv):
         ]
         cmd.extend(args)
         cmd.extend(packages)
-        out.s2(" ".join(cmd))
+        out.s2(shlex.join(cmd))
         os.execv("/usr/bin/emerge", cmd)
         return 126
 
